@@ -19,6 +19,20 @@ async function getCourse(slug: string) {
   } catch { return null; }
 }
 
+async function getSimilarCourses(category: string, excludeId: string) {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from('mo_courses')
+      .select('id, title_mn, title_en, slug, category, price, original_price, rating, rating_count, student_count, is_bestseller, cover_image_url')
+      .eq('is_published', true)
+      .eq('category', category)
+      .neq('id', excludeId)
+      .limit(4);
+    return data || [];
+  } catch { return []; }
+}
+
 async function getReviews(courseId: string) {
   try {
     const supabase = await createClient();
@@ -95,7 +109,10 @@ export default async function CourseDetailPage({
   const course = await getCourse(slug);
   if (!course) notFound();
 
-  const reviews = await getReviews(course.id);
+  const [reviews, similarCourses] = await Promise.all([
+    getReviews(course.id),
+    getSimilarCourses(String(course.category || ''), course.id),
+  ]);
 
   const title       = locale === 'mn' ? course.title_mn : (course.title_en || course.title_mn);
   const description = locale === 'mn' ? course.description_mn : (course.description_en || course.description_mn);
@@ -194,34 +211,61 @@ export default async function CourseDetailPage({
               {instructorName && <span>👩‍🏫 {instructorName}</span>}
             </div>
 
-            {/* Price + CTA */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <Link href="#enroll" style={{
-                background: '#00B5AD', color: '#fff',
-                padding: '13px 32px', borderRadius: '8px',
-                fontWeight: 700, textDecoration: 'none', fontSize: '16px',
-                boxShadow: '0 4px 24px rgba(0,181,173,0.4)',
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                Элсэх
-              </Link>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '22px', fontWeight: 800, color: price === 0 ? '#10b981' : '#fff' }}>
-                  {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
-                </span>
-                {originalPrice > price && originalPrice > 0 && (
-                  <>
-                    <span style={{ fontSize: '14px', color: '#555', textDecoration: 'line-through' }}>
-                      {originalPrice.toLocaleString()}₮
-                    </span>
-                    <span style={{ fontSize: '11px', background: '#e53e3e', color: '#fff', padding: '2px 7px', borderRadius: '4px', fontWeight: 700 }}>
-                      {discountPct}% OFF
-                    </span>
-                  </>
-                )}
-              </div>
+            {/* Price */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '26px', fontWeight: 800, color: price === 0 ? '#10b981' : '#fff' }}>
+                {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
+              </span>
+              {originalPrice > price && originalPrice > 0 && (
+                <>
+                  <span style={{ fontSize: '15px', color: '#555', textDecoration: 'line-through' }}>
+                    {originalPrice.toLocaleString()}₮
+                  </span>
+                  <span style={{ fontSize: '11px', background: '#e53e3e', color: '#fff', padding: '3px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                    {discountPct}% OFF
+                  </span>
+                </>
+              )}
             </div>
+
+            {/* CTA Buttons */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {price === 0 ? (
+                <Link href={`/${locale}/checkout/${slug}`} style={{
+                  background: '#00B5AD', color: '#fff',
+                  padding: '13px 32px', borderRadius: '8px',
+                  fontWeight: 700, textDecoration: 'none', fontSize: '15px',
+                  boxShadow: '0 4px 24px rgba(0,181,173,0.35)',
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                }}>
+                  Үнэгүй авах
+                </Link>
+              ) : (
+                <>
+                  <Link href={`/${locale}/checkout/${slug}`} style={{
+                    background: '#00B5AD', color: '#fff',
+                    padding: '13px 28px', borderRadius: '8px',
+                    fontWeight: 700, textDecoration: 'none', fontSize: '15px',
+                    boxShadow: '0 4px 24px rgba(0,181,173,0.35)',
+                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  }}>
+                    Худалдан авах
+                  </Link>
+                  <Link href={`/${locale}/cart?add=${slug}`} style={{
+                    background: 'rgba(255,255,255,0.08)', color: '#e5e5e5',
+                    padding: '13px 24px', borderRadius: '8px',
+                    fontWeight: 600, textDecoration: 'none', fontSize: '15px',
+                    border: '1px solid rgba(255,255,255,0.18)',
+                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  }}>
+                    🛒 Сагсанд нэмэх
+                  </Link>
+                </>
+              )}
+            </div>
+            <p style={{ fontSize: '11px', color: '#555', marginTop: '10px' }}>
+              Бүртгэлгүйгээр худалдан авах боломжтой
+            </p>
           </div>
         </div>
       </div>
@@ -343,6 +387,76 @@ export default async function CourseDetailPage({
             ) : (
               <p style={{ color: '#555', fontSize: '14px', margin: 0 }}>Сэтгэгдэл байхгүй байна.</p>
             )}
+          </SectionCard>
+        )}
+
+        {/* 6. Similar courses */}
+        {similarCourses.length > 0 && (
+          <SectionCard title={`Төстэй сургалтууд — ${course.category}`}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+              {similarCourses.map((sc) => {
+                const scTitle = locale === 'mn' ? sc.title_mn : (sc.title_en || sc.title_mn);
+                const scPrice = Number(sc.price) || 0;
+                const scOrig  = Number(sc.original_price) || 0;
+                const scRating = Number(sc.rating) || 0;
+                const scDisc  = scOrig > scPrice && scOrig > 0 ? Math.round((1 - scPrice / scOrig) * 100) : 0;
+                const scGrad  = CAT_GRADIENTS[String(sc.category || '')] || CAT_GRADIENTS.default;
+                return (
+                  <Link key={sc.id} href={sc.slug ? `/${locale}/courses/${sc.slug}` : '#'}
+                    style={{ textDecoration: 'none', display: 'block' }}>
+                    <div style={{
+                      background: '#111', border: '1px solid #2a2a2a', borderRadius: '10px',
+                      overflow: 'hidden', transition: 'border-color 0.2s',
+                    }}>
+                      {/* Thumbnail */}
+                      <div style={{
+                        height: '110px', background: sc.cover_image_url ? `url(${sc.cover_image_url}) center/cover` : scGrad,
+                        position: 'relative',
+                      }}>
+                        {sc.is_bestseller && (
+                          <span style={{
+                            position: 'absolute', top: '8px', right: '8px',
+                            background: '#f59e0b', color: '#000', fontSize: '9px',
+                            fontWeight: 800, padding: '2px 6px', borderRadius: '3px',
+                          }}>ШИЛДЭГ</span>
+                        )}
+                        {scDisc > 0 && (
+                          <span style={{
+                            position: 'absolute', bottom: '8px', left: '8px',
+                            background: '#e53e3e', color: '#fff', fontSize: '9px',
+                            fontWeight: 700, padding: '2px 6px', borderRadius: '3px',
+                          }}>{scDisc}% OFF</span>
+                        )}
+                      </div>
+                      {/* Info */}
+                      <div style={{ padding: '10px 12px' }}>
+                        <p style={{
+                          fontSize: '13px', fontWeight: 600, color: '#e5e5e5',
+                          margin: '0 0 4px', lineHeight: 1.3,
+                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                        }}>{scTitle}</p>
+                        {scRating > 0 && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '4px' }}>
+                            <span style={{ color: '#f59e0b', fontSize: '11px' }}>★</span>
+                            <span style={{ color: '#f59e0b', fontSize: '11px', fontWeight: 700 }}>{scRating.toFixed(1)}</span>
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: scPrice === 0 ? '#10b981' : '#fff' }}>
+                            {scPrice === 0 ? 'Үнэгүй' : `${scPrice.toLocaleString()}₮`}
+                          </span>
+                          {scOrig > scPrice && scOrig > 0 && (
+                            <span style={{ fontSize: '11px', color: '#555', textDecoration: 'line-through' }}>
+                              {scOrig.toLocaleString()}₮
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </SectionCard>
         )}
 
