@@ -97,20 +97,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             {t('hero_title')}
           </h1>
 
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '10px',
-            fontSize: '13px', fontWeight: 500, color: '#b0bcc8',
-            marginBottom: '1rem',
-          }}>
-            <span style={{ color: '#00B5AD', fontWeight: 700 }}>Платформ</span>
-            <span style={{ color: '#444' }}>•</span>
-            <span>Сургалт</span>
-            <span style={{ color: '#444' }}>•</span>
-            <span>Нийтлэл</span>
-            <span style={{ color: '#444' }}>•</span>
-            <span>Видео & Кино</span>
-            <span style={{ color: '#444' }}>•</span>
-            <span>Дэлгүүр</span>
+          <div style={{ display: 'none' }}>
           </div>
 
           <p style={{
