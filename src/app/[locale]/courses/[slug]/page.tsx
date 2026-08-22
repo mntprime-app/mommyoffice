@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 async function getCourse(slug: string) {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     // Fetch course first
     const { data: course, error } = await supabase
       .from('mo_courses')
@@ -30,7 +30,7 @@ async function getCourse(slug: string) {
 
 async function getSimilarCourses(category: string, excludeId: string) {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_courses')
       .select('id, title_mn, title_en, slug, category, price, original_price, rating, rating_count, student_count, is_bestseller, cover_image_url')
@@ -44,7 +44,7 @@ async function getSimilarCourses(category: string, excludeId: string) {
 
 async function getReviews(courseId: string) {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_reviews')
       .select('id, rating, review_text, reviewer_name, created_at')
