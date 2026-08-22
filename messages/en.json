@@ -28,6 +28,14 @@
     "invalid_token": "This access link is invalid or has expired.",
     "contact": "Please contact us for assistance."
   },
+  "articles": {
+    "title": "Articles",
+    "all_categories": "All Categories",
+    "read_more": "Read More",
+    "no_articles": "No articles yet",
+    "back": "Back",
+    "published": "Published"
+  },
   "footer": {
     "tagline": "Mongolia's #1 women's lifestyle & learning platform",
     "rights": "All rights reserved."

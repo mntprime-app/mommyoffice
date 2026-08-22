@@ -6,10 +6,35 @@ import { routing } from '@/i18n/routing';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 
-export const metadata: Metadata = {
-  title: "Mommyoffice — Mongolia's #1 Women's Platform",
-  description: 'Хичээл, нийтлэл, lifestyle — Монголын эмэгтэйчүүдэд зориулсан №1 платформ',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isMn = locale === 'mn';
+  return {
+    title: {
+      default: "Mommyoffice — Mongolia's #1 Women's Platform",
+      template: '%s | Mommyoffice',
+    },
+    description: isMn
+      ? 'Хичээл, нийтлэл, lifestyle — Монголын эмэгтэйчүүдэд зориулсан №1 платформ'
+      : "Courses, articles, and lifestyle content for Mongolian women — Mongolia's #1 platform",
+    openGraph: {
+      siteName: 'Mommyoffice',
+      locale: isMn ? 'mn_MN' : 'en_US',
+      type: 'website',
+    },
+    alternates: {
+      canonical: `https://mommyoffice.com/${locale}`,
+      languages: {
+        'mn': 'https://mommyoffice.com/mn',
+        'en': 'https://mommyoffice.com/en',
+      },
+    },
+  };
+}
 
 export default async function LocaleLayout({
   children,

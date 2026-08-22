@@ -32,9 +32,10 @@ export default function Footer() {
               </div>
             </div>
             <div>
-              <p style={{ color: '#fff', fontWeight: 600, marginBottom: '0.75rem', fontSize: '14px' }}>Contact</p>
+              <p style={{ color: '#fff', fontWeight: 600, marginBottom: '0.75rem', fontSize: '14px' }}>Social</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '14px' }}>
-                <a href="https://facebook.com/mommyoffice" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>Facebook</a>
+                <a href="https://www.facebook.com/MommyofficeMN" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>Facebook</a>
+                <a href="https://www.instagram.com/mommyoffice_mo/" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>Instagram</a>
               </div>
             </div>
           </div>
