@@ -51,11 +51,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         overflow: 'hidden', background: '#000',
       }}>
         <div style={{
-          position: 'absolute', inset: 0,
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
           background: 'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)',
         }}>
           <div style={{
-            position: 'absolute', inset: 0,
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
             backgroundImage: `
               radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%),
               radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)
@@ -63,7 +63,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           }} />
         </div>
         <div style={{
-          position: 'absolute', inset: 0,
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
           background: 'linear-gradient(to right, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 55%, transparent 100%)',
         }} />
         <div style={{
@@ -248,7 +248,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     : <span style={{ fontSize: '5rem' }}>{String(featuredArticle?.emoji || '✨')}</span>
                   }
                   <div style={{
-                    position: 'absolute', inset: 0,
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
                     background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 60%)',
                   }} />
                   <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px' }}>
@@ -295,11 +295,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                         position: 'relative', overflow: 'hidden',
                       }}>
                         {a.cover_image_url
-                          ? <img src={String(a.cover_image_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: '0' }} />
+                          ? <img src={String(a.cover_image_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
                           : <span style={{ fontSize: '2.5rem' }}>{String(a.emoji || '✨')}</span>
                         }
                         <div style={{
-                          position: 'absolute', inset: 0,
+                          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
                           background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)',
                         }} />
                         <div style={{ position: 'absolute', bottom: '12px', left: '14px', right: '14px' }}>
@@ -394,7 +394,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   }}>
                     <span style={{ fontSize: '3rem' }}>{v.emoji}</span>
                     <div style={{
-                      position: 'absolute', inset: 0,
+                      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
                       background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)',
                     }} />
                     <span style={{
