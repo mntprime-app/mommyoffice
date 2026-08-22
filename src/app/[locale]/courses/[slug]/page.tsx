@@ -6,16 +6,25 @@ import { createClient } from '@/lib/supabase/server';
 async function getCourse(slug: string) {
   try {
     const supabase = await createClient();
-    const { data } = await supabase
+    // Fetch course first
+    const { data: course, error } = await supabase
       .from('mo_courses')
-      .select(`
-        *,
-        instructor:mo_instructors(*)
-      `)
+      .select('*')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
-    return data;
+    if (error || !course) return null;
+    // Fetch instructor separately to avoid FK join issues
+    let instructor = null;
+    if (course.mo_instructor_id) {
+      const { data: inst } = await supabase
+        .from('mo_instructors')
+        .select('*')
+        .eq('id', course.mo_instructor_id)
+        .single();
+      instructor = inst;
+    }
+    return { ...course, instructor };
   } catch { return null; }
 }
 
