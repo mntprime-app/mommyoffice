@@ -44,6 +44,7 @@ export default function Navbar() {
   const lp = (path: string) => `/${locale}${path}`;
 
   const navLinks = [
+    { href: lp('/'), label: 'Нүүр' },
     { href: lp('/courses'), label: 'Сургалтууд' },
     { href: lp('/articles'), label: 'Нийтлэл' },
     { href: lp('/videos'), label: 'Кино' },
