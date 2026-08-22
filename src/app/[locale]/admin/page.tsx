@@ -75,19 +75,33 @@ export default async function AdminPage({
 
       {/* Quick actions */}
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <Link href={`/${locale}/admin/courses`} style={{
+        <Link href={`/${locale}/admin/courses/new`} style={{
           background: 'var(--teal)', color: '#fff',
           padding: '12px 24px', borderRadius: '10px',
           fontWeight: 600, textDecoration: 'none'
         }}>
           + Хичээл нэмэх
         </Link>
-        <Link href={`/${locale}/admin/articles`} style={{
+        <Link href={`/${locale}/admin/articles/new`} style={{
           background: '#6366f1', color: '#fff',
           padding: '12px 24px', borderRadius: '10px',
           fontWeight: 600, textDecoration: 'none'
         }}>
           + Нийтлэл нэмэх
+        </Link>
+        <Link href={`/${locale}/admin/courses`} style={{
+          background: '#f3f4f6', color: 'var(--foreground)',
+          padding: '12px 24px', borderRadius: '10px',
+          fontWeight: 600, textDecoration: 'none'
+        }}>
+          Хичээлүүд харах
+        </Link>
+        <Link href={`/${locale}/admin/articles`} style={{
+          background: '#f3f4f6', color: 'var(--foreground)',
+          padding: '12px 24px', borderRadius: '10px',
+          fontWeight: 600, textDecoration: 'none'
+        }}>
+          Нийтлэлүүд харах
         </Link>
       </div>
     </div>

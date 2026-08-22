@@ -37,12 +37,7 @@ export default function AdminLoginPage() {
         borderRadius: '16px', padding: '2.5rem', width: '100%', maxWidth: '400px'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            width: '48px', height: '48px', background: 'var(--teal)',
-            borderRadius: '12px', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', color: '#fff', fontWeight: 700,
-            fontSize: '22px', margin: '0 auto 1rem'
-          }}>M</div>
+          <img src="/squarelogo.png" alt="Mommyoffice" style={{ width: '64px', height: '64px', objectFit: 'contain', margin: '0 auto 1rem', display: 'block' }} />
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Admin нэвтрэх</h1>
           <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '0.25rem' }}>Mommyoffice удирдлагын самбар</p>
         </div>

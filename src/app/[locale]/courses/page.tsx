@@ -98,8 +98,8 @@ export default async function CoursesPage({
           const slug = course.slug ? `/${locale}/courses/${course.slug}` : '#';
 
           return (
-            <Link key={String(course.id)} href={slug} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <article style={{ borderRadius: '12px', overflow: 'hidden', background: '#fff', border: '1px solid var(--border)', height: '100%' }}>
+            <Link key={String(course.id)} href={slug} style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}>
+              <article style={{ borderRadius: '12px', overflow: 'hidden', background: '#fff', border: '1px solid var(--border)', width: '100%', display: 'flex', flexDirection: 'column' }}>
                 {/* Course thumbnail */}
                 <div style={{
                   height: '175px',
@@ -128,7 +128,7 @@ export default async function CoursesPage({
                 </div>
 
                 {/* Course info */}
-                <div style={{ padding: '1rem' }}>
+                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
                   <h3 style={{
                     fontWeight: 700, fontSize: '15px', lineHeight: 1.4,
                     marginBottom: '0.5rem', color: 'var(--foreground)',
@@ -137,17 +137,16 @@ export default async function CoursesPage({
                   }}>
                     {title}
                   </h3>
-                  {desc && (
-                    <p style={{
-                      fontSize: '13px', color: '#6b7280', lineHeight: 1.5,
-                      marginBottom: '1rem',
-                      display: '-webkit-box', WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical', overflow: 'hidden'
-                    }}>
-                      {desc}
-                    </p>
-                  )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p style={{
+                    fontSize: '13px', color: '#6b7280', lineHeight: 1.5,
+                    marginBottom: '0',
+                    display: '-webkit-box', WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    minHeight: '2.6em',
+                  }}>
+                    {desc || ' '}
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '0.75rem' }}>
                     <span style={{ fontWeight: 800, fontSize: '17px', color: price === 0 ? '#10b981' : 'var(--foreground)' }}>
                       {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
                     </span>

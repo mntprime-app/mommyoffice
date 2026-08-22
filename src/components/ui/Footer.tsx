@@ -13,13 +13,8 @@ export default function Footer() {
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', marginBottom: '2rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-              <div style={{
-                width: '32px', height: '32px', background: 'var(--teal)',
-                borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontWeight: 700, fontSize: '16px'
-              }}>M</div>
-              <span style={{ color: '#fff', fontWeight: 700, fontSize: '16px' }}>Mommyoffice</span>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <img src="/whitelogo.png" alt="Mommyoffice" style={{ height: '36px', width: 'auto' }} />
             </div>
             <p style={{ fontSize: '14px', maxWidth: '260px', lineHeight: '1.6' }}>{t('tagline')}</p>
           </div>

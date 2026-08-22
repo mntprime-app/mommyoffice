@@ -1,8 +1,42 @@
 'use client';
 import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+// Drop logo.png into /public/ and it will appear automatically.
+// Defaults to the teal "M" wordmark; switches to the image only after confirming the file loads.
+function LogoMark() {
+  const [hasLogo, setHasLogo] = useState(false);
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.onload = () => setHasLogo(true);
+    img.onerror = () => setHasLogo(false);
+    img.src = '/logo.png';
+  }, []);
+
+  if (hasLogo) {
+    return (
+      <img
+        src="/logo.png"
+        alt="Mommyoffice"
+        style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
+      />
+    );
+  }
+  return (
+    <>
+      <div style={{
+        width: '36px', height: '36px', background: 'var(--teal)',
+        borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#fff', fontWeight: 700, fontSize: '18px'
+      }}>M</div>
+      <span style={{ fontWeight: 700, fontSize: '18px', color: 'var(--teal)', letterSpacing: '-0.5px' }}>
+        Mommyoffice
+      </span>
+    </>
+  );
+}
 
 export default function Navbar() {
   const t = useTranslations('nav');
@@ -17,14 +51,7 @@ export default function Navbar() {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
         {/* Logo */}
         <Link href={localePath('/')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-          <div style={{
-            width: '36px', height: '36px', background: 'var(--teal)',
-            borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontWeight: 700, fontSize: '18px'
-          }}>M</div>
-          <span style={{ fontWeight: 700, fontSize: '18px', color: 'var(--teal)', letterSpacing: '-0.5px' }}>
-            Mommyoffice
-          </span>
+          <LogoMark />
         </Link>
 
         {/* Desktop nav */}

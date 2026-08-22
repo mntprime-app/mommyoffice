@@ -163,6 +163,8 @@ function ArticleCard({
         background: '#fff',
         transition: 'box-shadow 0.2s, transform 0.2s',
         height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
         {/* Cover */}
         <div style={{
@@ -180,7 +182,7 @@ function ArticleCard({
         </div>
 
         {/* Body */}
-        <div style={{ padding: '18px 20px' }}>
+        <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <span style={{
               fontSize: '11px', fontWeight: 700, color: 'var(--teal)',
@@ -197,6 +199,7 @@ function ArticleCard({
             lineHeight: 1.5, marginBottom: '8px',
             display: '-webkit-box', WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical', overflow: 'hidden',
+            minHeight: '3em',
           }}>
             {title}
           </h2>
@@ -212,7 +215,7 @@ function ArticleCard({
           )}
 
           <span style={{
-            display: 'inline-block', marginTop: '12px',
+            display: 'inline-block', marginTop: 'auto', paddingTop: '12px',
             color: 'var(--teal)', fontSize: '13px', fontWeight: 600,
           }}>
             {t('read_more')} →
