@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "home": "Home",
+    "courses": "Courses",
+    "articles": "Articles",
+    "about": "About",
+    "login": "Login"
+  },
+  "home": {
+    "hero_title": "Mongolia's #1 Platform for Women",
+    "hero_subtitle": "Learn. Grow. Live your best life.",
+    "hero_cta": "Browse Courses",
+    "featured_courses": "Featured Courses",
+    "latest_articles": "Latest Articles",
+    "view_all": "View All"
+  },
+  "courses": {
+    "title": "Courses",
+    "all_categories": "All Categories",
+    "enroll": "Enroll",
+    "price": "Price",
+    "free": "Free",
+    "instructor": "Instructor",
+    "lessons": "lessons"
+  },
+  "access": {
+    "loading": "Loading your course...",
+    "invalid_token": "This access link is invalid or has expired.",
+    "contact": "Please contact us for assistance."
+  },
+  "footer": {
+    "tagline": "Mongolia's #1 women's lifestyle & learning platform",
+    "rights": "All rights reserved."
+  }
+}
