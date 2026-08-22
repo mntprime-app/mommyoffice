@@ -128,7 +128,7 @@ export default async function ArticlesPage({
           </span>
 
           <h1 style={{
-            fontSize: 'clamp(1.8rem,4.5vw,3.4rem)', fontWeight: 800,
+            fontSize: 'clamp(1.6rem, 3vw, 2.6rem)', fontWeight: 800,
             lineHeight: 1.15, color: '#fff', marginBottom: '0.75rem',
             letterSpacing: '-0.5px', textShadow: '0 2px 16px rgba(0,0,0,0.5)',
           }}>

@@ -120,9 +120,9 @@ export default async function CoursesPage({
           </span>
 
           <h1 style={{
-            fontSize: 'clamp(2rem,5vw,3.8rem)', fontWeight: 800,
-            lineHeight: 1.1, color: '#fff', marginBottom: '0.75rem',
-            letterSpacing: '-1px', textShadow: '0 2px 16px rgba(0,0,0,0.5)',
+            fontSize: 'clamp(1.6rem, 3vw, 2.6rem)', fontWeight: 800,
+            lineHeight: 1.15, color: '#fff', marginBottom: '0.75rem',
+            letterSpacing: '-0.5px', textShadow: '0 2px 16px rgba(0,0,0,0.5)',
           }}>
             {featuredTitle}
           </h1>
