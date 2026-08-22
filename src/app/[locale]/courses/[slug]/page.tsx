@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/server';
+import { ShareButton } from '@/components/ui/ShareButton';
 
 async function getCourse(slug: string) {
   try {
@@ -275,12 +276,43 @@ export default async function CourseDetailPage({
             <p style={{ fontSize: '11px', color: '#555', marginTop: '10px' }}>
               Бүртгэлгүйгээр худалдан авах боломжтой
             </p>
+
+            {/* Share */}
+            <div style={{ marginTop: '1.25rem' }}>
+              <ShareButton
+                url={`https://mommyoffice-smoky.vercel.app/${locale}/courses/${slug}`}
+                title={title}
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* ── CONTENT ── */}
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2.5rem 4%' }}>
+
+        {/* 0. Course summary card */}
+        <SectionCard title="Сургалтын агуулга">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
+            {[
+              { icon: '📖', value: `${lectureCount} хичээл`, label: durationText ? `(${durationText})` : '' },
+              { icon: '📥', value: `${Number(course.download_count) || 0} файл`, label: 'татаж авах материал' },
+              { icon: '✏️', value: `${Number(course.exercise_count) || 0} дасгал`, label: 'практик ажил' },
+              { icon: '📄', value: `${Number(course.article_count) || 0} нийтлэл`, label: 'нэмэлт унших' },
+              ...(course.has_final_project ? [{ icon: '🏆', value: 'Эцсийн төсөл', label: 'багтсан' }] : []),
+              ...(course.has_certificate ? [{ icon: '🎓', value: 'Гэрчилгээ', label: 'дүүргэсний дараа' }] : []),
+            ].map((item, i) => (
+              <div key={i} style={{
+                background: '#111', border: '1px solid #2a2a2a', borderRadius: '8px',
+                padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '4px',
+              }}>
+                <span style={{ fontSize: '22px' }}>{item.icon}</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#e5e5e5' }}>{item.value}</span>
+                {item.label && <span style={{ fontSize: '11px', color: '#666' }}>{item.label}</span>}
+              </div>
+            ))}
+          </div>
+        </SectionCard>
 
         {/* 1. What you'll learn */}
         {learnItems.length > 0 && (
@@ -297,19 +329,51 @@ export default async function CourseDetailPage({
         )}
 
         {/* 2. Course outline */}
-        {lectureCount > 0 && (
+        {(lectureCount > 0 || course.course_outline_mn) && (
           <SectionCard title="Хичээлийн агуулга">
-            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-              {lectureCount > 0 && (
-                <span style={{ fontSize: '13px', color: '#888' }}>📖 {lectureCount} хичээл</span>
-              )}
-              {durationText && (
-                <span style={{ fontSize: '13px', color: '#888' }}>🕐 Нийт {durationText}</span>
-              )}
+            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+              {lectureCount > 0 && <span style={{ fontSize: '13px', color: '#888' }}>📖 {lectureCount} хичээл</span>}
+              {durationText && <span style={{ fontSize: '13px', color: '#888' }}>🕐 Нийт {durationText}</span>}
             </div>
-            <p style={{ fontSize: '13px', color: '#555', margin: 0 }}>
-              Хичээлийн дэлгэрэнгүй агуулга удахгүй нэмэгдэнэ.
-            </p>
+            {(() => {
+              const outline = locale === 'mn'
+                ? course.course_outline_mn
+                : (course.course_outline_en || course.course_outline_mn);
+              if (!outline) return <p style={{ fontSize: '13px', color: '#555', margin: 0 }}>Хичээлийн дэлгэрэнгүй агуулга удахгүй нэмэгдэнэ.</p>;
+              const sections = Array.isArray(outline) ? outline : [];
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {sections.map((sec: { section: string; lessons: string[] }, i: number) => (
+                    <details key={i} style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #2a2a2a' }}>
+                      <summary style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        padding: '12px 16px', cursor: 'pointer',
+                        background: '#222', color: '#e5e5e5',
+                        fontSize: '14px', fontWeight: 600, listStyle: 'none',
+                        userSelect: 'none',
+                      }}>
+                        <span>{sec.section}</span>
+                        <span style={{ fontSize: '12px', color: '#666', fontWeight: 400 }}>
+                          {sec.lessons?.length || 0} хичээл
+                        </span>
+                      </summary>
+                      <div style={{ background: '#1a1a1a', padding: '4px 0' }}>
+                        {(sec.lessons || []).map((lesson: string, j: number) => (
+                          <div key={j} style={{
+                            display: 'flex', alignItems: 'center', gap: '10px',
+                            padding: '9px 16px',
+                            borderBottom: j < sec.lessons.length - 1 ? '1px solid #222' : 'none',
+                          }}>
+                            <span style={{ color: '#444', fontSize: '13px' }}>🔒</span>
+                            <span style={{ fontSize: '13px', color: '#999' }}>{lesson}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              );
+            })()}
           </SectionCard>
         )}
 
