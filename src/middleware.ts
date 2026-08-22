@@ -1,8 +1,2 @@
-import createMiddleware from 'next-intl/middleware';
-import { routing } from './i18n/routing';
-
-export default createMiddleware(routing);
-
-export const config = {
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
-};
+// Deprecated in Next.js 16 — routing logic moved to src/proxy.ts
+export {};
