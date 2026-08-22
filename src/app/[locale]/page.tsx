@@ -203,7 +203,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                         {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
                       </span>
                     </div>
-                    <div style={{ padding: '10px 14px 14px' }}>
+                    <div style={{ padding: '10px 14px 14px', height: '54px', overflow: 'hidden' }}>
                       <p style={{
                         fontWeight: 600, fontSize: '13px', color: '#e5e5e5',
                         lineHeight: 1.45, margin: 0,
@@ -355,7 +355,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                         {String(a.category || a.cat || 'Lifestyle')}
                       </span>
                     </div>
-                    <div style={{ padding: '10px 12px 12px' }}>
+                    <div style={{ padding: '10px 12px 12px', height: '50px', overflow: 'hidden' }}>
                       <p style={{
                         fontWeight: 600, fontSize: '12px', color: '#e0e0e0',
                         lineHeight: 1.45, margin: 0,
@@ -390,12 +390,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     width: '280px', height: '157px',
                     background: v.gradient,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative',
+                    position: 'relative', overflow: 'hidden',
                   }}>
                     <span style={{ fontSize: '3rem' }}>{v.emoji}</span>
                     <div style={{
                       position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                      background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)',
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 55%)',
                     }} />
                     <span style={{
                       position: 'absolute', top: '10px', right: '10px',
@@ -406,8 +406,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                       УДАХГҮЙ
                     </span>
                     <p style={{
-                      position: 'absolute', bottom: '10px', left: '12px',
+                      position: 'absolute', bottom: '10px', left: '12px', right: '12px',
                       fontWeight: 700, fontSize: '13px', color: '#fff', margin: 0,
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     }}>
                       {v.title}
                     </p>
