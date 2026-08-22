@@ -1,9 +1,8 @@
-import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 
-async function getFeaturedCourses(locale: string) {
+async function getFeaturedCourses() {
   try {
     const supabase = await createClient();
     const { data } = await supabase
@@ -11,14 +10,12 @@ async function getFeaturedCourses(locale: string) {
       .select('id, title_mn, title_en, price, cover_image_url, slug, category')
       .eq('is_published', true)
       .order('created_at', { ascending: false })
-      .limit(8);
+      .limit(12);
     return data || [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
-async function getLatestArticles(locale: string) {
+async function getLatestArticles() {
   try {
     const supabase = await createClient();
     const { data } = await supabase
@@ -26,322 +23,338 @@ async function getLatestArticles(locale: string) {
       .select('id, title_mn, title_en, cover_image_url, slug, category, published_at')
       .eq('is_published', true)
       .order('published_at', { ascending: false })
-      .limit(6);
+      .limit(12);
     return data || [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
-export default async function HomePage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations('home');
+  const [courses, articles] = await Promise.all([getFeaturedCourses(), getLatestArticles()]);
 
-  const [courses, articles] = await Promise.all([
-    getFeaturedCourses(locale),
-    getLatestArticles(locale),
-  ]);
+  const displayCourses = courses.length > 0 ? courses : PLACEHOLDER_COURSES;
+  const displayArticles = articles.length > 0 ? articles : PLACEHOLDER_ARTICLES;
 
   return (
-    <div>
-      {/* Hero */}
+    <div style={{ background: '#141414', minHeight: '100vh', overflowX: 'hidden' }}>
+
+      {/* ══════════════════════════════════════════
+          HERO — full-viewport cinematic banner
+          identical layout to Netflix browse page
+      ══════════════════════════════════════════ */}
       <section style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%)',
-        color: '#fff',
-        padding: '5rem 1.5rem',
         position: 'relative',
+        width: '100%',
+        height: '90vh',
+        minHeight: '560px',
         overflow: 'hidden',
+        background: '#000',
       }}>
-        {/* Yellow accent */}
+        {/* Hero background — replace src with real image when available */}
         <div style={{
-          position: 'absolute', top: '-60px', right: '-60px',
-          width: '300px', height: '300px',
-          background: 'var(--yellow)', borderRadius: '50%',
-          opacity: 0.08
-        }} />
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(135deg, #0d1117 0%, #1a1a2e 35%, #0f2647 65%, #0a3d62 100%)',
+        }}>
+          {/* Cinematic texture overlay */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: `
+              radial-gradient(ellipse at 70% 40%, rgba(0,181,173,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 20% 80%, rgba(255,217,61,0.05) 0%, transparent 50%)
+            `,
+          }} />
+        </div>
+
+        {/* Left fade for text readability */}
         <div style={{
-          position: 'absolute', bottom: '-40px', left: '10%',
-          width: '200px', height: '200px',
-          background: 'var(--teal)', borderRadius: '50%',
-          opacity: 0.1
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
         }} />
 
-        <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        {/* Bottom fade into page */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: '35%',
+          background: 'linear-gradient(to bottom, transparent 0%, #141414 100%)',
+        }} />
+
+        {/* Hero content — bottom-left like Netflix */}
+        <div style={{
+          position: 'absolute',
+          bottom: '18%',
+          left: '4%',
+          maxWidth: '520px',
+          zIndex: 2,
+        }}>
+          {/* Badge */}
           <div style={{
-            display: 'inline-block',
-            background: 'var(--yellow)', color: '#1a1a2e',
-            padding: '4px 14px', borderRadius: '20px',
-            fontSize: '13px', fontWeight: 700, marginBottom: '1.5rem',
-            letterSpacing: '0.5px'
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            background: 'rgba(0,181,173,0.2)',
+            border: '1px solid rgba(0,181,173,0.5)',
+            color: '#00B5AD',
+            padding: '4px 12px', borderRadius: '4px',
+            fontSize: '11px', fontWeight: 700, marginBottom: '1rem',
+            letterSpacing: '1.5px', textTransform: 'uppercase',
           }}>
-            Mongolia #1
+            🇲🇳 MONGOLIA #1
           </div>
+
+          {/* Title — Netflix uses large serif-style */}
           <h1 style={{
-            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-            fontWeight: 800, lineHeight: 1.15,
-            marginBottom: '1.25rem',
-            maxWidth: '680px'
+            fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
+            fontWeight: 800,
+            lineHeight: 1.05,
+            color: '#ffffff',
+            marginBottom: '1rem',
+            textShadow: '2px 2px 20px rgba(0,0,0,0.8)',
+            letterSpacing: '-1px',
           }}>
             {t('hero_title')}
           </h1>
+
+          {/* Meta row — like Netflix "Show • Romance • 2026" */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            fontSize: '13px', fontWeight: 600, color: '#d4d4d4',
+            marginBottom: '1rem',
+          }}>
+            <span style={{ color: '#00B5AD' }}>Платформ</span>
+            <span style={{ color: '#555' }}>•</span>
+            <span>Сургалт</span>
+            <span style={{ color: '#555' }}>•</span>
+            <span>Нийтлэл</span>
+            <span style={{ color: '#555' }}>•</span>
+            <span>Кино</span>
+          </div>
+
+          {/* Description */}
           <p style={{
-            fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-            color: '#cbd5e1', marginBottom: '2.5rem',
-            maxWidth: '520px', lineHeight: 1.6
+            fontSize: '14px',
+            color: '#b3b3b3',
+            lineHeight: 1.7,
+            marginBottom: '1.75rem',
+            textShadow: '1px 1px 8px rgba(0,0,0,0.6)',
           }}>
             {t('hero_subtitle')}
           </p>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+
+          {/* Buttons — Netflix style: filled + ghost */}
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <Link href={`/${locale}/courses`} style={{
-              background: 'var(--teal)', color: '#fff',
-              padding: '14px 32px', borderRadius: '10px',
-              fontWeight: 700, textDecoration: 'none',
-              fontSize: '16px', display: 'inline-block'
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: 'var(--teal)',
+              color: '#fff',
+              padding: '11px 28px',
+              borderRadius: '4px',
+              fontWeight: 700,
+              textDecoration: 'none',
+              fontSize: '15px',
+              boxShadow: '0 4px 24px rgba(0,181,173,0.4)',
+              letterSpacing: '0.2px',
             }}>
-              {t('hero_cta')}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              Үзэх
             </Link>
             <Link href={`/${locale}/articles`} style={{
-              background: 'rgba(255,255,255,0.1)', color: '#fff',
-              padding: '14px 32px', borderRadius: '10px',
-              fontWeight: 600, textDecoration: 'none',
-              fontSize: '16px', display: 'inline-block',
-              border: '1px solid rgba(255,255,255,0.2)'
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: 'rgba(109,109,110,0.7)',
+              color: '#fff',
+              padding: '11px 28px',
+              borderRadius: '4px',
+              fontWeight: 700,
+              textDecoration: 'none',
+              fontSize: '15px',
+              backdropFilter: 'blur(4px)',
             }}>
-              Нийтлэлүүд
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+              </svg>
+              Дэлгэрэнгүй
             </Link>
           </div>
         </div>
       </section>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
+      {/* ══════════════════════════════════════════
+          CONTENT ROWS — edge-to-edge like Netflix
+      ══════════════════════════════════════════ */}
 
-        {/* Featured Courses Row */}
-        <section style={{ padding: '3rem 0 2rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--foreground)' }}>
+      {/* Row 1: Featured Courses */}
+      <section style={{ padding: '0 0 2.5rem', marginTop: '-4rem', position: 'relative', zIndex: 2 }}>
+        <div style={{ padding: '0 4%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#e5e5e5' }}>
               {t('featured_courses')}
             </h2>
             <Link href={`/${locale}/courses`} style={{
               color: 'var(--teal)', textDecoration: 'none',
-              fontWeight: 600, fontSize: '14px'
+              fontWeight: 600, fontSize: '12px', letterSpacing: '0.5px',
+              textTransform: 'uppercase',
             }}>
-              {t('view_all')} →
+              Бүгдийг харах →
             </Link>
           </div>
 
-          {courses.length > 0 ? (
-            <div className="scroll-row">
-              {courses.map((course: Record<string, unknown>) => (
-                <CourseCard key={String(course.id)} course={course} locale={locale} />
-              ))}
-            </div>
-          ) : (
-            <PlaceholderCourseRow locale={locale} />
-          )}
-        </section>
+          <div style={{
+            display: 'flex', gap: '6px', overflowX: 'auto',
+            scrollbarWidth: 'none', paddingBottom: '4px',
+          }}
+            className="netflix-scroll"
+          >
+            {displayCourses.map((course: Record<string, unknown>, i: number) => {
+              const title = locale === 'mn'
+                ? String(course.title_mn || course.title || '')
+                : String(course.title_en || course.title_mn || course.title || '');
+              const price = Number(course.price) || 0;
+              const slug = course.slug ? `/${locale}/courses/${course.slug}` : '#';
+              return (
+                <Link key={String(course.id || i)} href={slug} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                  <div className="netflix-card" style={{
+                    width: '200px', borderRadius: '4px', overflow: 'hidden',
+                    background: '#2f2f2f', position: 'relative',
+                  }}>
+                    {/* Thumbnail */}
+                    <div style={{
+                      width: '200px', height: '112px',
+                      background: 'linear-gradient(135deg, #1a2a3a 0%, #0f3460 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      position: 'relative', overflow: 'hidden',
+                    }}>
+                      {course.cover_image_url ? (
+                        <img src={String(course.cover_image_url)} alt={title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: '2.5rem' }}>{String(course.emoji || '📚')}</span>
+                      )}
+                      {/* Price badge */}
+                      <span style={{
+                        position: 'absolute', bottom: '6px', right: '6px',
+                        background: price === 0 ? '#10b981' : 'var(--teal)',
+                        color: '#fff', fontSize: '10px', fontWeight: 700,
+                        padding: '2px 7px', borderRadius: '3px',
+                      }}>
+                        {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
+                      </span>
+                    </div>
+                    {/* Title */}
+                    <div style={{ padding: '8px 10px' }}>
+                      <p style={{
+                        fontWeight: 600, fontSize: '12px', color: '#e5e5e5',
+                        lineHeight: 1.4, margin: 0,
+                        display: '-webkit-box', WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                      }}>
+                        {title}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-        {/* Divider */}
-        <div style={{ height: '1px', background: 'var(--border)' }} />
-
-        {/* Latest Articles */}
-        <section style={{ padding: '3rem 0' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+      {/* Row 2: Latest Articles */}
+      <section style={{ padding: '0 0 4rem' }}>
+        <div style={{ padding: '0 4%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#e5e5e5' }}>
               {t('latest_articles')}
             </h2>
             <Link href={`/${locale}/articles`} style={{
-              color: 'var(--teal)', textDecoration: 'none', fontWeight: 600, fontSize: '14px'
+              color: 'var(--teal)', textDecoration: 'none',
+              fontWeight: 600, fontSize: '12px', letterSpacing: '0.5px',
+              textTransform: 'uppercase',
             }}>
-              {t('view_all')} →
+              Бүгдийг харах →
             </Link>
           </div>
 
-          {articles.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-              {articles.map((article: Record<string, unknown>) => (
-                <ArticleCard key={String(article.id)} article={article} locale={locale} />
-              ))}
-            </div>
-          ) : (
-            <PlaceholderArticleGrid locale={locale} />
-          )}
-        </section>
-      </div>
-    </div>
-  );
-}
-
-function CourseCard({ course, locale }: { course: Record<string, unknown>; locale: string }) {
-  const title = locale === 'mn' ? String(course.title_mn || '') : String(course.title_en || course.title_mn || '');
-  const price = Number(course.price) || 0;
-
-  return (
-    <Link href={`/${locale}/courses/${course.slug}`} style={{ textDecoration: 'none', flexShrink: 0, width: '220px' }}>
-      <div style={{
-        borderRadius: '12px', overflow: 'hidden',
-        border: '1px solid var(--border)',
-        transition: 'box-shadow 0.2s',
-        background: '#fff'
-      }}>
-        <div style={{
-          width: '220px', height: '140px',
-          background: 'linear-gradient(135deg, var(--teal-light), var(--teal))',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          {course.cover_image_url ? (
-            <img
-              src={String(course.cover_image_url)}
-              alt={title}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : (
-            <span style={{ fontSize: '2.5rem' }}>📚</span>
-          )}
-        </div>
-        <div style={{ padding: '12px' }}>
-          <p style={{
-            fontWeight: 600, fontSize: '14px', color: 'var(--foreground)',
-            lineHeight: 1.4, marginBottom: '8px',
-            display: '-webkit-box', WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical', overflow: 'hidden'
-          }}>
-            {title}
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{
-              fontWeight: 700, color: 'var(--teal)', fontSize: '15px'
-            }}>
-              {price > 0 ? `${price.toLocaleString()}₮` : 'Үнэгүй'}
-            </span>
-            <span style={{
-              fontSize: '11px', background: 'var(--teal-light)',
-              color: 'var(--teal)', padding: '2px 8px', borderRadius: '10px',
-              fontWeight: 600
-            }}>
-              {String(course.category || '')}
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function ArticleCard({ article, locale }: { article: Record<string, unknown>; locale: string }) {
-  const title = locale === 'mn' ? String(article.title_mn || '') : String(article.title_en || article.title_mn || '');
-
-  return (
-    <Link href={`/${locale}/articles/${article.slug}`} style={{ textDecoration: 'none' }}>
-      <div style={{
-        borderRadius: '12px', overflow: 'hidden',
-        border: '1px solid var(--border)', background: '#fff'
-      }}>
-        <div style={{
-          height: '180px',
-          background: 'linear-gradient(135deg, #fef3c7, var(--yellow))',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          {article.cover_image_url ? (
-            <img
-              src={String(article.cover_image_url)}
-              alt={title}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : (
-            <span style={{ fontSize: '3rem' }}>✨</span>
-          )}
-        </div>
-        <div style={{ padding: '16px' }}>
-          <span style={{
-            fontSize: '11px', fontWeight: 600, color: 'var(--teal)',
-            textTransform: 'uppercase', letterSpacing: '0.5px'
-          }}>
-            {String(article.category || 'Lifestyle')}
-          </span>
-          <p style={{
-            fontWeight: 600, fontSize: '15px', color: 'var(--foreground)',
-            lineHeight: 1.5, marginTop: '6px',
-            display: '-webkit-box', WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical', overflow: 'hidden'
-          }}>
-            {title}
-          </p>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function PlaceholderCourseRow({ locale }: { locale: string }) {
-  const placeholders = [
-    { title: 'Гэрийн хоол хийх урлаг', price: 29900, emoji: '🍳', cat: 'Хоол' },
-    { title: 'Арьс нүүрний арчилгаа', price: 39900, emoji: '💆', cat: 'Гоо сайхан' },
-    { title: 'Дотоод амар тайван', price: 24900, emoji: '🧘', cat: 'Эрүүл мэнд' },
-    { title: 'Бизнес эхлүүлэх 101', price: 49900, emoji: '💼', cat: 'Бизнес' },
-    { title: 'Гэрийн чимэглэл', price: 19900, emoji: '🏠', cat: 'Дизайн' },
-  ];
-
-  return (
-    <div className="scroll-row">
-      {placeholders.map((p, i) => (
-        <div key={i} style={{ flexShrink: 0, width: '220px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)', background: '#fff' }}>
           <div style={{
-            width: '220px', height: '140px',
-            background: 'linear-gradient(135deg, var(--teal-light), #b2dfdb)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '3rem'
+            display: 'flex', gap: '6px', overflowX: 'auto',
+            scrollbarWidth: 'none', paddingBottom: '4px',
           }}>
-            {p.emoji}
-          </div>
-          <div style={{ padding: '12px' }}>
-            <p style={{ fontWeight: 600, fontSize: '14px', color: 'var(--foreground)', lineHeight: 1.4, marginBottom: '8px' }}>
-              {p.title}
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 700, color: 'var(--teal)', fontSize: '15px' }}>{p.price.toLocaleString()}₮</span>
-              <span style={{ fontSize: '11px', background: 'var(--teal-light)', color: 'var(--teal)', padding: '2px 8px', borderRadius: '10px', fontWeight: 600 }}>{p.cat}</span>
-            </div>
+            {displayArticles.map((a: Record<string, unknown>, i: number) => {
+              const title = locale === 'mn'
+                ? String(a.title_mn || a.title || '')
+                : String(a.title_en || a.title_mn || a.title || '');
+              const href = a.slug ? `/${locale}/articles/${a.slug}` : '#';
+              return (
+                <Link key={String(a.id || i)} href={href} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                  <div className="netflix-card" style={{
+                    width: '200px', borderRadius: '4px', overflow: 'hidden',
+                    background: '#2f2f2f', position: 'relative',
+                  }}>
+                    <div style={{
+                      width: '200px', height: '112px',
+                      background: 'linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      overflow: 'hidden',
+                    }}>
+                      {a.cover_image_url ? (
+                        <img src={String(a.cover_image_url)} alt={title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: '2.5rem' }}>{String(a.emoji || '✨')}</span>
+                      )}
+                      <span style={{
+                        position: 'absolute', bottom: '6px', left: '6px',
+                        background: 'rgba(0,181,173,0.85)',
+                        color: '#fff', fontSize: '9px', fontWeight: 700,
+                        padding: '2px 7px', borderRadius: '3px',
+                        textTransform: 'uppercase', letterSpacing: '0.5px',
+                      }}>
+                        {String(a.category || a.cat || 'Lifestyle')}
+                      </span>
+                    </div>
+                    <div style={{ padding: '8px 10px' }}>
+                      <p style={{
+                        fontWeight: 600, fontSize: '12px', color: '#e5e5e5',
+                        lineHeight: 1.4, margin: 0,
+                        display: '-webkit-box', WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                      }}>
+                        {title}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
-      ))}
+      </section>
+
+      <style>{`
+        .netflix-scroll::-webkit-scrollbar { display: none; }
+        div[style*="overflow-x: auto"]::-webkit-scrollbar { display: none; }
+      `}</style>
     </div>
   );
 }
 
-function PlaceholderArticleGrid({ locale }: { locale: string }) {
-  const articles = [
-    { title: 'Өглөөний эрүүл дэглэм — 5 алхам', cat: 'Эрүүл мэнд', emoji: '🌅' },
-    { title: 'Гэрийнхнийхээ хоолны дэглэмийг яаж сайжруулах вэ?', cat: 'Хоол тэжээл', emoji: '🥗' },
-    { title: 'Монгол эмэгтэйчүүдийн бизнес амжилтын нууц', cat: 'Бизнес', emoji: '🚀' },
-    { title: 'Арьсаа хэрхэн арчлах вэ — мэргэжилтний зөвлөгөө', cat: 'Гоо сайхан', emoji: '✨' },
-    { title: 'Гэр бүлийн бат бөх холбоо', cat: 'Гэр бүл', emoji: '💝' },
-    { title: 'Зорилгодоо хэрхэн хурдан хүрэх вэ?', cat: 'Хувийн хөгжил', emoji: '🎯' },
-  ];
+/* ── Placeholder data ── */
+const PLACEHOLDER_COURSES: Record<string, unknown>[] = [
+  { id: 'p1', title_mn: 'Гэрийн хоол хийх урлаг', price: 29900, emoji: '🍳', category: 'Хоол' },
+  { id: 'p2', title_mn: 'Арьс нүүрний арчилгаа', price: 39900, emoji: '💆', category: 'Гоо сайхан' },
+  { id: 'p3', title_mn: 'Дотоод амар тайван', price: 24900, emoji: '🧘', category: 'Эрүүл мэнд' },
+  { id: 'p4', title_mn: 'Бизнес эхлүүлэх 101', price: 49900, emoji: '💼', category: 'Бизнес' },
+  { id: 'p5', title_mn: 'Гэрийн чимэглэл', price: 19900, emoji: '🏠', category: 'Дизайн' },
+  { id: 'p6', title_mn: 'Хувийн санхүүгийн удирдлага', price: 34900, emoji: '💰', category: 'Бизнес' },
+  { id: 'p7', title_mn: 'Гэр бүлийн харилцаа', price: 29900, emoji: '💝', category: 'Гэр бүл' },
+  { id: 'p8', title_mn: 'Зорилго тавих — Goal Setting', price: 0, emoji: '🎯', category: 'Хувийн хөгжил' },
+];
 
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-      {articles.map((a, i) => (
-        <div key={i} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)', background: '#fff' }}>
-          <div style={{
-            height: '160px',
-            background: `linear-gradient(135deg, #fef3c7, #fbbf24)`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '3rem'
-          }}>
-            {a.emoji}
-          </div>
-          <div style={{ padding: '16px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--teal)', textTransform: 'uppercase' }}>{a.cat}</span>
-            <p style={{ fontWeight: 600, fontSize: '15px', color: 'var(--foreground)', lineHeight: 1.5, marginTop: '6px' }}>
-              {a.title}
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+const PLACEHOLDER_ARTICLES: Record<string, unknown>[] = [
+  { id: 'a1', title_mn: 'Өглөөний эрүүл дэглэм — 5 алхам', category: 'Эрүүл мэнд', emoji: '🌅' },
+  { id: 'a2', title_mn: 'Гэрийнхнийхээ хоолны дэглэмийг яаж сайжруулах вэ?', category: 'Хоол тэжээл', emoji: '🥗' },
+  { id: 'a3', title_mn: 'Монгол эмэгтэйчүүдийн бизнес амжилтын нууц', category: 'Бизнес', emoji: '🚀' },
+  { id: 'a4', title_mn: 'Арьсаа хэрхэн арчлах вэ — мэргэжилтний зөвлөгөө', category: 'Гоо сайхан', emoji: '✨' },
+  { id: 'a5', title_mn: 'Гэр бүлийн бат бөх холбоо', category: 'Гэр бүл', emoji: '💝' },
+  { id: 'a6', title_mn: 'Зорилгодоо хэрхэн хурдан хүрэх вэ?', category: 'Хувийн хөгжил', emoji: '🎯' },
+  { id: 'a7', title_mn: 'Дотоод амар тайвнаа хэрхэн олох вэ', category: 'Эрүүл мэнд', emoji: '🧘' },
+  { id: 'a8', title_mn: 'Гэрийн чимэглэл: энгийн боловч гоё', category: 'Дизайн', emoji: '🏡' },
+];

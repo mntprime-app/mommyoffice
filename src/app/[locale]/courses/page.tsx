@@ -99,7 +99,7 @@ export default async function CoursesPage({
 
           return (
             <Link key={String(course.id)} href={slug} style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}>
-              <article style={{ borderRadius: '12px', overflow: 'hidden', background: '#fff', border: '1px solid var(--border)', width: '100%', display: 'flex', flexDirection: 'column' }}>
+              <article className="netflix-card" style={{ borderRadius: '10px', overflow: 'hidden', background: 'var(--card)', border: '1px solid var(--border)', width: '100%', display: 'flex', flexDirection: 'column' }}>
                 {/* Course thumbnail */}
                 <div style={{
                   height: '175px',
@@ -131,7 +131,7 @@ export default async function CoursesPage({
                 <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
                   <h3 style={{
                     fontWeight: 700, fontSize: '15px', lineHeight: 1.4,
-                    marginBottom: '0.5rem', color: 'var(--foreground)',
+                    marginBottom: '0.5rem', color: '#e5e5e5',
                     display: '-webkit-box', WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical', overflow: 'hidden'
                   }}>

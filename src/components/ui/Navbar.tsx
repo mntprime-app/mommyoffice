@@ -1,10 +1,8 @@
 'use client';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
-// Drop logo.png into /public/ and it will appear automatically.
-// Defaults to the teal "M" wordmark; switches to the image only after confirming the file loads.
 function LogoMark() {
   const [hasLogo, setHasLogo] = useState(false);
 
@@ -20,58 +18,106 @@ function LogoMark() {
       <img
         src="/logo.png"
         alt="Mommyoffice"
-        style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
+        style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
       />
     );
   }
   return (
-    <>
-      <div style={{
-        width: '36px', height: '36px', background: 'var(--teal)',
-        borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#fff', fontWeight: 700, fontSize: '18px'
-      }}>M</div>
-      <span style={{ fontWeight: 700, fontSize: '18px', color: 'var(--teal)', letterSpacing: '-0.5px' }}>
-        Mommyoffice
-      </span>
-    </>
+    <span style={{ fontWeight: 800, fontSize: '20px', color: 'var(--teal)', letterSpacing: '-0.5px' }}>
+      MOMMYOFFICE
+    </span>
   );
 }
 
 export default function Navbar() {
-  const t = useTranslations('nav');
   const locale = useLocale();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const otherLocale = locale === 'mn' ? 'en' : 'mn';
-  const localePath = (path: string) => `/${locale}${path}`;
+  const lp = (path: string) => `/${locale}${path}`;
+
+  const navLinks = [
+    { href: lp('/courses'), label: 'Сургалтууд' },
+    { href: lp('/articles'), label: 'Нийтлэл' },
+    { href: lp('/videos'), label: 'Кино' },
+    { href: lp('/shop'), label: 'Дэлгүүр' },
+  ];
 
   return (
-    <header style={{ borderBottom: '1px solid var(--border)', background: '#fff' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
+    <header style={{
+      position: 'sticky', top: 0, zIndex: 100,
+      background: scrolled ? 'rgba(20,20,20,0.97)' : 'rgba(20,20,20,0.75)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
+      transition: 'background 0.3s, border-color 0.3s',
+    }}>
+      <div style={{
+        maxWidth: '1400px', margin: '0 auto', padding: '0 2rem',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        height: '64px'
+      }}>
         {/* Logo */}
-        <Link href={localePath('/')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+        <Link href={lp('/')} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
           <LogoMark />
         </Link>
 
         {/* Desktop nav */}
         <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }} className="desktop-nav">
-          <Link href={localePath('/')} style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }}>{t('home')}</Link>
-          <Link href={localePath('/courses')} style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }}>{t('courses')}</Link>
-          <Link href={localePath('/articles')} style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }}>{t('articles')}</Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              style={{
+                color: '#e5e5e5',
+                textDecoration: 'none',
+                fontWeight: 500,
+                fontSize: '14px',
+                letterSpacing: '0.2px',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+              onMouseLeave={e => (e.currentTarget.style.color = '#e5e5e5')}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Right side */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }} className="desktop-nav">
           <Link href={`/${otherLocale}`} style={{
-            padding: '4px 12px', border: '1px solid var(--border)',
-            borderRadius: '6px', fontSize: '13px', color: 'var(--foreground)',
-            textDecoration: 'none', fontWeight: 500
+            padding: '5px 12px',
+            border: '1px solid #444',
+            borderRadius: '6px',
+            fontSize: '12px',
+            color: '#ccc',
+            textDecoration: 'none',
+            fontWeight: 600,
+            transition: 'border-color 0.15s, color 0.15s',
           }}>
             {otherLocale === 'mn' ? 'МН' : 'EN'}
           </Link>
-          <Link href={localePath('/access')} style={{
-            background: 'var(--teal)', color: '#fff',
-            padding: '8px 18px', borderRadius: '8px', fontWeight: 600,
-            textDecoration: 'none', fontSize: '14px'
-          }}>{t('login')}</Link>
-        </nav>
+          <Link href={lp('/access')} style={{
+            background: 'var(--teal)',
+            color: '#fff',
+            padding: '8px 20px',
+            borderRadius: '6px',
+            fontWeight: 700,
+            textDecoration: 'none',
+            fontSize: '14px',
+            letterSpacing: '0.2px',
+          }}>
+            Нэвтрэх
+          </Link>
+        </div>
 
         {/* Mobile hamburger */}
         <button
@@ -80,26 +126,40 @@ export default function Navbar() {
           className="mobile-menu-btn"
           aria-label="Menu"
         >
-          <div style={{ width: '22px', height: '2px', background: 'var(--foreground)', margin: '4px 0' }} />
-          <div style={{ width: '22px', height: '2px', background: 'var(--foreground)', margin: '4px 0' }} />
-          <div style={{ width: '22px', height: '2px', background: 'var(--foreground)', margin: '4px 0' }} />
+          <div style={{ width: '22px', height: '2px', background: '#fff', margin: '5px 0', transition: 'all 0.2s' }} />
+          <div style={{ width: '22px', height: '2px', background: '#fff', margin: '5px 0' }} />
+          <div style={{ width: '22px', height: '2px', background: '#fff', margin: '5px 0' }} />
         </button>
       </div>
 
       {/* Mobile dropdown */}
       {open && (
-        <div style={{ borderTop: '1px solid var(--border)', padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: '#fff' }}>
-          <Link href={localePath('/')} onClick={() => setOpen(false)} style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }}>{t('home')}</Link>
-          <Link href={localePath('/courses')} onClick={() => setOpen(false)} style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }}>{t('courses')}</Link>
-          <Link href={localePath('/articles')} onClick={() => setOpen(false)} style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }}>{t('articles')}</Link>
-          <Link href={`/${otherLocale}`} style={{ color: 'var(--foreground)', textDecoration: 'none' }}>
+        <div style={{
+          borderTop: '1px solid var(--border)',
+          padding: '1rem 2rem',
+          display: 'flex', flexDirection: 'column', gap: '1rem',
+          background: 'rgba(20,20,20,0.98)'
+        }}>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setOpen(false)}
+              style={{ color: '#e5e5e5', textDecoration: 'none', fontWeight: 500, fontSize: '15px' }}
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link href={`/${otherLocale}`} style={{ color: '#aaa', textDecoration: 'none', fontSize: '14px' }}>
             {otherLocale === 'mn' ? 'МН' : 'EN'}
           </Link>
-          <Link href={localePath('/access')} style={{
+          <Link href={lp('/access')} style={{
             background: 'var(--teal)', color: '#fff',
-            padding: '10px 18px', borderRadius: '8px', fontWeight: 600,
+            padding: '10px 18px', borderRadius: '8px', fontWeight: 700,
             textDecoration: 'none', textAlign: 'center'
-          }}>{t('login')}</Link>
+          }}>
+            Нэвтрэх
+          </Link>
         </div>
       )}
 

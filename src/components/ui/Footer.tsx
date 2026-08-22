@@ -6,9 +6,9 @@ export default function Footer() {
 
   return (
     <footer style={{
-      background: '#1a1a2e', color: '#9ca3af',
-      padding: '3rem 1.5rem 2rem',
-      marginTop: '4rem'
+      background: '#0a0a0a', color: '#757575',
+      padding: '3rem 4% 2rem',
+      borderTop: '1px solid #222',
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', marginBottom: '2rem' }}>

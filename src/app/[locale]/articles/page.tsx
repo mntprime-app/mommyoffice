@@ -156,12 +156,11 @@ function ArticleCard({
 }) {
   return (
     <Link href={href} style={{ textDecoration: 'none', display: 'block' }}>
-      <article style={{
-        borderRadius: '14px',
+      <article className="netflix-card" style={{
+        borderRadius: '10px',
         overflow: 'hidden',
         border: '1px solid var(--border)',
-        background: '#fff',
-        transition: 'box-shadow 0.2s, transform 0.2s',
+        background: 'var(--card)',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -195,7 +194,7 @@ function ArticleCard({
           </div>
 
           <h2 style={{
-            fontSize: '15px', fontWeight: 700, color: 'var(--foreground)',
+            fontSize: '15px', fontWeight: 700, color: '#e5e5e5',
             lineHeight: 1.5, marginBottom: '8px',
             display: '-webkit-box', WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical', overflow: 'hidden',

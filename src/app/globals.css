@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #1a1a2e;
+  --background: #141414;
+  --foreground: #ffffff;
   --teal: #00B5AD;
   --teal-dark: #009490;
-  --teal-light: #e0f7f6;
+  --teal-light: rgba(0,181,173,0.15);
   --yellow: #FFD93D;
   --yellow-dark: #f0c800;
-  --surface: #f8fafb;
-  --border: #e5e7eb;
+  --surface: #1f1f1f;
+  --border: #2d2d2d;
+  --card: #1a1a1a;
+  --card-hover: #222222;
+  --muted: #a0a0a0;
 }
 
 @theme inline {
@@ -50,4 +53,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 .scroll-row::-webkit-scrollbar {
   display: none;
+}
+
+/* Netflix card hover zoom */
+.netflix-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+.netflix-card:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  z-index: 2;
+  position: relative;
+}
+
+/* Navbar blur on scroll — applied via JS */
+.navbar-scrolled {
+  background: rgba(20,20,20,0.97) !important;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.4);
 }
