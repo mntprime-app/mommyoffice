@@ -82,7 +82,7 @@ export default async function AccessPage({
             />
           ) : (
             <div style={{
-              aspect: '16/9', background: '#1a1a2e', borderRadius: '12px',
+              aspectRatio: '16/9', background: '#1a1a2e', borderRadius: '12px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               height: '380px'
             }}>
