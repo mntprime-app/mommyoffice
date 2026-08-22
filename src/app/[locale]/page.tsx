@@ -88,11 +88,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
 
           <h1 style={{
-            fontSize: 'clamp(2.4rem, 6vw, 4.8rem)',
-            fontWeight: 800, lineHeight: 1.05,
+            fontSize: 'clamp(1.6rem, 3vw, 2.6rem)',
+            fontWeight: 800, lineHeight: 1.15,
             color: '#fff', marginBottom: '1rem',
             textShadow: '0 2px 24px rgba(0,0,0,0.7)',
-            letterSpacing: '-1.5px',
+            letterSpacing: '-0.5px',
           }}>
             {t('hero_title')}
           </h1>
@@ -108,7 +108,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <span style={{ color: '#444' }}>•</span>
             <span>Нийтлэл</span>
             <span style={{ color: '#444' }}>•</span>
-            <span>Кино</span>
+            <span>Видео & Кино</span>
             <span style={{ color: '#444' }}>•</span>
             <span>Дэлгүүр</span>
           </div>
