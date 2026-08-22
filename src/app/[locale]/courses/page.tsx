@@ -4,6 +4,17 @@ import { createClient } from '@/lib/supabase/server';
 
 const CATEGORIES = ['Бүх ангилал', 'Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 
+const CAT_GRADIENTS: Record<string, string> = {
+  'Хоол':           'linear-gradient(135deg,#0d2137,#1a4a6b)',
+  'Гоо сайхан':     'linear-gradient(135deg,#1a0d37,#4a1a6b)',
+  'Эрүүл мэнд':     'linear-gradient(135deg,#0d3720,#1a6b3a)',
+  'Бизнес':         'linear-gradient(135deg,#371a0d,#6b3a1a)',
+  'Гэр бүл':        'linear-gradient(135deg,#0d2537,#1a5a6b)',
+  'Хувийн хөгжил':  'linear-gradient(135deg,#1a1a0d,#3d3d15)',
+  'Дизайн':         'linear-gradient(135deg,#1a0d1a,#3d153d)',
+  'default':        'linear-gradient(135deg,#0d2137,#1a4a6b)',
+};
+
 async function getCourses(category?: string) {
   try {
     const supabase = await createClient();
@@ -12,17 +23,24 @@ async function getCourses(category?: string) {
       .select('id, title_mn, title_en, description_mn, description_en, price, cover_image_url, slug, category, instructor_id')
       .eq('is_published', true)
       .order('created_at', { ascending: false });
-
     if (category && category !== 'Бүх ангилал') {
       query = query.eq('category', category);
     }
-
     const { data } = await query;
     return data || [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
+
+const PLACEHOLDER_COURSES = [
+  { id: 1, title_mn: 'Гэрийн хоол хийх урлаг',           price: 29900, emoji: '🍳', category: 'Хоол',           desc_mn: 'Гэртээ эрүүл, амттай хоол хийж сур' },
+  { id: 2, title_mn: 'Арьс нүүрний мэргэжлийн арчилгаа', price: 39900, emoji: '💆', category: 'Гоо сайхан',     desc_mn: 'Мэргэжилтний нууц аргуудыг сур' },
+  { id: 3, title_mn: 'Дотоод амар тайван — Meditation',   price: 24900, emoji: '🧘', category: 'Эрүүл мэнд',    desc_mn: 'Оюун санааны тайван байдлыг олж ав' },
+  { id: 4, title_mn: 'Бизнес эхлүүлэх 101',               price: 49900, emoji: '💼', category: 'Бизнес',         desc_mn: 'Өөрийн бизнесийг эхлүүлэх алхамууд' },
+  { id: 5, title_mn: 'Гэрийн дотоод чимэглэл',            price: 19900, emoji: '🏠', category: 'Дизайн',         desc_mn: 'Гэрээ хэрхэн чимэглэх вэ' },
+  { id: 6, title_mn: 'Хувийн санхүүгийн удирдлага',       price: 34900, emoji: '💰', category: 'Бизнес',         desc_mn: 'Хувийн санхүүгээ зөв удирдаж сур' },
+  { id: 7, title_mn: 'Гэр бүлийн эрүүл харилцаа',         price: 29900, emoji: '💝', category: 'Гэр бүл',       desc_mn: 'Гэр бүлийн бат бөх харилцаа' },
+  { id: 8, title_mn: 'Зорилго тавих — Goal Setting',       price: 0,     emoji: '🎯', category: 'Хувийн хөгжил', desc_mn: 'Амьдралын зорилгоо олж, хэрэгжүүл' },
+];
 
 export default async function CoursesPage({
   params,
@@ -36,133 +54,231 @@ export default async function CoursesPage({
   const t = await getTranslations('courses');
 
   const courses = await getCourses(category);
-
-  const PLACEHOLDER_COURSES = [
-    { id: 1, title_mn: 'Гэрийн хоол хийх урлаг', price: 29900, emoji: '🍳', category: 'Хоол', desc_mn: 'Гэртээ эрүүл, амттай хоол хийж сур' },
-    { id: 2, title_mn: 'Арьс нүүрний мэргэжлийн арчилгаа', price: 39900, emoji: '💆', category: 'Гоо сайхан', desc_mn: 'Мэргэжилтний нууц аргуудыг сур' },
-    { id: 3, title_mn: 'Дотоод амар тайван — Meditation', price: 24900, emoji: '🧘', category: 'Эрүүл мэнд', desc_mn: 'Оюун санааны тайван байдлыг олж ав' },
-    { id: 4, title_mn: 'Бизнес эхлүүлэх 101', price: 49900, emoji: '💼', category: 'Бизнес', desc_mn: 'Өөрийн бизнесийг эхлүүлэх алхамууд' },
-    { id: 5, title_mn: 'Гэрийн дотоод чимэглэл', price: 19900, emoji: '🏠', category: 'Дизайн', desc_mn: 'Гэрээ хэрхэн чимэглэх вэ' },
-    { id: 6, title_mn: 'Хувийн санхүүгийн удирдлага', price: 34900, emoji: '💰', category: 'Бизнес', desc_mn: 'Хувийн санхүүгээ зөв удирдаж сур' },
-    { id: 7, title_mn: 'Гэр бүлийн эрүүл харилцаа', price: 29900, emoji: '💝', category: 'Гэр бүл', desc_mn: 'Гэр бүлийн бат бөх харилцаа' },
-    { id: 8, title_mn: 'Зорилго тавих — Goal Setting', price: 0, emoji: '🎯', category: 'Хувийн хөгжил', desc_mn: 'Амьдралын зорилгоо олж, хэрэгжүүл' },
-  ];
-
   const displayCourses = courses.length > 0 ? courses : PLACEHOLDER_COURSES;
 
+  const featured = displayCourses[0] as Record<string, unknown>;
+  const featuredTitle  = locale === 'mn' ? String(featured.title_mn || '') : String(featured.title_en || featured.title_mn || '');
+  const featuredDesc   = locale === 'mn' ? String(featured.desc_mn || featured.description_mn || '') : String(featured.desc_en || featured.description_en || featured.desc_mn || '');
+  const featuredPrice  = Number(featured.price) || 0;
+  const featuredSlug   = featured.slug ? `/${locale}/courses/${featured.slug}` : '#';
+  const featuredGrad   = CAT_GRADIENTS[String(featured.category || '')] || CAT_GRADIENTS.default;
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-      {/* Page Header */}
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>{t('title')}</h1>
-        <p style={{ color: '#6b7280' }}>Монголын шилдэг хичээлүүдийг нэг дороос олж ав</p>
-      </div>
+    <div style={{ background: '#141414', minHeight: '100vh' }}>
 
-      {/* Category Filter — Domestika style pills */}
+      {/* ── NETFLIX-STYLE HERO ── */}
+      <section style={{
+        position: 'relative', width: '100%',
+        height: '72vh', minHeight: '480px',
+        overflow: 'hidden',
+      }}>
+        {/* Background */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          background: featuredGrad,
+        }}>
+          {featured.cover_image_url && (
+            <img
+              src={String(featured.cover_image_url)}
+              alt={featuredTitle}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45 }}
+            />
+          )}
+          {!featured.cover_image_url && (
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+              paddingRight: '8%', opacity: 0.18,
+              fontSize: 'min(40vw, 360px)',
+            }}>
+              {String(featured.emoji || '📚')}
+            </div>
+          )}
+        </div>
+
+        {/* Gradients */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 55%, transparent 100%)',
+        }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%',
+          background: 'linear-gradient(to bottom, transparent, #141414)',
+        }} />
+
+        {/* Hero content */}
+        <div style={{
+          position: 'absolute', bottom: '22%', left: '4%',
+          maxWidth: '520px', zIndex: 2,
+        }}>
+          <span style={{
+            display: 'inline-block',
+            background: 'rgba(0,181,173,0.15)', border: '1px solid rgba(0,181,173,0.4)',
+            color: '#00B5AD', padding: '3px 10px', borderRadius: '4px',
+            fontSize: '10px', fontWeight: 700, letterSpacing: '2px',
+            textTransform: 'uppercase', marginBottom: '1rem',
+          }}>
+            {String(featured.category || 'Сургалт')}
+          </span>
+
+          <h1 style={{
+            fontSize: 'clamp(2rem,5vw,3.8rem)', fontWeight: 800,
+            lineHeight: 1.1, color: '#fff', marginBottom: '0.75rem',
+            letterSpacing: '-1px', textShadow: '0 2px 16px rgba(0,0,0,0.5)',
+          }}>
+            {featuredTitle}
+          </h1>
+
+          {featuredDesc && (
+            <p style={{
+              fontSize: '15px', color: '#b0bcc8', lineHeight: 1.65,
+              marginBottom: '1.5rem', maxWidth: '440px',
+            }}>
+              {featuredDesc}
+            </p>
+          )}
+
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <Link href={featuredSlug} style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: '#00B5AD', color: '#fff',
+              padding: '11px 28px', borderRadius: '6px',
+              fontWeight: 700, textDecoration: 'none', fontSize: '15px',
+              boxShadow: '0 4px 20px rgba(0,181,173,0.35)',
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              Элсэх
+            </Link>
+            <span style={{
+              fontWeight: 800, fontSize: '18px',
+              color: featuredPrice === 0 ? '#10b981' : '#fff',
+            }}>
+              {featuredPrice === 0 ? 'Үнэгүй' : `${featuredPrice.toLocaleString()}₮`}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CATEGORY FILTER PILLS ── */}
       <div style={{
+        padding: '1.5rem 4%',
         display: 'flex', gap: '0.5rem', flexWrap: 'wrap',
-        marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem'
+        borderBottom: '1px solid #2a2a2a',
       }}>
-        {CATEGORIES.map((cat) => (
-          <Link
-            key={cat}
-            href={cat === 'Бүх ангилал' ? `/${locale}/courses` : `/${locale}/courses?category=${encodeURIComponent(cat)}`}
-            style={{
-              padding: '8px 18px', borderRadius: '20px', fontSize: '14px',
-              fontWeight: 500, textDecoration: 'none', transition: 'all 0.15s',
-              background: (category === cat || (!category && cat === 'Бүх ангилал'))
-                ? 'var(--teal)' : '#f3f4f6',
-              color: (category === cat || (!category && cat === 'Бүх ангилал'))
-                ? '#fff' : 'var(--foreground)',
-            }}
-          >
-            {cat}
-          </Link>
-        ))}
-      </div>
-
-      {/* Course Grid — Domestika style */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-        gap: '2rem'
-      }}>
-        {displayCourses.map((course: Record<string, unknown>) => {
-          const title = locale === 'mn'
-            ? String(course.title_mn || '')
-            : String(course.title_en || course.title_mn || '');
-          const desc = locale === 'mn'
-            ? String(course.desc_mn || course.description_mn || '')
-            : String(course.desc_en || course.description_en || course.desc_mn || '');
-          const price = Number(course.price) || 0;
-          const slug = course.slug ? `/${locale}/courses/${course.slug}` : '#';
-
+        {CATEGORIES.map((cat) => {
+          const isActive = category === cat || (!category && cat === 'Бүх ангилал');
           return (
-            <Link key={String(course.id)} href={slug} style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}>
-              <article className="netflix-card" style={{ borderRadius: '10px', overflow: 'hidden', background: 'var(--card)', border: '1px solid var(--border)', width: '100%', display: 'flex', flexDirection: 'column' }}>
-                {/* Course thumbnail */}
-                <div style={{
-                  height: '175px',
-                  background: 'linear-gradient(135deg, var(--teal-light), #99d9d7)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '3.5rem', position: 'relative'
-                }}>
-                  {course.cover_image_url ? (
-                    <img
-                      src={String(course.cover_image_url)}
-                      alt={title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <span>{String(course.emoji || '📚')}</span>
-                  )}
-                  {/* Category badge */}
-                  <span style={{
-                    position: 'absolute', top: '10px', left: '10px',
-                    background: 'rgba(0,0,0,0.6)', color: '#fff',
-                    fontSize: '11px', fontWeight: 600,
-                    padding: '3px 10px', borderRadius: '12px'
-                  }}>
-                    {String(course.category || '')}
-                  </span>
-                </div>
-
-                {/* Course info */}
-                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <h3 style={{
-                    fontWeight: 700, fontSize: '15px', lineHeight: 1.4,
-                    marginBottom: '0.5rem', color: '#e5e5e5',
-                    display: '-webkit-box', WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical', overflow: 'hidden'
-                  }}>
-                    {title}
-                  </h3>
-                  <p style={{
-                    fontSize: '13px', color: '#6b7280', lineHeight: 1.5,
-                    marginBottom: '0',
-                    display: '-webkit-box', WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                    minHeight: '2.6em',
-                  }}>
-                    {desc || ' '}
-                  </p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '0.75rem' }}>
-                    <span style={{ fontWeight: 800, fontSize: '17px', color: price === 0 ? '#10b981' : 'var(--foreground)' }}>
-                      {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
-                    </span>
-                    <span style={{
-                      background: 'var(--teal)', color: '#fff',
-                      padding: '6px 14px', borderRadius: '8px',
-                      fontSize: '13px', fontWeight: 600
-                    }}>
-                      {t('enroll')}
-                    </span>
-                  </div>
-                </div>
-              </article>
+            <Link
+              key={cat}
+              href={cat === 'Бүх ангилал' ? `/${locale}/courses` : `/${locale}/courses?category=${encodeURIComponent(cat)}`}
+              style={{
+                padding: '7px 16px', borderRadius: '20px',
+                fontSize: '13px', fontWeight: 600,
+                textDecoration: 'none', transition: 'all 0.15s',
+                background: isActive ? '#00B5AD' : 'rgba(255,255,255,0.08)',
+                color: isActive ? '#fff' : '#ccc',
+                border: `1px solid ${isActive ? '#00B5AD' : 'rgba(255,255,255,0.15)'}`,
+              }}
+            >
+              {cat}
             </Link>
           );
         })}
+      </div>
+
+      {/* ── COURSE GRID ── */}
+      <div style={{ padding: '2rem 4%' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: '1.5rem',
+        }}>
+          {displayCourses.map((course: Record<string, unknown>, i: number) => {
+            const title = locale === 'mn'
+              ? String(course.title_mn || '')
+              : String(course.title_en || course.title_mn || '');
+            const desc = locale === 'mn'
+              ? String(course.desc_mn || course.description_mn || '')
+              : String(course.desc_en || course.description_en || course.desc_mn || '');
+            const price = Number(course.price) || 0;
+            const slug = course.slug ? `/${locale}/courses/${course.slug}` : '#';
+            const grad = CAT_GRADIENTS[String(course.category || '')] || CAT_GRADIENTS.default;
+
+            return (
+              <Link key={String(course.id || i)} href={slug} style={{ textDecoration: 'none', display: 'flex' }}>
+                <article className="netflix-card" style={{
+                  borderRadius: '10px', overflow: 'hidden',
+                  background: '#1a1a1a', border: '1px solid #2a2a2a',
+                  width: '100%', display: 'flex', flexDirection: 'column',
+                }}>
+                  {/* Thumbnail */}
+                  <div style={{
+                    height: '175px', background: grad,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '3.5rem', position: 'relative', overflow: 'hidden',
+                  }}>
+                    {course.cover_image_url ? (
+                      <img
+                        src={String(course.cover_image_url)}
+                        alt={title}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <span>{String(course.emoji || '📚')}</span>
+                    )}
+                    <span style={{
+                      position: 'absolute', top: '10px', left: '10px',
+                      background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+                      color: '#fff', fontSize: '10px', fontWeight: 700,
+                      padding: '3px 9px', borderRadius: '4px',
+                      textTransform: 'uppercase', letterSpacing: '0.5px',
+                    }}>
+                      {String(course.category || '')}
+                    </span>
+                    <span style={{
+                      position: 'absolute', bottom: '10px', right: '10px',
+                      background: price === 0 ? '#10b981' : '#00B5AD',
+                      color: '#fff', fontSize: '11px', fontWeight: 700,
+                      padding: '3px 10px', borderRadius: '4px',
+                    }}>
+                      {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
+                    </span>
+                  </div>
+
+                  {/* Info */}
+                  <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <h3 style={{
+                      fontWeight: 700, fontSize: '14px', lineHeight: 1.4,
+                      marginBottom: '0.4rem', color: '#e5e5e5',
+                      display: '-webkit-box', WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    }}>
+                      {title}
+                    </h3>
+                    <p style={{
+                      fontSize: '12px', color: '#888', lineHeight: 1.5,
+                      display: '-webkit-box', WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                      minHeight: '36px', margin: 0,
+                    }}>
+                      {desc || ' '}
+                    </p>
+                    <div style={{
+                      marginTop: 'auto', paddingTop: '0.75rem',
+                      display: 'flex', justifyContent: 'flex-end',
+                    }}>
+                      <span style={{
+                        background: '#00B5AD', color: '#fff',
+                        padding: '6px 16px', borderRadius: '6px',
+                        fontSize: '12px', fontWeight: 700,
+                      }}>
+                        {t('enroll')}
+                      </span>
+                    </div>
+                  </div>
+                </article>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
