@@ -3,7 +3,7 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -12,8 +12,9 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: '**.supabase.co' },
-      { protocol: 'https', hostname: 'i.ytimg.com' },
+      { protocol: 'https' as const, hostname: '**.supabase.co' },
+      { protocol: 'https' as const, hostname: 'i.ytimg.com' },
+      { protocol: 'https' as const, hostname: 'images.unsplash.com' },
     ],
   },
 };

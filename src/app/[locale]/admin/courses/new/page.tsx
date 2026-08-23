@@ -15,9 +15,11 @@ export default function NewCoursePage() {
   const [form, setForm] = useState({
     title_mn: '', title_en: '',
     description_mn: '', description_en: '',
+    about_course_mn: '', about_course_en: '',
     price: '0', category: 'Хоол',
     cover_image_url: '', trailer_url: '',
     slug: '', is_published: false,
+    show_outline: true,
   });
 
   function slugify(str: string) {
@@ -39,6 +41,7 @@ export default function NewCoursePage() {
     const { error } = await supabase.from('mo_courses').insert({
       ...form,
       price: Number(form.price),
+      show_outline: form.show_outline,
     });
     if (error) {
       setError(error.message);
@@ -82,13 +85,50 @@ export default function NewCoursePage() {
           </Field>
         </div>
 
-        <Field label="Тайлбар (МН)">
+        <Field label="Тайлбар (МН)" hint="Хайлтад харагдах богино тайлбар">
           <textarea value={form.description_mn} onChange={(e) => set('description_mn', e.target.value)} style={{ ...inputStyle, height: '100px', resize: 'vertical' }} placeholder="Хичээлийн дэлгэрэнгүй тайлбар..." />
         </Field>
 
         <Field label="Тайлбар (EN)">
           <textarea value={form.description_en} onChange={(e) => set('description_en', e.target.value)} style={{ ...inputStyle, height: '100px', resize: 'vertical' }} />
         </Field>
+
+        {/* About course — free-form creative section (like Skool "What's inside?") */}
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: '#374151', marginBottom: '0.25rem' }}>
+            Сургалтын тухай (чөлөөт хэлбэр)
+          </div>
+          <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '0.75rem' }}>
+            Сурагчдад зориулж хичээлийнхээ онцлог, агуулгыг өөрийн үгээр бичнэ үү — зурмал эмоджи ч болно. Skool платформын "What&apos;s inside?" хэсгийн нэгэн адил.
+          </div>
+          <Field label="МН хэлбэрээр бичих">
+            <textarea
+              value={form.about_course_mn}
+              onChange={(e) => set('about_course_mn', e.target.value)}
+              style={{ ...inputStyle, height: '180px', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.7 }}
+              placeholder={`Жишээ нь:\n\n🍳 25+ практик жор — гэртээ хоол хийх итгэлийг олно\n⏱ Цагийн менежмент — долоо хоног бүрийн хоолоо 2 цагт бэлдэх\n🎓 Б.Нарантуяа — 15 жилийн туршлагатай тогооч\n✅ Гэрчилгээ авна — ажлын байранд нэмж дурдах боломжтой`}
+            />
+          </Field>
+          <Field label="EN хэлбэрээр бичих (заавал биш)">
+            <textarea
+              value={form.about_course_en}
+              onChange={(e) => set('about_course_en', e.target.value)}
+              style={{ ...inputStyle, height: '120px', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.7 }}
+              placeholder="Optional English version of the about section..."
+            />
+          </Field>
+        </div>
+
+        {/* show_outline toggle */}
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', cursor: 'pointer', padding: '0.75rem 1rem', background: '#f9fafb', borderRadius: '8px', border: '1px solid var(--border)' }}>
+          <input type="checkbox" checked={form.show_outline} onChange={(e) => set('show_outline', e.target.checked)} style={{ marginTop: '2px', accentColor: '#00B5AD', width: '16px', height: '16px', flexShrink: 0 }} />
+          <div>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: '#111' }}>Хичээлийн агуулга харуулах</span>
+            <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
+              Идэвхгүй болговол "Хичээлийн агуулга" хэсэг сурагчдад харагдахгүй болно
+            </div>
+          </div>
+        </label>
 
         <Field label="YouTube Trailer ID">
           <input value={form.trailer_url} onChange={(e) => set('trailer_url', e.target.value)} style={inputStyle} placeholder="dQw4w9WgXcQ" />
@@ -132,12 +172,13 @@ const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box', outline: 'none', background: '#fff'
 };
 
-function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
+function Field({ label, children, required, hint }: { label: string; children: React.ReactNode; required?: boolean; hint?: string }) {
   return (
     <div>
-      <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '0.4rem' }}>
+      <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: hint ? '0.15rem' : '0.4rem' }}>
         {label}{required && <span style={{ color: '#ef4444' }}> *</span>}
       </label>
+      {hint && <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 0.4rem' }}>{hint}</p>}
       {children}
     </div>
   );

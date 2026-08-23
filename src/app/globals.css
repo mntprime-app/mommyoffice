@@ -73,3 +73,31 @@ h1, h2, h3, h4, h5, h6 {
   backdrop-filter: blur(12px);
   box-shadow: 0 2px 20px rgba(0,0,0,0.4);
 }
+
+/* Instructor card hover effects — CSS-only, safe for server components */
+.mo-inst-avatar { transition: opacity 0.18s; }
+.mo-inst-avatar:hover { opacity: 0.78; }
+.mo-inst-name-link { text-decoration: none; }
+.mo-inst-name-link:hover .mo-inst-name { text-decoration: underline; }
+.mo-inst-profile-btn { transition: background 0.15s; }
+.mo-inst-profile-btn:hover { background: rgba(0,181,173,0.12) !important; }
+.mo-course-card { transition: border-color 0.2s, transform 0.2s; }
+.mo-course-card:hover { border-color: #00B5AD !important; transform: translateY(-2px); }
+
+/* Course detail — two-column layout (video left, sticky sidebar right) */
+.course-two-col {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+@media (max-width: 960px) {
+  .course-two-col {
+    flex-direction: column;
+  }
+  .course-sidebar {
+    position: static !important;
+    flex: 1 1 auto !important;
+    max-width: 100% !important;
+    width: 100%;
+  }
+}

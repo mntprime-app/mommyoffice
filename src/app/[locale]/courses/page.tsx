@@ -20,7 +20,7 @@ async function getCourses(category?: string) {
     const supabase = await createClient();
     let query = supabase
       .from('mo_courses')
-      .select('id, title_mn, title_en, description_mn, description_en, price, cover_image_url, slug, category, instructor_id')
+      .select('id, title_mn, title_en, description_mn, description_en, price, original_price, cover_image_url, slug, category, instructor_id, is_bestseller, rating, rating_count, created_at')
       .eq('is_published', true)
       .order('created_at', { ascending: false });
     if (category && category !== 'Бүх ангилал') {
@@ -32,14 +32,14 @@ async function getCourses(category?: string) {
 }
 
 const PLACEHOLDER_COURSES = [
-  { id: 1, title_mn: 'Гэрийн хоол хийх урлаг',           price: 29900, emoji: '🍳', category: 'Хоол',           desc_mn: 'Гэртээ эрүүл, амттай хоол хийж сур' },
-  { id: 2, title_mn: 'Арьс нүүрний мэргэжлийн арчилгаа', price: 39900, emoji: '💆', category: 'Гоо сайхан',     desc_mn: 'Мэргэжилтний нууц аргуудыг сур' },
-  { id: 3, title_mn: 'Дотоод амар тайван — Meditation',   price: 24900, emoji: '🧘', category: 'Эрүүл мэнд',    desc_mn: 'Оюун санааны тайван байдлыг олж ав' },
-  { id: 4, title_mn: 'Бизнес эхлүүлэх 101',               price: 49900, emoji: '💼', category: 'Бизнес',         desc_mn: 'Өөрийн бизнесийг эхлүүлэх алхамууд' },
-  { id: 5, title_mn: 'Гэрийн дотоод чимэглэл',            price: 19900, emoji: '🏠', category: 'Дизайн',         desc_mn: 'Гэрээ хэрхэн чимэглэх вэ' },
-  { id: 6, title_mn: 'Хувийн санхүүгийн удирдлага',       price: 34900, emoji: '💰', category: 'Бизнес',         desc_mn: 'Хувийн санхүүгээ зөв удирдаж сур' },
-  { id: 7, title_mn: 'Гэр бүлийн эрүүл харилцаа',         price: 29900, emoji: '💝', category: 'Гэр бүл',       desc_mn: 'Гэр бүлийн бат бөх харилцаа' },
-  { id: 8, title_mn: 'Зорилго тавих — Goal Setting',       price: 0,     emoji: '🎯', category: 'Хувийн хөгжил', desc_mn: 'Амьдралын зорилгоо олж, хэрэгжүүл' },
+  { id: 1, title_mn: 'Гэрийн хоол хийх урлаг',           price: 19900, original_price: 29900, emoji: '🍳', category: 'Хоол',           desc_mn: 'Гэртээ эрүүл, амттай хоол хийж сур',           is_bestseller: true,  rating: 4.8, rating_count: 312 },
+  { id: 2, title_mn: 'Арьс нүүрний мэргэжлийн арчилгаа', price: 29900, original_price: 49900, emoji: '💆', category: 'Гоо сайхан',     desc_mn: 'Мэргэжилтний нууц аргуудыг сур',               is_bestseller: true,  rating: 4.9, rating_count: 187 },
+  { id: 3, title_mn: 'Дотоод амар тайван — Meditation',   price: 24900, original_price: 0,     emoji: '🧘', category: 'Эрүүл мэнд',    desc_mn: 'Оюун санааны тайван байдлыг олж ав',           is_bestseller: false, rating: 4.7, rating_count: 98  },
+  { id: 4, title_mn: 'Бизнес эхлүүлэх 101',               price: 39900, original_price: 59900, emoji: '💼', category: 'Бизнес',         desc_mn: 'Өөрийн бизнесийг эхлүүлэх алхамууд',          is_bestseller: true,  rating: 4.8, rating_count: 245 },
+  { id: 5, title_mn: 'Гэрийн дотоод чимэглэл',            price: 19900, original_price: 0,     emoji: '🏠', category: 'Дизайн',         desc_mn: 'Гэрээ хэрхэн чимэглэх вэ',                    is_bestseller: false, rating: 4.6, rating_count: 64  },
+  { id: 6, title_mn: 'Хувийн санхүүгийн удирдлага',       price: 34900, original_price: 49900, emoji: '💰', category: 'Бизнес',         desc_mn: 'Хувийн санхүүгээ зөв удирдаж сур',            is_bestseller: false, rating: 4.7, rating_count: 143 },
+  { id: 7, title_mn: 'Гэр бүлийн эрүүл харилцаа',         price: 29900, original_price: 0,     emoji: '💝', category: 'Гэр бүл',       desc_mn: 'Гэр бүлийн бат бөх харилцаа',                  is_bestseller: false, rating: 4.5, rating_count: 77  },
+  { id: 8, title_mn: 'Зорилго тавих — Goal Setting',       price: 0,     original_price: 0,     emoji: '🎯', category: 'Хувийн хөгжил', desc_mn: 'Амьдралын зорилгоо олж, хэрэгжүүл',           is_bestseller: false, rating: 4.6, rating_count: 52  },
 ];
 
 export default async function CoursesPage({
@@ -57,11 +57,14 @@ export default async function CoursesPage({
   const displayCourses = courses.length > 0 ? courses : PLACEHOLDER_COURSES;
 
   const featured = displayCourses[0] as Record<string, unknown>;
-  const featuredTitle  = locale === 'mn' ? String(featured.title_mn || '') : String(featured.title_en || featured.title_mn || '');
-  const featuredDesc   = locale === 'mn' ? String(featured.desc_mn || featured.description_mn || '') : String(featured.desc_en || featured.description_en || featured.desc_mn || '');
-  const featuredPrice  = Number(featured.price) || 0;
-  const featuredSlug   = featured.slug ? `/${locale}/courses/${featured.slug}` : '#';
-  const featuredGrad   = CAT_GRADIENTS[String(featured.category || '')] || CAT_GRADIENTS.default;
+  const featuredTitle         = locale === 'mn' ? String(featured.title_mn || '') : String(featured.title_en || featured.title_mn || '');
+  const featuredDesc          = locale === 'mn' ? String(featured.desc_mn || featured.description_mn || '') : String(featured.desc_en || featured.description_en || featured.desc_mn || '');
+  const featuredPrice         = Number(featured.price) || 0;
+  const featuredOriginalPrice = Number(featured.original_price) || 0;
+  const featuredRating        = Number(featured.rating) || 0;
+  const featuredRatingCount   = Number(featured.rating_count) || 0;
+  const featuredSlug          = featured.slug ? `/${locale}/courses/${featured.slug}` : '#';
+  const featuredGrad          = CAT_GRADIENTS[String(featured.category || '')] || CAT_GRADIENTS.default;
 
   return (
     <div style={{ background: '#141414', minHeight: '100vh' }}>
@@ -77,7 +80,7 @@ export default async function CoursesPage({
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
           background: featuredGrad,
         }}>
-          {featured.cover_image_url && (
+          {Boolean(featured.cover_image_url) && (
             <img
               src={String(featured.cover_image_url)}
               alt={featuredTitle}
@@ -136,7 +139,16 @@ export default async function CoursesPage({
             </p>
           )}
 
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          {/* Rating row in hero */}
+          {featuredRating > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '1.25rem' }}>
+              <span style={{ color: '#f59e0b', fontSize: '14px' }}>★</span>
+              <span style={{ color: '#f59e0b', fontWeight: 700, fontSize: '14px' }}>{featuredRating.toFixed(1)}</span>
+              <span style={{ color: '#888', fontSize: '13px' }}>({featuredRatingCount.toLocaleString()} үнэлгээ)</span>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <Link href={featuredSlug} style={{
               display: 'inline-flex', alignItems: 'center', gap: '8px',
               background: '#00B5AD', color: '#fff',
@@ -147,12 +159,16 @@ export default async function CoursesPage({
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
               Элсэх
             </Link>
-            <span style={{
-              fontWeight: 800, fontSize: '18px',
-              color: featuredPrice === 0 ? '#10b981' : '#fff',
-            }}>
-              {featuredPrice === 0 ? 'Үнэгүй' : `${featuredPrice.toLocaleString()}₮`}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontWeight: 800, fontSize: '18px', color: featuredPrice === 0 ? '#10b981' : '#fff' }}>
+                {featuredPrice === 0 ? 'Үнэгүй' : `${featuredPrice.toLocaleString()}₮`}
+              </span>
+              {featuredOriginalPrice > featuredPrice && featuredOriginalPrice > 0 && (
+                <span style={{ fontSize: '14px', color: '#555', textDecoration: 'line-through' }}>
+                  {featuredOriginalPrice.toLocaleString()}₮
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -198,9 +214,14 @@ export default async function CoursesPage({
             const desc = locale === 'mn'
               ? String(course.desc_mn || course.description_mn || '')
               : String(course.desc_en || course.description_en || course.desc_mn || '');
-            const price = Number(course.price) || 0;
-            const slug = course.slug ? `/${locale}/courses/${course.slug}` : '#';
-            const grad = CAT_GRADIENTS[String(course.category || '')] || CAT_GRADIENTS.default;
+            const price         = Number(course.price) || 0;
+            const originalPrice = Number(course.original_price) || 0;
+            const isBestseller  = Boolean(course.is_bestseller);
+            const rating        = Number(course.rating) || 0;
+            const ratingCount   = Number(course.rating_count) || 0;
+            const discountPct   = originalPrice > price && originalPrice > 0 ? Math.round((1 - price / originalPrice) * 100) : 0;
+            const slug          = course.slug ? `/${locale}/courses/${course.slug}` : '#';
+            const grad          = CAT_GRADIENTS[String(course.category || '')] || CAT_GRADIENTS.default;
 
             return (
               <Link key={String(course.id || i)} href={slug} style={{ textDecoration: 'none', display: 'flex' }}>
@@ -216,14 +237,12 @@ export default async function CoursesPage({
                     fontSize: '3.5rem', position: 'relative', overflow: 'hidden',
                   }}>
                     {course.cover_image_url ? (
-                      <img
-                        src={String(course.cover_image_url)}
-                        alt={title}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
+                      <img src={String(course.cover_image_url)} alt={title}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <span>{String(course.emoji || '📚')}</span>
                     )}
+                    {/* Category badge */}
                     <span style={{
                       position: 'absolute', top: '10px', left: '10px',
                       background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
@@ -233,42 +252,66 @@ export default async function CoursesPage({
                     }}>
                       {String(course.category || '')}
                     </span>
-                    <span style={{
-                      position: 'absolute', bottom: '10px', right: '10px',
-                      background: price === 0 ? '#10b981' : '#00B5AD',
-                      color: '#fff', fontSize: '11px', fontWeight: 700,
-                      padding: '3px 10px', borderRadius: '4px',
-                    }}>
-                      {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
-                    </span>
+                    {/* Bestseller badge */}
+                    {isBestseller && (
+                      <span style={{
+                        position: 'absolute', top: '10px', right: '10px',
+                        background: '#f59e0b', color: '#000',
+                        fontSize: '9px', fontWeight: 800,
+                        padding: '3px 7px', borderRadius: '3px',
+                        textTransform: 'uppercase', letterSpacing: '0.5px',
+                      }}>ШИЛДЭГ</span>
+                    )}
+                    {/* Discount badge */}
+                    {discountPct > 0 && (
+                      <span style={{
+                        position: 'absolute', bottom: '10px', left: '10px',
+                        background: '#e53e3e', color: '#fff',
+                        fontSize: '10px', fontWeight: 700,
+                        padding: '3px 8px', borderRadius: '3px',
+                      }}>{discountPct}% OFF</span>
+                    )}
                   </div>
 
                   {/* Info */}
-                  <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  <div style={{ padding: '0.85rem 1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    {/* Title — fixed 2-line height so rating row is always at same position */}
                     <h3 style={{
                       fontWeight: 700, fontSize: '14px', lineHeight: 1.4,
-                      marginBottom: '0.4rem', color: '#e5e5e5',
+                      marginBottom: '0.35rem', color: '#e5e5e5',
                       display: '-webkit-box', WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                      minHeight: '2.8em',
                     }}>
                       {title}
                     </h3>
-                    <p style={{
-                      fontSize: '12px', color: '#888', lineHeight: 1.5,
-                      display: '-webkit-box', WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                      minHeight: '36px', margin: 0,
-                    }}>
-                      {desc || ' '}
-                    </p>
-                    <div style={{
-                      marginTop: 'auto', paddingTop: '0.75rem',
-                      display: 'flex', justifyContent: 'flex-end',
-                    }}>
+
+                    {/* Rating row — always on same line, no student count */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', minHeight: '18px' }}>
+                      {rating > 0 && (
+                        <>
+                          <span style={{ color: '#f59e0b', fontSize: '13px' }}>★</span>
+                          <span style={{ color: '#f59e0b', fontSize: '12px', fontWeight: 700 }}>{rating.toFixed(1)}</span>
+                          <span style={{ color: '#666', fontSize: '11px' }}>({ratingCount.toLocaleString()} үнэлгээ)</span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Price row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: 'auto', paddingTop: '0.6rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 800, fontSize: '15px', color: price === 0 ? '#10b981' : '#fff' }}>
+                        {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
+                      </span>
+                      {originalPrice > 0 && originalPrice > price && (
+                        <span style={{ fontSize: '12px', color: '#555', textDecoration: 'line-through' }}>
+                          {originalPrice.toLocaleString()}₮
+                        </span>
+                      )}
                       <span style={{
+                        marginLeft: 'auto',
                         background: '#00B5AD', color: '#fff',
-                        padding: '6px 16px', borderRadius: '6px',
-                        fontSize: '12px', fontWeight: 700,
+                        padding: '5px 14px', borderRadius: '6px',
+                        fontSize: '12px', fontWeight: 700, flexShrink: 0,
                       }}>
                         {t('enroll')}
                       </span>

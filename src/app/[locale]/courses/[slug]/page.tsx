@@ -3,6 +3,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/server';
 import { ShareButton } from '@/components/ui/ShareButton';
+import { CourseOutline } from '@/components/ui/CourseOutline';
+import { HeroMedia } from '@/components/ui/HeroMedia';
+import { AddToCartButton } from '@/components/ui/AddToCartButton';
+import { InstructorBio } from '@/components/ui/InstructorBio';
 
 async function getCourse(slug: string) {
   try {
@@ -34,7 +38,7 @@ async function getSimilarCourses(category: string, excludeId: string) {
     const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_courses')
-      .select('id, title_mn, title_en, slug, category, price, original_price, rating, rating_count, student_count, is_bestseller, cover_image_url')
+      .select('id, title_mn, title_en, slug, category, price, original_price, rating, rating_count, is_bestseller, cover_image_url')
       .eq('is_published', true)
       .eq('category', category)
       .neq('id', excludeId)
@@ -83,6 +87,19 @@ const CAT_GRADIENTS: Record<string, string> = {
   'default':        'linear-gradient(135deg,#0d2137,#1a4a6b)',
 };
 
+function timeAgo(dateStr: string): string {
+  const diffDays = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  if (diffDays === 0) return 'Өнөөдөр';
+  if (diffDays === 1) return '1 өдрийн өмнө';
+  if (diffDays < 7)  return `${diffDays} өдрийн өмнө`;
+  if (diffDays < 14) return '1 долоо хоногийн өмнө';
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} долоо хоногийн өмнө`;
+  if (diffDays < 60) return '1 сарын өмнө';
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} сарын өмнө`;
+  if (diffDays < 730) return '1 жилийн өмнө';
+  return `${Math.floor(diffDays / 365)} жилийн өмнө`;
+}
+
 function StarRow({ rating, count }: { rating: number; count: number }) {
   const stars = Math.round(rating);
   return (
@@ -130,7 +147,6 @@ export default async function CourseDetailPage({
   const originalPrice = Number(course.original_price) || 0;
   const rating        = Number(course.rating) || 0;
   const ratingCount   = Number(course.rating_count) || 0;
-  const studentCount  = Number(course.student_count) || 0;
   const discountPct   = originalPrice > price && originalPrice > 0 ? Math.round((1 - price / originalPrice) * 100) : 0;
   const grad          = CAT_GRADIENTS[String(course.category || '')] || CAT_GRADIENTS.default;
   const isBestseller  = Boolean(course.is_bestseller);
@@ -151,6 +167,12 @@ export default async function CourseDetailPage({
   const lectureCount = Number(course.lecture_count) || 0;
   const level = course.level_mn || '';
 
+  // New fields (requires SQL migration: show_outline boolean, about_course_mn/en text)
+  const showOutline = course.show_outline !== false; // default true if column missing
+  const aboutCourse = locale === 'mn'
+    ? (course.about_course_mn || '')
+    : (course.about_course_en || course.about_course_mn || '');
+
   // Instructor
   const instructor = course.instructor as Record<string, unknown> | null;
   const instructorName = instructor
@@ -161,383 +183,381 @@ export default async function CourseDetailPage({
     ? String(locale === 'mn' ? instructor.bio_mn : (instructor.bio_en || instructor.bio_mn) || '')
     : '';
   const instructorPhoto = instructor ? String(instructor.photo_url || '') : '';
+  const instructorSlug  = instructor ? String(instructor.slug || '') : '';
+  const instructorCourseCount = Number(instructor?.course_count || 0);
+  const instructorReviewCount = Number(instructor?.total_review_count || ratingCount);
+
+  // Pre-compute outline for sidebar
+  const outlineData = (() => {
+    const outline = locale === 'mn'
+      ? course.course_outline_mn
+      : (course.course_outline_en || course.course_outline_mn);
+    return Array.isArray(outline) ? outline as { section: string; lessons: string[] }[] : [];
+  })();
+  const hasOutline = showOutline && (lectureCount > 0 || outlineData.length > 0);
 
   return (
     <div style={{ background: '#141414', minHeight: '100vh' }}>
 
-      {/* ── HERO ── */}
-      <div style={{ background: grad, position: 'relative', overflow: 'hidden' }}>
-        {course.cover_image_url && (
-          <img src={String(course.cover_image_url)} alt={title}
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.2 }} />
-        )}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'linear-gradient(to right, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.4) 100%)' }} />
+      {/* ── HEADER — full-width: back link, badges, title, description, meta ── */}
+      <div style={{ borderBottom: '1px solid #1a1a1a' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem 4% 1.25rem' }}>
+          <Link href={`/${locale}/courses`} style={{
+            color: '#00B5AD', textDecoration: 'none', fontSize: '13px', fontWeight: 600,
+            display: 'inline-block', marginBottom: '1.25rem',
+          }}>← Бүх сургалтууд</Link>
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '1100px', margin: '0 auto', padding: '3.5rem 4% 2.5rem' }}>
-          <div style={{ maxWidth: '680px' }}>
-            {/* Badges */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem', flexWrap: 'wrap' }}>
-              <span style={{
-                background: 'rgba(0,181,173,0.15)', border: '1px solid rgba(0,181,173,0.4)',
-                color: '#00B5AD', padding: '3px 10px', borderRadius: '4px',
-                fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase',
-              }}>{course.category}</span>
-              {isBestseller && (
-                <span style={{
-                  background: '#f59e0b', color: '#000',
-                  padding: '3px 10px', borderRadius: '4px',
-                  fontSize: '10px', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase',
-                }}>ШИЛДЭГ</span>
-              )}
-              {level && (
-                <span style={{
-                  background: 'rgba(255,255,255,0.08)', color: '#ccc',
-                  padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.15)',
-                  fontSize: '10px', fontWeight: 600,
-                }}>{level}</span>
-              )}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
+            {course.category && (
+              <span style={{ background: 'rgba(0,181,173,0.15)', border: '1px solid rgba(0,181,173,0.4)', color: '#00B5AD', padding: '3px 10px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase' }}>{course.category}</span>
+            )}
+            {isBestseller && (
+              <span style={{ background: '#f59e0b', color: '#000', padding: '3px 10px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>ШИЛДЭГ</span>
+            )}
+            {level && (
+              <span style={{ background: 'rgba(255,255,255,0.08)', color: '#ccc', padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.15)', fontSize: '10px', fontWeight: 600 }}>{level}</span>
+            )}
+          </div>
+
+          <h1 style={{ fontSize: 'clamp(1.4rem, 3vw, 2.4rem)', fontWeight: 800, color: '#fff', lineHeight: 1.2, marginBottom: '0.6rem', letterSpacing: '-0.5px' }}>
+            {title}
+          </h1>
+
+          {description && (
+            <p style={{ fontSize: '15px', color: '#999', lineHeight: 1.65, marginBottom: '0.85rem', maxWidth: '760px', fontWeight: 400 }}>
+              {description}
+            </p>
+          )}
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', fontSize: '13px', color: '#888' }}>
+            {rating > 0 && <StarRow rating={rating} count={ratingCount} />}
+            {durationText && <span>🕐 {durationText}</span>}
+            {lectureCount > 0 && <span>📖 {lectureCount} хичээл</span>}
+            {instructorName && <span>👩‍🏫 {instructorName}</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* ── TWO-COLUMN GRID ── */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem 4% 2rem' }}>
+        <div className="course-two-col">
+
+          {/* ── LEFT COLUMN: video + all content ── */}
+          <div style={{ flex: '1 1 0', minWidth: 0 }}>
+
+            {/* HeroMedia — 16:9, no crop */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <HeroMedia
+                coverImageUrl={course.cover_image_url ? String(course.cover_image_url) : undefined}
+                trailerUrl={course.trailer_url ? String(course.trailer_url) : undefined}
+                grad={grad}
+                title={title}
+              />
             </div>
 
-            {/* Title */}
-            <h1 style={{
-              fontSize: 'clamp(1.6rem, 3.5vw, 2.8rem)', fontWeight: 800,
-              color: '#fff', lineHeight: 1.2, marginBottom: '0.75rem', letterSpacing: '-0.5px',
-            }}>{title}</h1>
-
-            {/* Description */}
-            {description && (
-              <p style={{ fontSize: '15px', color: '#b0bcc8', lineHeight: 1.65, marginBottom: '1rem', maxWidth: '560px' }}>
-                {description}
-              </p>
+            {/* About course */}
+            {aboutCourse && (
+              <SectionCard title="Сургалтын тухай">
+                <div style={{ fontSize: '15px', color: '#ccc', lineHeight: 1.85, whiteSpace: 'pre-wrap' }}>
+                  {aboutCourse}
+                </div>
+              </SectionCard>
             )}
 
-            {/* Meta row */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', marginBottom: '1rem', fontSize: '13px', color: '#888' }}>
-              {rating > 0 && <StarRow rating={rating} count={ratingCount} />}
-              {studentCount > 0 && <span>👥 {studentCount.toLocaleString()} оюутан</span>}
-              {durationText && <span>🕐 {durationText}</span>}
-              {lectureCount > 0 && <span>📖 {lectureCount} хичээл</span>}
-              {instructorName && <span>👩‍🏫 {instructorName}</span>}
-            </div>
+            {/* Course includes */}
+            <SectionCard title="Сургалтад багтсан зүйлс">
+              <div style={{ display: 'flex', flexWrap: 'wrap', borderTop: '1px solid #2a2a2a' }}>
+                {[
+                  lectureCount > 0 && { icon: '📖', text: `${lectureCount} хичээл${durationText ? ` · ${durationText}` : ''}` },
+                  (Number(course.download_count) || 0) > 0 && { icon: '📥', text: `${Number(course.download_count)} татаж авах материал` },
+                  (Number(course.exercise_count) || 0) > 0 && { icon: '✏️', text: `${Number(course.exercise_count)} дасгал ажил` },
+                  course.has_certificate && { icon: '🎓', text: 'Гэрчилгээ олгодог' },
+                ].filter(Boolean).map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 0', width: '50%', minWidth: '200px', borderBottom: '1px solid #222', fontSize: '13px', color: '#ccc' }}>
+                    <span style={{ fontSize: '15px', flexShrink: 0 }}>{(item as {icon:string;text:string}).icon}</span>
+                    <span>{(item as {icon:string;text:string}).text}</span>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
 
-            {/* Price */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '26px', fontWeight: 800, color: price === 0 ? '#10b981' : '#fff' }}>
-                {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
-              </span>
-              {originalPrice > price && originalPrice > 0 && (
-                <>
-                  <span style={{ fontSize: '15px', color: '#555', textDecoration: 'line-through' }}>
-                    {originalPrice.toLocaleString()}₮
-                  </span>
-                  <span style={{ fontSize: '11px', background: '#e53e3e', color: '#fff', padding: '3px 8px', borderRadius: '4px', fontWeight: 700 }}>
-                    {discountPct}% OFF
-                  </span>
-                </>
-              )}
-            </div>
+            {/* What you'll learn */}
+            {learnItems.length > 0 && (
+              <SectionCard title="Юу сурах вэ?">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.65rem' }}>
+                  {learnItems.map((item: string, i: number) => (
+                    <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <span style={{ color: '#00B5AD', fontSize: '14px', marginTop: '2px', flexShrink: 0 }}>✓</span>
+                      <span style={{ fontSize: '14px', color: '#ccc', lineHeight: 1.5 }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
 
-            {/* CTA Buttons */}
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              {price === 0 ? (
-                <Link href={`/${locale}/checkout/${slug}`} style={{
-                  background: '#00B5AD', color: '#fff',
-                  padding: '13px 32px', borderRadius: '8px',
-                  fontWeight: 700, textDecoration: 'none', fontSize: '15px',
-                  boxShadow: '0 4px 24px rgba(0,181,173,0.35)',
-                  display: 'inline-flex', alignItems: 'center', gap: '8px',
-                }}>
-                  Үнэгүй авах
-                </Link>
-              ) : (
-                <>
+            {/* Requirements */}
+            {reqItems.length > 0 && (
+              <SectionCard title="Шаардлага">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {reqItems.map((item: string, i: number) => (
+                    <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <span style={{ color: '#666', fontSize: '14px', marginTop: '2px', flexShrink: 0 }}>•</span>
+                      <span style={{ fontSize: '14px', color: '#ccc', lineHeight: 1.5 }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
+
+            {/* Instructor — Udemy-style with clickable profile + stats + expandable bio */}
+            {instructor && (
+              <SectionCard title="Багшийн тухай">
+                <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
+
+                  {/* Clickable avatar — CSS hover via .mo-inst-avatar class */}
+                  {instructorSlug ? (
+                    <Link href={`/${locale}/instructors/${instructorSlug}`} className="mo-inst-avatar" style={{ flexShrink: 0, display: 'block' }}>
+                      {instructorPhoto ? (
+                        <img src={instructorPhoto} alt={instructorName}
+                          style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #2a2a2a', display: 'block' }}
+                        />
+                      ) : (
+                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg,#00B5AD,#0d3720)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>👩‍🏫</div>
+                      )}
+                    </Link>
+                  ) : (
+                    instructorPhoto
+                      ? <img src={instructorPhoto} alt={instructorName} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #2a2a2a', flexShrink: 0 }} />
+                      : <div style={{ width: '80px', height: '80px', borderRadius: '50%', flexShrink: 0, background: 'linear-gradient(135deg,#00B5AD,#0d3720)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>👩‍🏫</div>
+                  )}
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Clickable name — CSS hover via .mo-inst-name-link class */}
+                    {instructorSlug ? (
+                      <Link href={`/${locale}/instructors/${instructorSlug}`} className="mo-inst-name-link">
+                        <p className="mo-inst-name" style={{ fontSize: '17px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 2px', display: 'inline-block' }}>
+                          {instructorName}
+                        </p>
+                      </Link>
+                    ) : (
+                      <p style={{ fontSize: '17px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 2px' }}>{instructorName}</p>
+                    )}
+
+                    {/* Title / headline */}
+                    {instructorTitle && (
+                      <p style={{ fontSize: '13px', color: '#00B5AD', margin: '0 0 10px' }}>{instructorTitle}</p>
+                    )}
+
+                    {/* Stats row */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '12px' }}>
+                      {rating > 0 && (
+                        <span style={{ fontSize: '13px', color: '#bbb', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span style={{ color: '#f59e0b' }}>⭐</span>
+                          <strong style={{ color: '#f59e0b' }}>{rating.toFixed(1)}</strong> Багшийн үнэлгээ
+                        </span>
+                      )}
+                      {instructorReviewCount > 0 && (
+                        <span style={{ fontSize: '13px', color: '#bbb', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span>💬</span>
+                          <strong style={{ color: '#e5e5e5' }}>{instructorReviewCount.toLocaleString()}</strong> Сэтгэгдэл
+                        </span>
+                      )}
+                      {instructorCourseCount > 0 && (
+                        <span style={{ fontSize: '13px', color: '#bbb', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span>📚</span>
+                          <strong style={{ color: '#e5e5e5' }}>{instructorCourseCount}</strong> Сургалт
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Expandable bio */}
+                    {instructorBio && <InstructorBio bio={instructorBio} />}
+
+                    {/* Profile link — CSS hover via .mo-inst-profile-btn */}
+                    {instructorSlug && (
+                      <Link href={`/${locale}/instructors/${instructorSlug}`}
+                        className="mo-inst-profile-btn"
+                        style={{ display: 'inline-block', marginTop: '10px', fontSize: '13px', color: '#00B5AD', fontWeight: 600, textDecoration: 'none', border: '1px solid rgba(0,181,173,0.4)', padding: '5px 14px', borderRadius: '20px' }}
+                      >
+                        Бүрэн профайл харах →
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </SectionCard>
+            )}
+          </div>
+
+          {/* ── RIGHT SIDEBAR: sticky price card + curriculum ── */}
+          <div className="course-sidebar" style={{
+            flex: '0 0 340px', maxWidth: '340px',
+            position: 'sticky', top: '80px',
+            alignSelf: 'flex-start',
+            display: 'flex', flexDirection: 'column', gap: '1rem',
+          }}>
+
+            {/* Price card */}
+            <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 24px rgba(0,0,0,0.4)' }}>
+
+              {/* Price row */}
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: price === 0 ? '#10b981' : '#fff', lineHeight: 1 }}>
+                  {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
+                </span>
+                {originalPrice > price && originalPrice > 0 && (
+                  <>
+                    <span style={{ fontSize: '14px', color: '#555', textDecoration: 'line-through' }}>{originalPrice.toLocaleString()}₮</span>
+                    <span style={{ fontSize: '11px', background: '#e53e3e', color: '#fff', padding: '3px 8px', borderRadius: '4px', fontWeight: 700 }}>{discountPct}% OFF</span>
+                  </>
+                )}
+              </div>
+
+              {/* CTAs — full-width, bold, Fitts's Law */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
+                {price === 0 ? (
                   <Link href={`/${locale}/checkout/${slug}`} style={{
                     background: '#00B5AD', color: '#fff',
-                    padding: '13px 28px', borderRadius: '8px',
-                    fontWeight: 700, textDecoration: 'none', fontSize: '15px',
-                    boxShadow: '0 4px 24px rgba(0,181,173,0.35)',
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                    padding: '15px', borderRadius: '10px',
+                    fontWeight: 800, textDecoration: 'none', fontSize: '16px',
+                    boxShadow: '0 4px 20px rgba(0,181,173,0.4)',
+                    textAlign: 'center', display: 'block', letterSpacing: '0.2px',
                   }}>
-                    Худалдан авах
+                    Үнэгүй авах
                   </Link>
-                  <Link href={`/${locale}/cart?add=${slug}`} style={{
-                    background: 'rgba(255,255,255,0.08)', color: '#e5e5e5',
-                    padding: '13px 24px', borderRadius: '8px',
-                    fontWeight: 600, textDecoration: 'none', fontSize: '15px',
-                    border: '1px solid rgba(255,255,255,0.18)',
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  }}>
-                    🛒 Сагсанд нэмэх
-                  </Link>
-                </>
-              )}
-            </div>
-            <p style={{ fontSize: '11px', color: '#555', marginTop: '10px' }}>
-              Бүртгэлгүйгээр худалдан авах боломжтой
-            </p>
+                ) : (
+                  <>
+                    <Link href={`/${locale}/checkout/${slug}`} style={{
+                      background: '#00B5AD', color: '#fff',
+                      padding: '15px', borderRadius: '10px',
+                      fontWeight: 800, textDecoration: 'none', fontSize: '16px',
+                      boxShadow: '0 4px 20px rgba(0,181,173,0.4)',
+                      textAlign: 'center', display: 'block', letterSpacing: '0.2px',
+                    }}>
+                      Худалдан авах
+                    </Link>
+                    <AddToCartButton locale={locale} slug={slug} />
+                  </>
+                )}
+              </div>
 
-            {/* Share */}
-            <div style={{ marginTop: '1.25rem' }}>
+              <p style={{ fontSize: '11px', color: '#555', textAlign: 'center', margin: '0 0 1.25rem' }}>
+                Бүртгэлгүйгээр худалдан авах боломжтой
+              </p>
+
               <ShareButton
                 url={`https://mommyoffice-smoky.vercel.app/${locale}/courses/${slug}`}
                 title={title}
               />
             </div>
+
+            {/* Хичээлийн агуулга — sidebar */}
+            {hasOutline && (
+              <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.25rem' }}>
+                <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 1rem' }}>
+                  Хичээлийн агуулга
+                </h2>
+                {outlineData.length === 0
+                  ? <p style={{ fontSize: '13px', color: '#555', margin: 0 }}>Хичээлийн дэлгэрэнгүй агуулга удахгүй нэмэгдэнэ.</p>
+                  : <CourseOutline sections={outlineData} lectureCount={lectureCount} durationText={durationText} />
+                }
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* ── CONTENT ── */}
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2.5rem 4%' }}>
+      {/* ── FULL-WIDTH BELOW: Reviews + Similar Courses ── */}
+      <div style={{ borderTop: '1px solid #1a1a1a' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 4% 3rem' }}>
 
-        {/* 0. Course summary card */}
-        <SectionCard title="Сургалтын агуулга">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
-            {[
-              { icon: '📖', value: `${lectureCount} хичээл`, label: durationText ? `(${durationText})` : '' },
-              { icon: '📥', value: `${Number(course.download_count) || 0} файл`, label: 'татаж авах материал' },
-              { icon: '✏️', value: `${Number(course.exercise_count) || 0} дасгал`, label: 'практик ажил' },
-              { icon: '📄', value: `${Number(course.article_count) || 0} нийтлэл`, label: 'нэмэлт унших' },
-              ...(course.has_final_project ? [{ icon: '🏆', value: 'Эцсийн төсөл', label: 'багтсан' }] : []),
-              ...(course.has_certificate ? [{ icon: '🎓', value: 'Гэрчилгээ', label: 'дүүргэсний дараа' }] : []),
-            ].map((item, i) => (
-              <div key={i} style={{
-                background: '#111', border: '1px solid #2a2a2a', borderRadius: '8px',
-                padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '4px',
-              }}>
-                <span style={{ fontSize: '22px' }}>{item.icon}</span>
-                <span style={{ fontSize: '14px', fontWeight: 700, color: '#e5e5e5' }}>{item.value}</span>
-                {item.label && <span style={{ fontSize: '11px', color: '#666' }}>{item.label}</span>}
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-
-        {/* 1. What you'll learn */}
-        {learnItems.length > 0 && (
-          <SectionCard title="Юу сурах вэ?">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.65rem' }}>
-              {learnItems.map((item: string, i: number) => (
-                <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ color: '#00B5AD', fontSize: '14px', marginTop: '2px', flexShrink: 0 }}>✓</span>
-                  <span style={{ fontSize: '14px', color: '#ccc', lineHeight: 1.5 }}>{item}</span>
+          {/* Reviews */}
+          {(rating > 0 || reviews.length > 0) && (
+            <SectionCard title="Үнэлгээ & Сэтгэгдэл">
+              {rating > 0 && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <StarRow rating={rating} count={ratingCount} />
                 </div>
-              ))}
-            </div>
-          </SectionCard>
-        )}
-
-        {/* 2. Course outline */}
-        {(lectureCount > 0 || course.course_outline_mn) && (
-          <SectionCard title="Хичээлийн агуулга">
-            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-              {lectureCount > 0 && <span style={{ fontSize: '13px', color: '#888' }}>📖 {lectureCount} хичээл</span>}
-              {durationText && <span style={{ fontSize: '13px', color: '#888' }}>🕐 Нийт {durationText}</span>}
-            </div>
-            {(() => {
-              const outline = locale === 'mn'
-                ? course.course_outline_mn
-                : (course.course_outline_en || course.course_outline_mn);
-              if (!outline) return <p style={{ fontSize: '13px', color: '#555', margin: 0 }}>Хичээлийн дэлгэрэнгүй агуулга удахгүй нэмэгдэнэ.</p>;
-              const sections = Array.isArray(outline) ? outline : [];
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {sections.map((sec: { section: string; lessons: string[] }, i: number) => (
-                    <details key={i} style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #2a2a2a' }}>
-                      <summary style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '12px 16px', cursor: 'pointer',
-                        background: '#222', color: '#e5e5e5',
-                        fontSize: '14px', fontWeight: 600, listStyle: 'none',
-                        userSelect: 'none',
-                      }}>
-                        <span>{sec.section}</span>
-                        <span style={{ fontSize: '12px', color: '#666', fontWeight: 400 }}>
-                          {sec.lessons?.length || 0} хичээл
-                        </span>
-                      </summary>
-                      <div style={{ background: '#1a1a1a', padding: '4px 0' }}>
-                        {(sec.lessons || []).map((lesson: string, j: number) => (
-                          <div key={j} style={{
-                            display: 'flex', alignItems: 'center', gap: '10px',
-                            padding: '9px 16px',
-                            borderBottom: j < sec.lessons.length - 1 ? '1px solid #222' : 'none',
-                          }}>
-                            <span style={{ color: '#444', fontSize: '13px' }}>🔒</span>
-                            <span style={{ fontSize: '13px', color: '#999' }}>{lesson}</span>
+              )}
+              {reviews.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1rem' }}>
+                  {reviews.map((r) => (
+                    <div key={r.id} style={{ background: '#222', borderRadius: '8px', padding: '1rem 1.25rem', border: '1px solid #2a2a2a' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#00B5AD', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                          {String(r.reviewer_name || 'О').charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e5e5e5' }}>{r.reviewer_name || 'Оюутан'}</p>
+                          <div style={{ display: 'flex', gap: '2px' }}>
+                            {[1,2,3,4,5].map(s => (
+                              <span key={s} style={{ color: s <= r.rating ? '#f59e0b' : '#333', fontSize: '11px' }}>★</span>
+                            ))}
                           </div>
-                        ))}
+                        </div>
+                        <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#555' }}>{timeAgo(r.created_at)}</span>
                       </div>
-                    </details>
+                      {r.review_text && <p style={{ margin: 0, fontSize: '14px', color: '#aaa', lineHeight: 1.6 }}>{r.review_text}</p>}
+                    </div>
                   ))}
                 </div>
-              );
-            })()}
-          </SectionCard>
-        )}
-
-        {/* 3. Requirements */}
-        {reqItems.length > 0 && (
-          <SectionCard title="Шаардлага">
-            <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
-              {reqItems.map((item: string, i: number) => (
-                <li key={i} style={{ fontSize: '14px', color: '#ccc', lineHeight: 1.6, marginBottom: '4px' }}>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </SectionCard>
-        )}
-
-        {/* 4. Instructor */}
-        {instructor && (
-          <SectionCard title="Багшийн тухай">
-            <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
-              {instructorPhoto ? (
-                <img src={instructorPhoto} alt={instructorName}
-                  style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid #2a2a2a' }} />
               ) : (
-                <div style={{
-                  width: '72px', height: '72px', borderRadius: '50%', flexShrink: 0,
-                  background: 'linear-gradient(135deg,#00B5AD,#0d3720)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '28px',
-                }}>👩‍🏫</div>
+                <p style={{ color: '#555', fontSize: '14px', margin: 0 }}>Сэтгэгдэл байхгүй байна.</p>
               )}
-              <div>
-                <p style={{ fontSize: '16px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 2px' }}>{instructorName}</p>
-                {instructorTitle && <p style={{ fontSize: '13px', color: '#00B5AD', margin: '0 0 8px' }}>{instructorTitle}</p>}
-                {instructorBio && <p style={{ fontSize: '14px', color: '#888', lineHeight: 1.65, margin: 0 }}>{instructorBio}</p>}
-              </div>
-            </div>
-          </SectionCard>
-        )}
+            </SectionCard>
+          )}
 
-        {/* 5. Reviews */}
-        {(rating > 0 || reviews.length > 0) && (
-          <SectionCard title="Үнэлгээ & Сэтгэгдэл">
-            {rating > 0 && (
-              <div style={{ marginBottom: '1.5rem' }}>
-                <StarRow rating={rating} count={ratingCount} />
-              </div>
-            )}
-            {reviews.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {reviews.map((r) => (
-                  <div key={r.id} style={{
-                    background: '#222', borderRadius: '8px', padding: '1rem 1.25rem',
-                    border: '1px solid #2a2a2a',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <div style={{
-                        width: '32px', height: '32px', borderRadius: '50%',
-                        background: '#00B5AD', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '14px', fontWeight: 700, color: '#fff', flexShrink: 0,
-                      }}>
-                        {String(r.reviewer_name || 'О').charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e5e5e5' }}>
-                          {r.reviewer_name || 'Оюутан'}
-                        </p>
-                        <div style={{ display: 'flex', gap: '2px' }}>
-                          {[1,2,3,4,5].map(s => (
-                            <span key={s} style={{ color: s <= r.rating ? '#f59e0b' : '#333', fontSize: '11px' }}>★</span>
-                          ))}
-                        </div>
-                      </div>
-                      <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#555' }}>
-                        {new Date(r.created_at).toLocaleDateString(locale === 'mn' ? 'mn-MN' : 'en-US', { year: 'numeric', month: 'short' })}
-                      </span>
-                    </div>
-                    {r.review_text && (
-                      <p style={{ margin: 0, fontSize: '14px', color: '#aaa', lineHeight: 1.6 }}>{r.review_text}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p style={{ color: '#555', fontSize: '14px', margin: 0 }}>Сэтгэгдэл байхгүй байна.</p>
-            )}
-          </SectionCard>
-        )}
-
-        {/* 6. Similar courses */}
-        {similarCourses.length > 0 && (
-          <SectionCard title={`Төстэй сургалтууд — ${course.category}`}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
-              {similarCourses.map((sc) => {
-                const scTitle = locale === 'mn' ? sc.title_mn : (sc.title_en || sc.title_mn);
-                const scPrice = Number(sc.price) || 0;
-                const scOrig  = Number(sc.original_price) || 0;
-                const scRating = Number(sc.rating) || 0;
-                const scDisc  = scOrig > scPrice && scOrig > 0 ? Math.round((1 - scPrice / scOrig) * 100) : 0;
-                const scGrad  = CAT_GRADIENTS[String(sc.category || '')] || CAT_GRADIENTS.default;
-                return (
-                  <Link key={sc.id} href={sc.slug ? `/${locale}/courses/${sc.slug}` : '#'}
-                    style={{ textDecoration: 'none', display: 'block' }}>
-                    <div style={{
-                      background: '#111', border: '1px solid #2a2a2a', borderRadius: '10px',
-                      overflow: 'hidden', transition: 'border-color 0.2s',
-                    }}>
-                      {/* Thumbnail */}
-                      <div style={{
-                        height: '110px', background: sc.cover_image_url ? `url(${sc.cover_image_url}) center/cover` : scGrad,
-                        position: 'relative',
-                      }}>
-                        {sc.is_bestseller && (
-                          <span style={{
-                            position: 'absolute', top: '8px', right: '8px',
-                            background: '#f59e0b', color: '#000', fontSize: '9px',
-                            fontWeight: 800, padding: '2px 6px', borderRadius: '3px',
-                          }}>ШИЛДЭГ</span>
-                        )}
-                        {scDisc > 0 && (
-                          <span style={{
-                            position: 'absolute', bottom: '8px', left: '8px',
-                            background: '#e53e3e', color: '#fff', fontSize: '9px',
-                            fontWeight: 700, padding: '2px 6px', borderRadius: '3px',
-                          }}>{scDisc}% OFF</span>
-                        )}
-                      </div>
-                      {/* Info */}
-                      <div style={{ padding: '10px 12px' }}>
-                        <p style={{
-                          fontSize: '13px', fontWeight: 600, color: '#e5e5e5',
-                          margin: '0 0 4px', lineHeight: 1.3,
-                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                        }}>{scTitle}</p>
-                        {scRating > 0 && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '4px' }}>
-                            <span style={{ color: '#f59e0b', fontSize: '11px' }}>★</span>
-                            <span style={{ color: '#f59e0b', fontSize: '11px', fontWeight: 700 }}>{scRating.toFixed(1)}</span>
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '13px', fontWeight: 700, color: scPrice === 0 ? '#10b981' : '#fff' }}>
-                            {scPrice === 0 ? 'Үнэгүй' : `${scPrice.toLocaleString()}₮`}
-                          </span>
-                          {scOrig > scPrice && scOrig > 0 && (
-                            <span style={{ fontSize: '11px', color: '#555', textDecoration: 'line-through' }}>
-                              {scOrig.toLocaleString()}₮
-                            </span>
+          {/* Similar courses — Netflix-style horizontal scroll */}
+          {similarCourses.length > 0 && (
+            <section style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.75rem 2rem' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 1.25rem' }}>
+                Санал болгох бусад сургалтууд — {course.category}
+              </h2>
+              <div className="scroll-row" style={{ gap: '1rem', paddingBottom: '0.75rem' }}>
+                {similarCourses.map((sc) => {
+                  const scTitle  = locale === 'mn' ? sc.title_mn : (sc.title_en || sc.title_mn);
+                  const scPrice  = Number(sc.price) || 0;
+                  const scOrig   = Number(sc.original_price) || 0;
+                  const scRating = Number(sc.rating) || 0;
+                  const scDisc   = scOrig > scPrice && scOrig > 0 ? Math.round((1 - scPrice / scOrig) * 100) : 0;
+                  const scGrad   = CAT_GRADIENTS[String(sc.category || '')] || CAT_GRADIENTS.default;
+                  return (
+                    <Link key={sc.id} href={sc.slug ? `/${locale}/courses/${sc.slug}` : '#'}
+                      className="netflix-card"
+                      style={{ textDecoration: 'none', display: 'block', flex: '0 0 220px', minWidth: '220px' }}>
+                      <div style={{ background: '#111', border: '1px solid #2a2a2a', borderRadius: '10px', overflow: 'hidden' }}>
+                        <div style={{ height: '120px', background: sc.cover_image_url ? `url(${sc.cover_image_url}) center/cover` : scGrad, position: 'relative' }}>
+                          {sc.is_bestseller && (
+                            <span style={{ position: 'absolute', top: '8px', right: '8px', background: '#f59e0b', color: '#000', fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '3px' }}>ШИЛДЭГ</span>
+                          )}
+                          {scDisc > 0 && (
+                            <span style={{ position: 'absolute', bottom: '8px', left: '8px', background: '#e53e3e', color: '#fff', fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '3px' }}>{scDisc}% OFF</span>
                           )}
                         </div>
+                        <div style={{ padding: '10px 12px' }}>
+                          <p style={{ fontSize: '13px', fontWeight: 600, color: '#e5e5e5', margin: '0 0 4px', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{scTitle}</p>
+                          {scRating > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '4px' }}>
+                              <span style={{ color: '#f59e0b', fontSize: '11px' }}>★</span>
+                              <span style={{ color: '#f59e0b', fontSize: '11px', fontWeight: 700 }}>{scRating.toFixed(1)}</span>
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: scPrice === 0 ? '#10b981' : '#fff' }}>
+                              {scPrice === 0 ? 'Үнэгүй' : `${scPrice.toLocaleString()}₮`}
+                            </span>
+                            {scOrig > scPrice && scOrig > 0 && (
+                              <span style={{ fontSize: '11px', color: '#555', textDecoration: 'line-through' }}>{scOrig.toLocaleString()}₮</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </SectionCard>
-        )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
-        {/* Back link */}
-        <div style={{ paddingTop: '1rem' }}>
-          <Link href={`/${locale}/courses`} style={{ color: '#00B5AD', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-            ← Бүх сургалтууд
-          </Link>
         </div>
       </div>
     </div>

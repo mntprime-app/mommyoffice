@@ -20,7 +20,7 @@ async function getLatestArticles() {
     const supabase = await createClient();
     const { data } = await supabase
       .from('mo_articles')
-      .select('id, title_mn, title_en, cover_image_url, slug, category, published_at')
+      .select('id, title_mn, title_en, emoji, cover_image_url, slug, category, published_at')
       .eq('is_published', true)
       .order('published_at', { ascending: false })
       .limit(10);
@@ -232,7 +232,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 }}>
                   {featuredArticle?.cover_image_url
                     ? <img src={String(featuredArticle.cover_image_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <span style={{ fontSize: '5rem' }}>{String(featuredArticle?.emoji || '✨')}</span>
+                    : <span style={{ fontSize: '5rem' }}>{String((featuredArticle as Record<string,unknown>)?.emoji || '✨')}</span>
                   }
                   <div style={{
                     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -253,8 +253,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                       WebkitBoxOrient: 'vertical', overflow: 'hidden',
                     }}>
                       {locale === 'mn'
-                        ? String(featuredArticle?.title_mn || featuredArticle?.title || '')
-                        : String(featuredArticle?.title_en || featuredArticle?.title_mn || featuredArticle?.title || '')}
+                        ? String(featuredArticle?.title_mn || '')
+                        : String(featuredArticle?.title_en || featuredArticle?.title_mn || '')}
                     </p>
                   </div>
                 </div>
