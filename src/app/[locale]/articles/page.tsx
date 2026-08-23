@@ -123,10 +123,10 @@ function ArticleCard({ a, locale }: { a: Record<string, unknown>; locale: string
         padding: '20px 0', borderBottom: '1px solid #1f1f1f',
       }}>
         {/* Thumbnail */}
-        <div style={{ width: '130px', height: '88px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden', background: grad, position: 'relative' }}>
+        <div style={{ width: '160px', height: '108px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden', background: grad, position: 'relative' }}>
           {a.cover_image_url
             ? <img src={String(a.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>{String(a.emoji || '✨')}</div>
+            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px' }}>{String(a.emoji || '✨')}</div>
           }
         </div>
         {/* Text */}
