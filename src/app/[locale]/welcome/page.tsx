@@ -166,50 +166,78 @@ export default function WelcomePage() {
         </div>
 
         <form onSubmit={handleSetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-          <div style={{ position: 'relative' }}>
+          <div>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#bbb', marginBottom: 5 }}>
               Шинэ нууц үг
             </label>
-            <input
-              type={showPw ? 'text' : 'password'}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Нууц үгээ оруулна уу"
-              required
-              style={{ ...inputStyle, paddingRight: 44, fontSize: 14 }}
-              onFocus={e => (e.target.style.borderColor = '#00B5AD')}
-              onBlur={e => (e.target.style.borderColor = '#444')}
-            />
-            <button type="button" onClick={() => setShowPw(v => !v)} style={{
-              position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-              background: 'none', border: 'none', cursor: 'pointer', color: '#888',
-              fontSize: 17, lineHeight: 1, padding: 0
-            }}>{showPw ? '🙈' : '👁'}</button>
-            {/* Password requirements */}
-            <p style={{ margin: '5px 0 0', fontSize: 11, color: '#666', lineHeight: 1.6 }}>
-              🔐 Хамгийн багадаа 8 тэмдэгт · Том үсэг (A–Z) · Тоо (0–9) · Тэмдэгт (!@#$%)
+            {/* inner wrapper — eye is relative to input only */}
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Нууц үгээ оруулна уу"
+                required
+                style={{ ...inputStyle, paddingRight: 44, fontSize: 14 }}
+                onFocus={e => (e.target.style.borderColor = '#00B5AD')}
+                onBlur={e => (e.target.style.borderColor = '#444')}
+              />
+              <button type="button" onClick={() => setShowPw(v => !v)} style={{
+                position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: 'pointer', color: '#666',
+                padding: 0, display: 'flex', alignItems: 'center'
+              }}>
+                {showPw ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+            <p style={{ margin: '5px 0 0', fontSize: 11, color: '#555', lineHeight: 1.6 }}>
+              Хамгийн багадаа 8 тэмдэгт · Том үсэг (A–Z) · Тоо (0–9) · Тэмдэгт (!@#$%)
             </p>
           </div>
 
-          <div style={{ position: 'relative' }}>
+          <div>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#bbb', marginBottom: 5 }}>
               Нууц үг давтах
             </label>
-            <input
-              type={showConfirm ? 'text' : 'password'}
-              value={confirm}
-              onChange={e => setConfirm(e.target.value)}
-              placeholder="Нууц үгийг дахин оруулах"
-              required
-              style={{ ...inputStyle, paddingRight: 44, fontSize: 14 }}
-              onFocus={e => (e.target.style.borderColor = '#00B5AD')}
-              onBlur={e => (e.target.style.borderColor = '#444')}
-            />
-            <button type="button" onClick={() => setShowConfirm(v => !v)} style={{
-              position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-              background: 'none', border: 'none', cursor: 'pointer', color: '#888',
-              fontSize: 17, lineHeight: 1, padding: 0
-            }}>{showConfirm ? '🙈' : '👁'}</button>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                value={confirm}
+                onChange={e => setConfirm(e.target.value)}
+                placeholder="Нууц үгийг дахин оруулах"
+                required
+                style={{ ...inputStyle, paddingRight: 44, fontSize: 14 }}
+                onFocus={e => (e.target.style.borderColor = '#00B5AD')}
+                onBlur={e => (e.target.style.borderColor = '#444')}
+              />
+              <button type="button" onClick={() => setShowConfirm(v => !v)} style={{
+                position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: 'pointer', color: '#666',
+                padding: 0, display: 'flex', alignItems: 'center'
+              }}>
+                {showConfirm ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           {error && (

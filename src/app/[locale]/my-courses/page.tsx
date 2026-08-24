@@ -121,7 +121,12 @@ export default function MyCoursesPage() {
           textAlign: 'center', padding: '4rem 2rem',
           background: '#1a1a1a', borderRadius: 16, border: '1px solid #2a2a2a'
         }}>
-          <div style={{ fontSize: 48, marginBottom: '1rem' }}>📚</div>
+          <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'center' }}>
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#00B5AD" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
+            </svg>
+          </div>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
             Одоогоор бүртгэлтэй сургалт байхгүй
           </h2>
