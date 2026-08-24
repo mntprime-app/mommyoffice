@@ -166,7 +166,6 @@ export async function GET(req: NextRequest) {
         course_id: String(order.course_id),
         token: accessToken,
         expires_at: expiresAt,
-        used: false,
       });
 
       // 4. Create / ensure Supabase Auth user exists
