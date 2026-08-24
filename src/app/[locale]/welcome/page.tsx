@@ -15,22 +15,59 @@ export default function WelcomePage() {
   useEffect(() => {
     const supabase = createClient();
 
-    // Set up listener FIRST to avoid race condition where SIGNED_IN fires
-    // before getSession() resolves (common with magic link hash flow)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
+    async function init() {
+      // 1. Check if already have a session (returning user)
+      const { data: existing } = await supabase.auth.getSession();
+      if (existing.session) {
         setStep('set-password');
+        return;
       }
-    });
 
-    // Also check immediately — covers case where session already exists
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
+      // 2. Parse hash fragment manually — @supabase/ssr uses PKCE by default
+      //    and won't auto-process hash-based magic link tokens (#access_token=...)
+      const hash = window.location.hash;
+      if (hash) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+
+        if (accessToken && refreshToken) {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (data.session) {
+            // Clean the hash from URL without reload
+            window.history.replaceState(null, '', window.location.pathname);
+            setStep('set-password');
+          } else {
+            console.error('setSession error:', error);
+            setError('Холбоос хүчингүй болсон байна. И-мэйлийг дахин шалгана уу.');
+            setStep('set-password'); // still show form
+          }
+          return;
+        }
+      }
+
+      // 3. Fallback: listen for auth state change (PKCE code flow via ?code=)
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          setStep('set-password');
+        }
+      });
+
+      // Timeout fallback — if nothing fires in 5s, show the form anyway
+      const timeout = setTimeout(() => {
         setStep('set-password');
-      }
-    });
+      }, 5000);
 
-    return () => subscription.unsubscribe();
+      return () => {
+        subscription.unsubscribe();
+        clearTimeout(timeout);
+      };
+    }
+
+    init();
   }, []);
 
   async function handleSetPassword(e: React.FormEvent) {
