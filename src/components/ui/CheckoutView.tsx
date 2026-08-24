@@ -328,14 +328,18 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
         {email} хаяг руу хандалтын холбоосыг илгээлээ.<br />
         Хэдхэн минутын дотор ирнэ.
       </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '320px', margin: '0 auto' }}>
-        {accessUrl && (
-          <a href={accessUrl} style={{ display: 'block', padding: '14px 28px', background: '#00B5AD', color: '#fff', borderRadius: '10px', fontWeight: 800, fontSize: '16px', textDecoration: 'none', boxShadow: '0 4px 20px rgba(0,181,173,0.4)' }}>
-            Хичээл эхлүүлэх →
-          </a>
-        )}
-        <Link href={`/${locale}/courses`} style={{ display: 'block', padding: '12px 28px', background: 'transparent', color: '#666', borderRadius: '10px', fontWeight: 600, fontSize: '14px', textDecoration: 'none', border: '1px solid #2a2a2a' }}>
-          Бусад хичээлүүд харах
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '360px', margin: '0 auto' }}>
+        <div style={{
+          background: 'rgba(0,181,173,0.12)', border: '1px solid rgba(0,181,173,0.4)',
+          borderRadius: '12px', padding: '16px 20px', textAlign: 'left'
+        }}>
+          <p style={{ margin: 0, fontSize: 14, color: '#ccc', lineHeight: 1.7 }}>
+            📬 <strong style={{ color: '#fff' }}>И-мэйлээ шалгана уу.</strong><br />
+            Хандалтын холбоос илгээгдлээ. И-мэйлийн товч дээр дарж нэвтрэн хичээлдээ хандана уу.
+          </p>
+        </div>
+        <Link href={`/${locale}/my-courses`} style={{ display: 'block', padding: '12px 28px', background: 'transparent', color: '#aaa', borderRadius: '10px', fontWeight: 600, fontSize: '14px', textDecoration: 'none', border: '1px solid #2a2a2a', textAlign: 'center' }}>
+          Миний хичээлүүд →
         </Link>
       </div>
       <style>{`

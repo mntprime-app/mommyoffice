@@ -15,20 +15,22 @@ export default function WelcomePage() {
   useEffect(() => {
     const supabase = createClient();
 
-    // Supabase magic link puts tokens in the URL hash after redirect
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        // Already authenticated — go straight to set-password step
+    // Set up listener FIRST to avoid race condition where SIGNED_IN fires
+    // before getSession() resolves (common with magic link hash flow)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
         setStep('set-password');
-      } else {
-        // Try to pick up session from hash fragment (magic link flow)
-        supabase.auth.onAuthStateChange((event, session) => {
-          if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-            setStep('set-password');
-          }
-        });
       }
     });
+
+    // Also check immediately — covers case where session already exists
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        setStep('set-password');
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function handleSetPassword(e: React.FormEvent) {

@@ -86,6 +86,34 @@ UPDATE mo_courses SET price = 19900 WHERE slug = 'geriin-hool-hiih-urlag';
 
 ---
 
+## Work Completed — Session Continuation (2026-08-24 afternoon)
+
+### 5. User Account & Student Dashboard Architecture
+
+**Files changed:**
+- `src/app/api/qpay/check/route.ts` — full rewrite:
+  - Fetches `access_duration_days` from `mo_courses`
+  - `expires_at = null` for lifetime courses (NULL or 0 days)
+  - `supabase.auth.admin.createUser()` on payment (idempotent)
+  - `supabase.auth.admin.generateLink({ type: 'magiclink', redirectTo: siteUrl + '/mn/welcome' })`
+  - Magic link used as email CTA button URL
+  - Email copy: "Насан туршийн хандалт" vs "Хандалтын хугацаа: [date] хүртэл"
+  - Fixed siteUrl fallback → `https://mommyoffice-smoky.vercel.app`
+- `src/app/api/qpay/create/route.ts` — fixed siteUrl fallback
+- `src/app/[locale]/access/[token]/page.tsx` — fixed null expires_at bug (line 16)
+- `src/app/[locale]/welcome/page.tsx` — NEW: magic link handler, optional password setup, redirect to /my-courses
+- `src/app/[locale]/my-courses/page.tsx` — NEW: student dashboard, course cards with progress bars, lifetime/expiry badge, "Үргэлжлүүлэх →" / "Эхлүүлэх →" / "✅ Дуусгасан" CTAs
+
+**Vercel env vars added:**
+- `NEXT_PUBLIC_SITE_URL=https://mommyoffice-smoky.vercel.app`
+
+**Supabase Auth URL Configuration:**
+- Redirect URLs: added `https://mommyoffice-smoky.vercel.app/**` (MNT Prime URL untouched)
+
+**Deployed:** commit `735dd74` → redeployed, ✅ Ready in 26s
+
+---
+
 ## Pending for Next Session
 
 1. **Fix Brevo email (proper)** — connect mommyoffice.com domain first, then add `noreply@mommyoffice.com` as verified sender in Brevo, update FROM_EMAIL in Vercel, redeploy. See root cause notes above.
