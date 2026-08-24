@@ -146,14 +146,27 @@ export function CoursePlayer({
             background: '#000',
             aspectRatio: '16 / 9',
           }}>
-            <iframe
-              key={videoId}
-              src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
-              title={title}
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowFullScreen
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-            />
+            {videoId ? (
+              <iframe
+                key={videoId}
+                src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
+                title={title}
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+              />
+            ) : (
+              <div style={{
+                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                background: '#0a0a0a',
+              }}>
+                <span style={{ fontSize: '48px', marginBottom: '16px' }}>🎬</span>
+                <p style={{ color: '#555', fontSize: '15px', fontWeight: 600, margin: 0 }}>
+                  Видео удахгүй нэмэгдэх болно
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Lesson nav bar */}

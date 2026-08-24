@@ -49,10 +49,8 @@ export default async function LearnPage({
   const course = await getCourse(slug);
   if (!course) notFound();
 
-  // If no video — redirect to course detail (nothing to play)
-  if (!course.video_url) {
-    redirect(`/${locale}/courses/${slug}`);
-  }
+  // If no video — use empty string, player will show placeholder
+  const videoId: string = course.video_url || '';
 
   // Parse curriculum outline
   let sections: { section: string; lessons: string[] }[] = [];
@@ -77,7 +75,7 @@ export default async function LearnPage({
       locale={locale}
       slug={slug}
       title={title}
-      videoId={course.video_url}
+      videoId={videoId}
       sections={sections}
       instructorName={instructorName}
       instructorSlug={instructorSlug}

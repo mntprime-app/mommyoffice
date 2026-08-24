@@ -113,8 +113,9 @@ export default function Navbar() {
     { href: lp('/'), label: 'Нүүр' },
     { href: lp('/courses'), label: 'Сургалтууд' },
     { href: lp('/articles'), label: 'Нийтлэл' },
-    { href: lp('/videos'), label: 'Видео & Кино' },
-    { href: lp('/shop'), label: 'Дэлгүүр' },
+    // Phase 2 — hidden until launch:
+    // { href: lp('/videos'), label: 'Видео & Кино' },
+    // { href: lp('/shop'), label: 'Дэлгүүр' },
   ];
 
   const iconBtn: React.CSSProperties = {
