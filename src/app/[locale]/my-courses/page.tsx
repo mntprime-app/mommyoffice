@@ -58,21 +58,36 @@ export default function MyCoursesPage() {
         return;
       }
 
-      // Fetch enrollments with course info via mo_access_tokens
+      // Fetch access tokens for this email
       const { data: tokens } = await supabase
         .from('mo_access_tokens')
-        .select(`
-          course_id,
-          expires_at,
-          created_at,
-          mo_courses (
-            id, slug, title_mn, cover_image_url, price
-          )
-        `)
+        .select('course_id, expires_at, created_at')
         .eq('email', userEmail)
         .order('created_at', { ascending: false });
 
-      setEnrollments((tokens as unknown as Enrollment[]) || []);
+      if (!tokens || tokens.length === 0) {
+        setEnrollments([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch courses separately (avoids relying on FK join)
+      const courseIds = [...new Set(tokens.map(t => t.course_id as string))];
+      const { data: courses } = await supabase
+        .from('mo_courses')
+        .select('id, slug, title_mn, cover_image_url, price')
+        .in('id', courseIds);
+
+      const courseMap = Object.fromEntries((courses || []).map(c => [c.id, c]));
+
+      const enrollments = tokens.map(t => ({
+        course_id: t.course_id as string,
+        enrolled_at: t.created_at as string,
+        expires_at: t.expires_at as string | null,
+        mo_courses: courseMap[t.course_id as string] || null,
+      }));
+
+      setEnrollments(enrollments);
       setLoading(false);
     });
   }, [router, locale]);

@@ -101,19 +101,27 @@ export default function WelcomePage() {
     router.push('/mn/my-courses');
   }
 
+  const darkPage: React.CSSProperties = {
+    minHeight: '100vh', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', background: '#141414', padding: '2rem 1rem'
+  };
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '14px 16px',
+    background: '#333', border: '1px solid #444', borderRadius: 6,
+    fontSize: 16, outline: 'none', boxSizing: 'border-box',
+    color: '#fff', transition: 'border-color 0.15s'
+  };
+
   if (step === 'loading') {
     return (
-      <div style={{
-        minHeight: '100vh', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', background: '#f9fafb'
-      }}>
+      <div style={darkPage}>
         <div style={{ textAlign: 'center' }}>
           <div style={{
-            width: 48, height: 48, border: '4px solid #e5e7eb',
+            width: 48, height: 48, border: '4px solid #333',
             borderTopColor: '#00B5AD', borderRadius: '50%',
             animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem'
           }} />
-          <p style={{ color: '#6b7280', fontSize: 15 }}>Нэвтэрч байна...</p>
+          <p style={{ color: '#888', fontSize: 15 }}>Нэвтэрч байна...</p>
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -122,49 +130,43 @@ export default function WelcomePage() {
 
   if (step === 'done') {
     return (
-      <div style={{
-        minHeight: '100vh', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', background: '#f9fafb'
-      }}>
+      <div style={darkPage}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: 56, marginBottom: '1rem' }}>✅</div>
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#111' }}>Нууц үг тохируулагдлаа!</h2>
-          <p style={{ color: '#6b7280', marginTop: 8 }}>Хичээлүүд рүү шилжиж байна...</p>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#fff' }}>Нууц үг тохируулагдлаа!</h2>
+          <p style={{ color: '#888', marginTop: 8 }}>Хичээлүүд рүү шилжиж байна...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh', background: '#f9fafb',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '2rem 1rem'
-    }}>
+    <div style={darkPage}>
       <div style={{
-        background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
-        padding: '2.5rem 2rem', maxWidth: 420, width: '100%'
+        background: '#1f1f1f', borderRadius: 8,
+        boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
+        padding: '48px 40px', maxWidth: 440, width: '100%'
       }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{
             display: 'inline-block', background: '#00B5AD', color: '#fff',
             fontWeight: 800, fontSize: 20, padding: '8px 20px', borderRadius: 8,
-            letterSpacing: '-0.5px', marginBottom: '1rem'
+            letterSpacing: '-0.5px', marginBottom: '1.25rem'
           }}>
             MommyOFFICE
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111', margin: 0 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>
             Тавтай морил! 🎉
           </h1>
-          <p style={{ color: '#6b7280', fontSize: 14, marginTop: 8, lineHeight: 1.6 }}>
+          <p style={{ color: '#aaa', fontSize: 14, marginTop: 8, lineHeight: 1.6 }}>
             Аюулгүй нэвтрэхийн тулд нууц үгээ тохируулна уу.
           </p>
         </div>
 
         <form onSubmit={handleSetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#ccc', marginBottom: 6 }}>
               Шинэ нууц үг
             </label>
             <input
@@ -173,18 +175,14 @@ export default function WelcomePage() {
               onChange={e => setPassword(e.target.value)}
               placeholder="Хамгийн багадаа 8 тэмдэгт"
               required
-              style={{
-                width: '100%', padding: '12px 14px', border: '1.5px solid #d1d5db',
-                borderRadius: 10, fontSize: 15, outline: 'none', boxSizing: 'border-box',
-                transition: 'border-color 0.15s'
-              }}
+              style={inputStyle}
               onFocus={e => (e.target.style.borderColor = '#00B5AD')}
-              onBlur={e => (e.target.style.borderColor = '#d1d5db')}
+              onBlur={e => (e.target.style.borderColor = '#444')}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#ccc', marginBottom: 6 }}>
               Нууц үг давтах
             </label>
             <input
@@ -194,19 +192,17 @@ export default function WelcomePage() {
               placeholder="Нууц үгийг дахин оруулах"
               required
               style={{
-                width: '100%', padding: '12px 14px', border: '1.5px solid #d1d5db',
-                borderRadius: 10, fontSize: 15, outline: 'none', boxSizing: 'border-box',
-                transition: 'border-color 0.15s'
+                ...inputStyle
               }}
               onFocus={e => (e.target.style.borderColor = '#00B5AD')}
-              onBlur={e => (e.target.style.borderColor = '#d1d5db')}
+              onBlur={e => (e.target.style.borderColor = '#444')}
             />
           </div>
 
           {error && (
             <div style={{
-              background: '#fef2f2', border: '1px solid #fecaca',
-              borderRadius: 8, padding: '10px 14px', color: '#dc2626', fontSize: 13
+              background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.4)',
+              borderRadius: 6, padding: '10px 14px', color: '#fca5a5', fontSize: 13
             }}>
               {error}
             </div>
@@ -216,10 +212,10 @@ export default function WelcomePage() {
             type="submit"
             disabled={saving}
             style={{
-              background: saving ? '#9ca3af' : '#00B5AD', color: '#fff',
-              border: 'none', borderRadius: 10, padding: '14px',
-              fontSize: 15, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
-              transition: 'background 0.15s', marginTop: 4
+              background: saving ? '#555' : '#00B5AD', color: '#fff',
+              border: 'none', borderRadius: 6, padding: '15px',
+              fontSize: 16, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
+              transition: 'background 0.15s', marginTop: 4, width: '100%'
             }}
           >
             {saving ? 'Хадгалж байна...' : 'Нууц үг тохируулах →'}
@@ -229,7 +225,7 @@ export default function WelcomePage() {
             type="button"
             onClick={handleSkip}
             style={{
-              background: 'transparent', border: 'none', color: '#9ca3af',
+              background: 'transparent', border: 'none', color: '#666',
               fontSize: 13, cursor: 'pointer', padding: '4px', textDecoration: 'underline'
             }}
           >
