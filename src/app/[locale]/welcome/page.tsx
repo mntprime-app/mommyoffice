@@ -11,6 +11,8 @@ export default function WelcomePage() {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -165,38 +167,46 @@ export default function WelcomePage() {
         </div>
 
         <form onSubmit={handleSetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
+          <div style={{ position: 'relative' }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#ccc', marginBottom: 6 }}>
               Шинэ нууц үг
             </label>
             <input
-              type="password"
+              type={showPw ? 'text' : 'password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="Хамгийн багадаа 8 тэмдэгт"
               required
-              style={inputStyle}
+              style={{ ...inputStyle, paddingRight: 44 }}
               onFocus={e => (e.target.style.borderColor = '#00B5AD')}
               onBlur={e => (e.target.style.borderColor = '#444')}
             />
+            <button type="button" onClick={() => setShowPw(v => !v)} style={{
+              position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', cursor: 'pointer', color: '#888',
+              fontSize: 18, lineHeight: 1, padding: 0
+            }}>{showPw ? '🙈' : '👁'}</button>
           </div>
 
-          <div>
+          <div style={{ position: 'relative' }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#ccc', marginBottom: 6 }}>
               Нууц үг давтах
             </label>
             <input
-              type="password"
+              type={showConfirm ? 'text' : 'password'}
               value={confirm}
               onChange={e => setConfirm(e.target.value)}
               placeholder="Нууц үгийг дахин оруулах"
               required
-              style={{
-                ...inputStyle
-              }}
+              style={{ ...inputStyle, paddingRight: 44 }}
               onFocus={e => (e.target.style.borderColor = '#00B5AD')}
               onBlur={e => (e.target.style.borderColor = '#444')}
             />
+            <button type="button" onClick={() => setShowConfirm(v => !v)} style={{
+              position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', cursor: 'pointer', color: '#888',
+              fontSize: 18, lineHeight: 1, padding: 0
+            }}>{showConfirm ? '🙈' : '👁'}</button>
           </div>
 
           {error && (
