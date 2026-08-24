@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     const orderId = randomUUID();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mommyoffice.com';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mommyoffice-smoky.vercel.app';
 
     // Get QPay token
     const token = await getQPayToken();

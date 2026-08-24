@@ -13,7 +13,8 @@ async function validateToken(token: string) {
       .single();
 
     if (error || !accessToken) return null;
-    if (new Date(accessToken.expires_at) < new Date()) return null;
+    // null expires_at = lifetime access (never expires)
+    if (accessToken.expires_at && new Date(accessToken.expires_at) < new Date()) return null;
 
     // Fetch full course + modules
     const { data: course } = await supabase

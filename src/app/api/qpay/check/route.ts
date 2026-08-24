@@ -15,7 +15,17 @@ async function getQPayToken(): Promise<string> {
   return data.access_token;
 }
 
-async function sendAccessEmail(email: string, courseTitle: string, accessUrl: string) {
+async function sendWelcomeEmail(
+  email: string,
+  courseTitle: string,
+  welcomeUrl: string,
+  isLifetime: boolean,
+  expiryDate: string | null
+) {
+  const accessNote = isLifetime
+    ? 'Насан туршийн хандалт — дахин төлбөр шаардахгүй.'
+    : `Хандалтын хугацаа: ${expiryDate} хүртэл.`;
+
   try {
     await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
@@ -29,25 +39,29 @@ async function sendAccessEmail(email: string, courseTitle: string, accessUrl: st
           email: process.env.FROM_EMAIL || 'hello@mommyoffice.com',
         },
         to: [{ email }],
-        subject: `🎉 ${courseTitle} — Хичээлд нэвтрэх холбоос`,
+        subject: `🎉 ${courseTitle} — Тавтай морил!`,
         htmlContent: `
-          <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px">
-            <div style="background:#00B5AD;padding:20px;border-radius:12px 12px 0 0;text-align:center">
-              <h1 style="color:#fff;margin:0;font-size:22px">Mommyoffice</h1>
+          <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#f9fafb">
+            <div style="background:#00B5AD;padding:24px;border-radius:12px 12px 0 0;text-align:center">
+              <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800;letter-spacing:-0.5px">MommyOFFICE</h1>
             </div>
-            <div style="background:#fff;padding:28px;border:1px solid #e5e7eb;border-radius:0 0 12px 12px">
-              <h2 style="color:#1a1a2e;margin-top:0">${courseTitle} хичээлд тавтай морил! 🎉</h2>
-              <p style="color:#4b5563;line-height:1.6">
-                Та амжилттай бүртгүүллээ. Доорх товчийг дарж хичээлдээ нэвтрэн орно уу.
+            <div style="background:#fff;padding:32px;border:1px solid #e5e7eb;border-radius:0 0 12px 12px">
+              <h2 style="color:#111;margin-top:0;font-size:20px">${courseTitle} хичээлд тавтай морил! 🎉</h2>
+              <p style="color:#4b5563;line-height:1.7;font-size:15px">
+                Та амжилттай бүртгүүллээ. Доорх товчийг дарж хичээлдээ нэвтэрч эхэлнэ үү.
               </p>
-              <div style="text-align:center;margin:28px 0">
-                <a href="${accessUrl}"
-                  style="background:#00B5AD;color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block">
+              <div style="text-align:center;margin:32px 0">
+                <a href="${welcomeUrl}"
+                  style="background:#00B5AD;color:#fff;padding:16px 36px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block">
                   Хичээл эхлүүлэх →
                 </a>
               </div>
-              <p style="color:#9ca3af;font-size:13px;text-align:center">
-                Энэ холбоос 30 хоног хүчинтэй. Хуваалцахгүй байна уу.
+              <div style="background:#f0fdf9;border:1px solid #99f6e4;border-radius:8px;padding:14px 16px;margin-bottom:20px">
+                <p style="margin:0;font-size:13px;color:#065f46">✅ ${accessNote}</p>
+              </div>
+              <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0"/>
+              <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0">
+                Асуулт байвал <a href="mailto:info.mommyoffice@gmail.com" style="color:#00B5AD">info.mommyoffice@gmail.com</a> хаягт холбогдоно уу.
               </p>
             </div>
           </div>
@@ -67,6 +81,7 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = await createAdminClient();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mommyoffice-smoky.vercel.app';
 
     // Fetch order
     const { data: order, error: orderErr } = await supabase
@@ -81,11 +96,10 @@ export async function GET(req: NextRequest) {
 
     // Already paid — return immediately
     if (order.status === 'paid' && order.access_token) {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mommyoffice.com';
       return NextResponse.json({
         ok: true,
         paid: true,
-        accessUrl: `${siteUrl}/mn/access/${String(order.access_token)}`,
+        accessUrl: `${siteUrl}/mn/my-courses`,
       });
     }
 
@@ -111,10 +125,26 @@ export async function GET(req: NextRequest) {
     const checkData = await checkRes.json() as { count: number; paid_amount: number };
 
     if (checkData.count > 0 && checkData.paid_amount >= order.amount) {
-      // Payment confirmed — update order, create enrollment, send email
       const accessToken = randomUUID();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      // Fetch course (include access_duration_days)
+      const { data: course } = await supabase
+        .from('mo_courses')
+        .select('title_mn, slug, access_duration_days')
+        .eq('id', String(order.course_id))
+        .single();
+
+      // Determine expiry: null = lifetime
+      const durationDays = (course as Record<string, unknown> | null)?.access_duration_days as number | null;
+      const isLifetime = !durationDays || durationDays === 0;
+      let expiresAt: string | null = null;
+      let expiryDateStr: string | null = null;
+      if (!isLifetime) {
+        const d = new Date();
+        d.setDate(d.getDate() + durationDays!);
+        expiresAt = d.toISOString();
+        expiryDateStr = d.toISOString().split('T')[0];
+      }
 
       // 1. Update order status
       await supabase.from('mo_orders').update({
@@ -130,30 +160,66 @@ export async function GET(req: NextRequest) {
         order_id: orderId,
       }, { onConflict: 'email,course_id' });
 
-      // 3. Create access token
+      // 3. Create access token (null expires_at = lifetime)
       await supabase.from('mo_access_tokens').insert({
         email: String(order.buyer_email),
         course_id: String(order.course_id),
         token: accessToken,
-        expires_at: expiresAt.toISOString(),
+        expires_at: expiresAt,
         used: false,
       });
 
-      // 4. Fetch course title for email
-      const { data: course } = await supabase
-        .from('mo_courses')
-        .select('title_mn, slug')
-        .eq('id', String(order.course_id))
-        .single();
+      // 4. Create / ensure Supabase Auth user exists
+      const email = String(order.buyer_email);
+      let welcomeUrl = `${siteUrl}/mn/my-courses`;
 
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mommyoffice.com';
-      const accessUrl = `${siteUrl}/mn/access/${accessToken}`;
-
-      if (course) {
-        await sendAccessEmail(String(order.buyer_email), String(course.title_mn), accessUrl);
+      try {
+        // Try to create user (noop if already exists)
+        await supabase.auth.admin.createUser({
+          email,
+          email_confirm: true,
+          user_metadata: {
+            source: 'mommyoffice_payment',
+            enrolled_at: new Date().toISOString(),
+          },
+        });
+      } catch {
+        // User likely already exists — that's fine
       }
 
-      return NextResponse.json({ ok: true, paid: true, accessUrl });
+      try {
+        // Generate magic link → /welcome page (handles password setup)
+        const { data: linkData } = await supabase.auth.admin.generateLink({
+          type: 'magiclink',
+          email,
+          options: { redirectTo: `${siteUrl}/mn/welcome` },
+        });
+        const actionLink = (linkData as Record<string, unknown> | null)?.properties as Record<string, unknown> | undefined;
+        if (actionLink?.action_link) {
+          welcomeUrl = String(actionLink.action_link);
+        }
+      } catch (e) {
+        console.error('Magic link generation failed:', e);
+        // Fall back to /my-courses
+        welcomeUrl = `${siteUrl}/mn/my-courses`;
+      }
+
+      // 5. Send welcome email
+      if (course) {
+        await sendWelcomeEmail(
+          email,
+          String(course.title_mn),
+          welcomeUrl,
+          isLifetime,
+          expiryDateStr
+        );
+      }
+
+      return NextResponse.json({
+        ok: true,
+        paid: true,
+        accessUrl: `${siteUrl}/mn/my-courses`,
+      });
     }
 
     return NextResponse.json({ ok: true, paid: false });
