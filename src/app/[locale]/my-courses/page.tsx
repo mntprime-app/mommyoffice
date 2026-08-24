@@ -96,11 +96,11 @@ export default function MyCoursesPage() {
         marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem'
       }}>
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#111', margin: 0 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: 0 }}>
             Миний сургалтууд
           </h1>
           {email && (
-            <p style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>{email}</p>
+            <p style={{ color: '#888', fontSize: 13, marginTop: 4 }}>{email}</p>
           )}
         </div>
         <button
@@ -119,13 +119,13 @@ export default function MyCoursesPage() {
       {enrollments.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '4rem 2rem',
-          background: '#f9fafb', borderRadius: 16, border: '1px solid #e5e7eb'
+          background: '#1a1a1a', borderRadius: 16, border: '1px solid #2a2a2a'
         }}>
           <div style={{ fontSize: 48, marginBottom: '1rem' }}>📚</div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#111', marginBottom: 8 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
             Одоогоор бүртгэлтэй сургалт байхгүй
           </h2>
-          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: '1.5rem' }}>
+          <p style={{ color: '#888', fontSize: 14, marginBottom: '1.5rem' }}>
             Сургалтаа сонгоод суралцаж эхэлнэ үү!
           </p>
           <Link href={`/${locale}/courses`} style={{

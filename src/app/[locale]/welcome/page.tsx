@@ -150,46 +150,49 @@ export default function WelcomePage() {
         padding: '48px 40px', maxWidth: 440, width: '100%'
       }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            display: 'inline-block', background: '#00B5AD', color: '#fff',
-            fontWeight: 800, fontSize: 20, padding: '8px 20px', borderRadius: 8,
-            letterSpacing: '-0.5px', marginBottom: '1.25rem'
-          }}>
-            MommyOFFICE
-          </div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="MommyOFFICE"
+            style={{ height: 48, width: 'auto', marginBottom: '1.1rem', display: 'block', margin: '0 auto 1rem' }}
+          />
+          <h1 style={{ fontSize: 21, fontWeight: 800, color: '#fff', margin: 0 }}>
             Тавтай морил! 🎉
           </h1>
-          <p style={{ color: '#aaa', fontSize: 14, marginTop: 8, lineHeight: 1.6 }}>
+          <p style={{ color: '#999', fontSize: 12.5, marginTop: 6, lineHeight: 1.6 }}>
             Аюулгүй нэвтрэхийн тулд нууц үгээ тохируулна уу.
           </p>
         </div>
 
-        <form onSubmit={handleSetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleSetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <div style={{ position: 'relative' }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#ccc', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#bbb', marginBottom: 5 }}>
               Шинэ нууц үг
             </label>
             <input
               type={showPw ? 'text' : 'password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder="Хамгийн багадаа 8 тэмдэгт"
+              placeholder="Нууц үгээ оруулна уу"
               required
-              style={{ ...inputStyle, paddingRight: 44 }}
+              style={{ ...inputStyle, paddingRight: 44, fontSize: 14 }}
               onFocus={e => (e.target.style.borderColor = '#00B5AD')}
               onBlur={e => (e.target.style.borderColor = '#444')}
             />
             <button type="button" onClick={() => setShowPw(v => !v)} style={{
               position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer', color: '#888',
-              fontSize: 18, lineHeight: 1, padding: 0
+              fontSize: 17, lineHeight: 1, padding: 0
             }}>{showPw ? '🙈' : '👁'}</button>
+            {/* Password requirements */}
+            <p style={{ margin: '5px 0 0', fontSize: 11, color: '#666', lineHeight: 1.6 }}>
+              🔐 Хамгийн багадаа 8 тэмдэгт · Том үсэг (A–Z) · Тоо (0–9) · Тэмдэгт (!@#$%)
+            </p>
           </div>
 
           <div style={{ position: 'relative' }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#ccc', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#bbb', marginBottom: 5 }}>
               Нууц үг давтах
             </label>
             <input
@@ -198,14 +201,14 @@ export default function WelcomePage() {
               onChange={e => setConfirm(e.target.value)}
               placeholder="Нууц үгийг дахин оруулах"
               required
-              style={{ ...inputStyle, paddingRight: 44 }}
+              style={{ ...inputStyle, paddingRight: 44, fontSize: 14 }}
               onFocus={e => (e.target.style.borderColor = '#00B5AD')}
               onBlur={e => (e.target.style.borderColor = '#444')}
             />
             <button type="button" onClick={() => setShowConfirm(v => !v)} style={{
               position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer', color: '#888',
-              fontSize: 18, lineHeight: 1, padding: 0
+              fontSize: 17, lineHeight: 1, padding: 0
             }}>{showConfirm ? '🙈' : '👁'}</button>
           </div>
 
