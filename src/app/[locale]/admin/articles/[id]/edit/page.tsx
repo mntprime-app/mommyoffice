@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
 const CATEGORIES = ['Эрүүл мэнд', 'Гоо сайхан', 'Хоол тэжээл', 'Гэр бүл', 'Бизнес', 'Хувийн хөгжил', 'Lifestyle'];
+const PLACEMENTS = [
+  { value: 'hero', label: 'Онцлох Hero Banner', desc: 'Нүүр хуудасны дээд хэсэг' },
+  { value: 'trending', label: 'Трэндинг Нийтлэл', desc: 'Баруун талын жагсаалт — Manual Pin' },
+  { value: 'normal', label: 'Энгийн Нийтлэл', desc: 'Үндсэн сүлжээ' },
+];
 
 export default function EditArticlePage() {
   const router = useRouter();
@@ -24,19 +29,17 @@ export default function EditArticlePage() {
     title_mn: '', title_en: '',
     excerpt_mn: '', excerpt_en: '',
     body_mn: '', body_en: '',
-    cover_image_url: '',
-    category: 'Эрүүл мэнд',
+    cover_image_url: '', category: 'Эрүүл мэнд',
     author_name: '', slug: '',
     is_published: false,
+    placement: 'normal',
+    is_pinned_trending: false,
+    pin_rank: '1',
   });
 
   useEffect(() => {
     const supabase = createClient();
-    supabase
-      .from('mo_articles')
-      .select('*')
-      .eq('id', id)
-      .single()
+    supabase.from('mo_articles').select('*').eq('id', id).single()
       .then(({ data, error: err }) => {
         if (err || !data) { setError('Нийтлэл олдсонгүй'); setLoading(false); return; }
         const f = {
@@ -51,6 +54,9 @@ export default function EditArticlePage() {
           author_name: data.author_name || '',
           slug: data.slug || '',
           is_published: Boolean(data.is_published),
+          placement: data.placement || 'normal',
+          is_pinned_trending: Boolean(data.is_pinned_trending),
+          pin_rank: String(data.pin_rank || 1),
         };
         setForm(f);
         if (f.cover_image_url) setPreview(f.cover_image_url);
@@ -59,15 +65,18 @@ export default function EditArticlePage() {
   }, [id]);
 
   function set(key: string, val: string | boolean) {
-    setForm((f) => ({ ...f, [key]: val }));
+    setForm((f) => {
+      const next = { ...f, [key]: val };
+      if (key === 'placement') next.is_pinned_trending = val === 'trending';
+      return next;
+    });
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setPreview(URL.createObjectURL(file));
-    setUploading(true);
-    setError('');
+    setUploading(true); setError('');
     try {
       const supabase = createClient();
       const ext = file.name.split('.').pop();
@@ -85,25 +94,25 @@ export default function EditArticlePage() {
     e.preventDefault();
     setSaving(true); setError(''); setSuccess('');
     const supabase = createClient();
-    const { error: err } = await supabase
-      .from('mo_articles')
-      .update({
-        title_mn: form.title_mn,
-        title_en: form.title_en || null,
-        excerpt_mn: form.excerpt_mn || null,
-        excerpt_en: form.excerpt_en || null,
-        body_mn: form.body_mn || null,
-        body_en: form.body_en || null,
-        cover_image_url: form.cover_image_url || null,
-        category: form.category,
-        author_name: form.author_name || null,
-        slug: form.slug,
-        is_published: form.is_published,
-        published_at: form.is_published ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id);
-    if (err) { setError(err.message); }
+    const { error: err } = await supabase.from('mo_articles').update({
+      title_mn: form.title_mn,
+      title_en: form.title_en || null,
+      excerpt_mn: form.excerpt_mn || null,
+      excerpt_en: form.excerpt_en || null,
+      body_mn: form.body_mn || null,
+      body_en: form.body_en || null,
+      cover_image_url: form.cover_image_url || null,
+      category: form.category,
+      author_name: form.author_name || null,
+      slug: form.slug,
+      is_published: form.is_published,
+      published_at: form.is_published ? new Date().toISOString() : null,
+      placement: form.placement,
+      is_pinned_trending: form.is_pinned_trending,
+      pin_rank: form.is_pinned_trending ? Number(form.pin_rank) : null,
+      updated_at: new Date().toISOString(),
+    }).eq('id', id);
+    if (err) setError(err.message);
     else { setSuccess('Амжилттай хадгаллаа ✓'); setTimeout(() => setSuccess(''), 3000); }
     setSaving(false);
   }
@@ -115,23 +124,24 @@ export default function EditArticlePage() {
     router.push(`/${locale}/admin/articles`);
   }
 
-  if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: '#9ca3af' }}>Ачааллаж байна...</div>;
+  if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>Ачааллаж байна...</div>;
 
   return (
     <div style={{ maxWidth: '820px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
         <div>
           <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '0.25rem' }}>
-            <Link href={`/${locale}/admin`} style={{ color: 'var(--teal)', textDecoration: 'none' }}>Admin</Link>
+            <Link href={`/${locale}/admin`} style={{ color: '#00B5AD', textDecoration: 'none' }}>Admin</Link>
             {' / '}
-            <Link href={`/${locale}/admin/articles`} style={{ color: 'var(--teal)', textDecoration: 'none' }}>Нийтлэлүүд</Link>
+            <Link href={`/${locale}/admin/articles`} style={{ color: '#00B5AD', textDecoration: 'none' }}>Нийтлэлүүд</Link>
             {' / Засах'}
           </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>{form.title_mn || 'Нийтлэл засах'}</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>{form.title_mn || 'Нийтлэл засах'}</h1>
         </div>
         <button onClick={handleDelete} style={{
-          background: '#fee2e2', color: '#991b1b', padding: '8px 16px',
-          borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '13px'
+          background: 'rgba(239,68,68,0.15)', color: '#ef4444', padding: '8px 16px',
+          borderRadius: '8px', fontWeight: 600, border: '1px solid rgba(239,68,68,0.3)',
+          cursor: 'pointer', fontSize: '13px'
         }}>
           Устгах
         </button>
@@ -145,10 +155,10 @@ export default function EditArticlePage() {
           <div
             onClick={() => imgInputRef.current?.click()}
             style={{
-              border: `2px dashed ${preview ? 'var(--teal)' : 'var(--border)'}`,
+              border: `2px dashed ${preview ? '#00B5AD' : '#333'}`,
               borderRadius: '12px', cursor: 'pointer', overflow: 'hidden',
               minHeight: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: preview ? 'transparent' : 'var(--surface)',
+              background: preview ? 'transparent' : '#1e1e1e',
             }}
           >
             {preview
@@ -166,9 +176,12 @@ export default function EditArticlePage() {
               Зураг арилгах
             </button>
           )}
+          <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', marginBottom: '4px' }}>
+            💡 Зөвлөмж хэмжээ: 1200×630px (16:9 харьцаатай, макс 2MB)
+          </p>
           <input value={form.cover_image_url}
             onChange={(e) => { set('cover_image_url', e.target.value); setPreview(e.target.value); }}
-            style={{ ...inp, marginTop: '6px' }} placeholder="https://... (URL-аар оруулах)" />
+            style={inp} placeholder="https://... (URL-аар оруулах)" />
         </div>
 
         {/* Titles */}
@@ -196,6 +209,45 @@ export default function EditArticlePage() {
           </Field>
         </div>
 
+        {/* Placement zone */}
+        <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.25rem' }}>
+          <label style={{ ...lbl, marginBottom: '0.75rem', display: 'block' }}>
+            📍 Хаана харагдах вэ? (Placement Zone)
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {PLACEMENTS.map((p) => (
+              <label key={p.value} style={{
+                display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer',
+                padding: '10px 14px', borderRadius: '8px',
+                background: form.placement === p.value ? 'rgba(0,181,173,0.1)' : 'transparent',
+                border: `1px solid ${form.placement === p.value ? 'rgba(0,181,173,0.4)' : '#2a2a2a'}`,
+              }}>
+                <input type="radio" name="placement" value={p.value}
+                  checked={form.placement === p.value}
+                  onChange={(e) => set('placement', e.target.value)}
+                  style={{ marginTop: '2px', accentColor: '#00B5AD' }} />
+                <div>
+                  <span style={{ fontWeight: 600, fontSize: '14px', color: '#e5e5e5' }}>{p.label}</span>
+                  <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '8px' }}>{p.desc}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+
+          {form.is_pinned_trending && (
+            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #2a2a2a' }}>
+              <label style={lbl}>📌 Pin дараалал (1 = хамгийн дээр)</label>
+              <input type="number" min="1" max="10"
+                value={form.pin_rank}
+                onChange={(e) => set('pin_rank', e.target.value)}
+                style={{ ...inp, width: '80px' }} />
+              <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                Pinned нийтлэлүүд эхэлж харагдана. Үлдсэн slots-ийг view_count-аар автомат дүүргэнэ.
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Excerpts */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <Field label="Товч тайлбар (МН)">
@@ -219,37 +271,38 @@ export default function EditArticlePage() {
         {/* Publish */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '12px 16px',
-          background: form.is_published ? '#f0fdf4' : '#fefce8', borderRadius: '10px',
-          border: `1px solid ${form.is_published ? '#86efac' : '#fde68a'}`,
+          background: form.is_published ? 'rgba(16,185,129,0.1)' : '#1e1e1e', borderRadius: '10px',
+          border: `1px solid ${form.is_published ? 'rgba(16,185,129,0.3)' : '#2a2a2a'}`,
         }}>
-          <input type="checkbox" id="pub" checked={form.is_published} onChange={(e) => set('is_published', e.target.checked)}
-            style={{ width: '16px', height: '16px', accentColor: 'var(--teal)', cursor: 'pointer' }} />
-          <label htmlFor="pub" style={{ cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+          <input type="checkbox" id="pub" checked={form.is_published}
+            onChange={(e) => set('is_published', e.target.checked)}
+            style={{ width: '16px', height: '16px', accentColor: '#00B5AD', cursor: 'pointer' }} />
+          <label htmlFor="pub" style={{ cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#e5e5e5' }}>
             {form.is_published ? '✓ Нийтлэгдсэн — хэрэглэгчдэд харагдаж байна' : '○ Ноорог — хэрэглэгчдэд харагдахгүй'}
           </label>
         </div>
 
-        {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px 14px', borderRadius: '8px', fontSize: '13px' }}>{error}</div>}
-        {success && <div style={{ background: '#d1fae5', color: '#065f46', padding: '10px 14px', borderRadius: '8px', fontSize: '13px' }}>{success}</div>}
+        {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', padding: '10px 14px', borderRadius: '8px', fontSize: '13px' }}>{error}</div>}
+        {success && <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7', padding: '10px 14px', borderRadius: '8px', fontSize: '13px' }}>{success}</div>}
 
-        <div style={{ display: 'flex', gap: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', borderTop: '1px solid #2a2a2a', paddingTop: '1rem' }}>
           <button type="submit" disabled={saving || uploading} style={{
-            background: (saving || uploading) ? '#9ca3af' : 'var(--teal)', color: '#fff',
+            background: (saving || uploading) ? '#374151' : '#00B5AD', color: '#fff',
             padding: '12px 32px', borderRadius: '10px', fontWeight: 700,
             border: 'none', cursor: (saving || uploading) ? 'not-allowed' : 'pointer', fontSize: '15px'
           }}>
             {saving ? 'Хадгалж байна...' : 'Хадгалах'}
           </button>
           <Link href={`/${locale}/admin/articles`} style={{
-            background: '#f3f4f6', color: 'var(--foreground)', padding: '12px 24px',
+            background: '#2a2a2a', color: '#e5e5e5', padding: '12px 24px',
             borderRadius: '10px', fontWeight: 600, textDecoration: 'none', fontSize: '15px',
-            display: 'inline-flex', alignItems: 'center',
+            display: 'inline-flex', alignItems: 'center', border: '1px solid #333'
           }}>
             Буцах
           </Link>
           {form.slug && (
             <a href={`/${locale}/articles/${form.slug}`} target="_blank" rel="noopener noreferrer" style={{
-              background: 'none', color: 'var(--teal)', padding: '12px 16px',
+              background: 'none', color: '#00B5AD', padding: '12px 16px',
               borderRadius: '10px', fontWeight: 600, textDecoration: 'none',
               fontSize: '13px', display: 'inline-flex', alignItems: 'center', marginLeft: 'auto'
             }}>
@@ -264,10 +317,13 @@ export default function EditArticlePage() {
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '9px 13px', borderRadius: '8px',
-  border: '1px solid var(--border)', fontSize: '14px',
-  boxSizing: 'border-box', outline: 'none', background: '#fff', fontFamily: 'inherit',
+  border: '1px solid #333', fontSize: '14px',
+  boxSizing: 'border-box', outline: 'none', background: '#2a2a2a',
+  color: '#e5e5e5', fontFamily: 'inherit',
 };
-const lbl: React.CSSProperties = { fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '0.4rem' };
+const lbl: React.CSSProperties = {
+  fontSize: '13px', fontWeight: 600, color: '#9ca3af', display: 'block', marginBottom: '0.4rem',
+};
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <div><label style={lbl}>{label}</label>{children}</div>;
 }

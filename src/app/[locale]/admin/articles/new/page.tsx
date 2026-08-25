@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
 const CATEGORIES = ['Эрүүл мэнд', 'Гоо сайхан', 'Хоол тэжээл', 'Гэр бүл', 'Бизнес', 'Хувийн хөгжил'];
+const PLACEMENTS = [
+  { value: 'hero', label: 'Онцлох Hero Banner', desc: 'Нүүр хуудасны дээд хэсэг' },
+  { value: 'trending', label: 'Трэндинг Нийтлэл', desc: 'Баруун талын жагсаалт — Manual Pin' },
+  { value: 'normal', label: 'Энгийн Нийтлэл', desc: 'Үндсэн сүлжээ' },
+];
 
 export default function NewArticlePage() {
   const router = useRouter();
@@ -23,9 +28,11 @@ export default function NewArticlePage() {
     body_mn: '', body_en: '',
     cover_image_url: '',
     category: 'Эрүүл мэнд',
-    author_name: '',
-    slug: '',
+    author_name: '', slug: '',
     is_published: false,
+    placement: 'normal',
+    is_pinned_trending: false,
+    pin_rank: '1',
   });
 
   function slugify(str: string) {
@@ -33,56 +40,38 @@ export default function NewArticlePage() {
   }
 
   function set(key: string, val: string | boolean) {
-    setForm((f) => ({ ...f, [key]: val }));
-    if (key === 'title_mn') {
-      setForm((f) => ({ ...f, [key]: String(val), slug: slugify(String(val)) }));
-    }
+    setForm((f) => {
+      const next = { ...f, [key]: val };
+      if (key === 'title_mn') next.slug = slugify(String(val));
+      if (key === 'placement') next.is_pinned_trending = val === 'trending';
+      return next;
+    });
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Show local preview immediately
-    const objectUrl = URL.createObjectURL(file);
-    setPreview(objectUrl);
-
-    setUploading(true);
-    setError('');
+    setPreview(URL.createObjectURL(file));
+    setUploading(true); setError('');
     try {
       const supabase = createClient();
       const ext = file.name.split('.').pop();
       const path = `articles/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from('mommyoffice-public')
-        .upload(path, file, { upsert: true });
-
-      if (upErr) {
-        // Storage not configured yet — keep the local preview, ask to use a URL
-        setError('Зураг хадгалах storage тохиргоо хийгдээгүй байна. Cover Image URL талбарт зургийн линкийг оруулна уу.');
-        setUploading(false);
-        return;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('mommyoffice-public')
-        .getPublicUrl(path);
-
+      const { error: upErr } = await supabase.storage.from('mommyoffice-public').upload(path, file, { upsert: true });
+      if (upErr) { setError('Storage тохиргоо хийгдээгүй байна. URL-аар оруулна уу.'); setUploading(false); return; }
+      const { data: { publicUrl } } = supabase.storage.from('mommyoffice-public').getPublicUrl(path);
       setForm((f) => ({ ...f, cover_image_url: publicUrl }));
       setPreview(publicUrl);
-    } catch {
-      setError('Зураг upload хийхэд алдаа гарлаа.');
-    }
+    } catch { setError('Зураг upload хийхэд алдаа гарлаа.'); }
     setUploading(false);
   }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title_mn) { setError('Монгол нэр заавал бөглөнө үү.'); return; }
-    setSaving(true);
-    setError('');
+    setSaving(true); setError('');
     const supabase = createClient();
-    const { error } = await supabase.from('mo_articles').insert({
+    const { error: err } = await supabase.from('mo_articles').insert({
       title_mn: form.title_mn,
       title_en: form.title_en || null,
       excerpt_mn: form.excerpt_mn || null,
@@ -95,177 +84,182 @@ export default function NewArticlePage() {
       slug: form.slug || slugify(form.title_mn),
       is_published: form.is_published,
       published_at: form.is_published ? new Date().toISOString() : null,
+      placement: form.placement,
+      is_pinned_trending: form.is_pinned_trending,
+      pin_rank: form.is_pinned_trending ? Number(form.pin_rank) : null,
     });
-    if (error) {
-      setError(error.message);
-      setSaving(false);
-    } else {
-      router.push(`/${locale}/admin/articles`);
-    }
+    if (err) { setError(err.message); setSaving(false); }
+    else router.push(`/${locale}/admin/articles`);
   }
 
   return (
     <div style={{ maxWidth: '820px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '0.25rem' }}>
-          <Link href={`/${locale}/admin`} style={{ color: 'var(--teal)', textDecoration: 'none' }}>Admin</Link>
+          <Link href={`/${locale}/admin`} style={{ color: '#00B5AD', textDecoration: 'none' }}>Admin</Link>
           {' / '}
-          <Link href={`/${locale}/admin/articles`} style={{ color: 'var(--teal)', textDecoration: 'none' }}>Нийтлэлүүд</Link>
+          <Link href={`/${locale}/admin/articles`} style={{ color: '#00B5AD', textDecoration: 'none' }}>Нийтлэлүүд</Link>
           {' / Шинэ'}
         </div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Шинэ нийтлэл нэмэх</h1>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>Шинэ нийтлэл нэмэх</h1>
       </div>
 
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-        {/* Cover image upload */}
+        {/* Cover image */}
         <div>
-          <label style={labelStyle}>Нүүр зураг</label>
+          <label style={lbl}>Нүүр зураг</label>
           <div
             onClick={() => imgInputRef.current?.click()}
             style={{
-              border: `2px dashed ${preview ? 'var(--teal)' : 'var(--border)'}`,
-              borderRadius: '12px',
-              cursor: 'pointer',
-              overflow: 'hidden',
-              minHeight: '180px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: preview ? 'transparent' : 'var(--surface)',
-              position: 'relative',
+              border: `2px dashed ${preview ? '#00B5AD' : '#333'}`,
+              borderRadius: '12px', cursor: 'pointer', overflow: 'hidden',
+              minHeight: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: preview ? 'transparent' : '#1e1e1e',
             }}
           >
-            {preview ? (
-              <img src={preview} alt="preview" style={{ width: '100%', maxHeight: '260px', objectFit: 'cover' }} />
-            ) : (
-              <div style={{ textAlign: 'center', padding: '2rem' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🖼️</div>
-                <p style={{ fontSize: '14px', color: '#6b7280', fontWeight: 500 }}>
-                  {uploading ? 'Зураг хадгалж байна...' : 'Зураг оруулахын тулд дарна уу'}
-                </p>
-                <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>JPG, PNG, WEBP — дурын хэмжээ</p>
-              </div>
-            )}
+            {preview
+              ? <img src={preview} alt="preview" style={{ width: '100%', maxHeight: '260px', objectFit: 'cover' }} />
+              : <div style={{ textAlign: 'center', padding: '2rem' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🖼️</div>
+                  <p style={{ fontSize: '14px', color: '#6b7280', fontWeight: 500 }}>
+                    {uploading ? 'Зураг хадгалж байна...' : 'Зураг оруулахын тулд дарна уу'}
+                  </p>
+                </div>
+            }
           </div>
-          <input
-            ref={imgInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            style={{ display: 'none' }}
-          />
+          <input ref={imgInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
           {preview && (
-            <button
-              type="button"
-              onClick={() => { setPreview(''); setForm((f) => ({ ...f, cover_image_url: '' })); }}
-              style={{ marginTop: '6px', fontSize: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-            >
+            <button type="button" onClick={() => { setPreview(''); setForm((f) => ({ ...f, cover_image_url: '' })); }}
+              style={{ marginTop: '6px', fontSize: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               Зураг арилгах
             </button>
           )}
-          <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '6px' }}>
-            Эсвэл URL-аар оруулах:
+          <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', marginBottom: '4px' }}>
+            💡 Зөвлөмж хэмжээ: 1200×630px (16:9 харьцаатай, макс 2MB)
           </p>
-          <input
-            value={form.cover_image_url}
+          <input value={form.cover_image_url}
             onChange={(e) => { set('cover_image_url', e.target.value); setPreview(e.target.value); }}
-            style={{ ...inputStyle, marginTop: '4px' }}
-            placeholder="https://..."
-          />
+            style={inp} placeholder="https://... (URL-аар оруулах)" />
         </div>
 
         {/* Title */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <Field label="Гарчиг (МН) *">
-            <input value={form.title_mn} onChange={(e) => set('title_mn', e.target.value)} required style={inputStyle} placeholder="Өглөөний эрүүл дэглэм" />
+            <input value={form.title_mn} onChange={(e) => set('title_mn', e.target.value)} required style={inp} placeholder="Өглөөний эрүүл дэглэм" />
           </Field>
           <Field label="Гарчиг (EN)">
-            <input value={form.title_en} onChange={(e) => set('title_en', e.target.value)} style={inputStyle} placeholder="Morning Wellness Routine" />
+            <input value={form.title_en} onChange={(e) => set('title_en', e.target.value)} style={inp} placeholder="Morning Wellness Routine" />
           </Field>
         </div>
 
         {/* Slug + Category + Author */}
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
           <Field label="Slug (URL)">
-            <input value={form.slug} onChange={(e) => set('slug', e.target.value)} style={inputStyle} placeholder="morning-wellness" />
+            <input value={form.slug} onChange={(e) => set('slug', e.target.value)} style={inp} placeholder="morning-wellness" />
           </Field>
           <Field label="Ангилал">
-            <select value={form.category} onChange={(e) => set('category', e.target.value)} style={inputStyle}>
+            <select value={form.category} onChange={(e) => set('category', e.target.value)} style={inp}>
               {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
             </select>
           </Field>
           <Field label="Зохиолч">
-            <input value={form.author_name} onChange={(e) => set('author_name', e.target.value)} style={inputStyle} placeholder="Нэр" />
+            <input value={form.author_name} onChange={(e) => set('author_name', e.target.value)} style={inp} placeholder="Нэр" />
           </Field>
+        </div>
+
+        {/* Placement zone */}
+        <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.25rem' }}>
+          <label style={{ ...lbl, marginBottom: '0.75rem', display: 'block' }}>
+            📍 Хаана харагдах вэ? (Placement Zone)
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {PLACEMENTS.map((p) => (
+              <label key={p.value} style={{
+                display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer',
+                padding: '10px 14px', borderRadius: '8px',
+                background: form.placement === p.value ? 'rgba(0,181,173,0.1)' : 'transparent',
+                border: `1px solid ${form.placement === p.value ? 'rgba(0,181,173,0.4)' : '#2a2a2a'}`,
+                transition: 'all 0.15s',
+              }}>
+                <input type="radio" name="placement" value={p.value}
+                  checked={form.placement === p.value}
+                  onChange={(e) => set('placement', e.target.value)}
+                  style={{ marginTop: '2px', accentColor: '#00B5AD' }} />
+                <div>
+                  <span style={{ fontWeight: 600, fontSize: '14px', color: '#e5e5e5' }}>{p.label}</span>
+                  <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '8px' }}>{p.desc}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+
+          {/* Pin rank — shown only when trending selected */}
+          {form.is_pinned_trending && (
+            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #2a2a2a' }}>
+              <label style={lbl}>📌 Pin дараалал (1 = хамгийн дээр)</label>
+              <input
+                type="number" min="1" max="10"
+                value={form.pin_rank}
+                onChange={(e) => set('pin_rank', e.target.value)}
+                style={{ ...inp, width: '80px' }}
+              />
+              <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                Pinned нийтлэлүүд эхэлж харагдана. Үлдсэн slots-ийг view_count-аар автомат дүүргэнэ.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Excerpt */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <Field label="Товч тайлбар (МН)">
-            <textarea value={form.excerpt_mn} onChange={(e) => set('excerpt_mn', e.target.value)} style={{ ...inputStyle, height: '80px', resize: 'vertical' }} placeholder="Нийтлэлийн товч агуулга..." />
+            <textarea value={form.excerpt_mn} onChange={(e) => set('excerpt_mn', e.target.value)} style={{ ...inp, height: '80px', resize: 'vertical' }} placeholder="Нийтлэлийн товч агуулга..." />
           </Field>
           <Field label="Товч тайлбар (EN)">
-            <textarea value={form.excerpt_en} onChange={(e) => set('excerpt_en', e.target.value)} style={{ ...inputStyle, height: '80px', resize: 'vertical' }} />
+            <textarea value={form.excerpt_en} onChange={(e) => set('excerpt_en', e.target.value)} style={{ ...inp, height: '80px', resize: 'vertical' }} />
           </Field>
         </div>
 
         {/* Body */}
         <Field label="Нийтлэлийн агуулга (МН) — HTML дэмждэг">
-          <textarea
-            value={form.body_mn}
-            onChange={(e) => set('body_mn', e.target.value)}
-            style={{ ...inputStyle, height: '220px', resize: 'vertical', fontFamily: 'monospace', fontSize: '13px' }}
-            placeholder={'<p>Эхний хэсэг...</p>\n<h2>Дэд гарчиг</h2>\n<p>Дараагийн хэсэг...</p>'}
-          />
+          <textarea value={form.body_mn} onChange={(e) => set('body_mn', e.target.value)}
+            style={{ ...inp, height: '220px', resize: 'vertical', fontFamily: 'monospace', fontSize: '13px' }}
+            placeholder={'<p>Эхний хэсэг...</p>\n<h2>Дэд гарчиг</h2>'} />
         </Field>
-
         <Field label="Нийтлэлийн агуулга (EN) — HTML">
-          <textarea
-            value={form.body_en}
-            onChange={(e) => set('body_en', e.target.value)}
-            style={{ ...inputStyle, height: '180px', resize: 'vertical', fontFamily: 'monospace', fontSize: '13px' }}
-            placeholder="<p>First paragraph...</p>"
-          />
+          <textarea value={form.body_en} onChange={(e) => set('body_en', e.target.value)}
+            style={{ ...inp, height: '140px', resize: 'vertical', fontFamily: 'monospace', fontSize: '13px' }}
+            placeholder="<p>First paragraph...</p>" />
         </Field>
 
-        {/* Publish toggle */}
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '12px 16px', background: 'var(--surface)', borderRadius: '10px' }}>
-          <input
-            type="checkbox"
-            checked={form.is_published}
+        {/* Publish */}
+        <label style={{
+          display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer',
+          padding: '12px 16px', background: form.is_published ? 'rgba(16,185,129,0.1)' : '#1e1e1e',
+          borderRadius: '10px', border: `1px solid ${form.is_published ? 'rgba(16,185,129,0.3)' : '#2a2a2a'}`,
+        }}>
+          <input type="checkbox" checked={form.is_published}
             onChange={(e) => set('is_published', e.target.checked)}
-            style={{ width: '18px', height: '18px', accentColor: 'var(--teal)', cursor: 'pointer' }}
-          />
-          <span style={{ fontSize: '14px', fontWeight: 600 }}>Шууд нийтлэх</span>
+            style={{ width: '18px', height: '18px', accentColor: '#00B5AD', cursor: 'pointer' }} />
+          <span style={{ fontSize: '14px', fontWeight: 600, color: '#e5e5e5' }}>Шууд нийтлэх</span>
           <span style={{ fontSize: '13px', color: '#6b7280' }}>(тэмдэглэхгүй бол ноорог болно)</span>
         </label>
 
-        {error && (
-          <div style={{ background: '#fee2e2', color: '#991b1b', padding: '12px 16px', borderRadius: '8px', fontSize: '13px' }}>
-            {error}
-          </div>
-        )}
+        {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', padding: '12px 16px', borderRadius: '8px', fontSize: '13px' }}>{error}</div>}
 
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button
-            type="submit"
-            disabled={saving || uploading}
-            style={{
-              background: (saving || uploading) ? '#9ca3af' : 'var(--teal)',
-              color: '#fff', padding: '12px 28px', borderRadius: '10px',
-              fontWeight: 700, border: 'none', cursor: (saving || uploading) ? 'not-allowed' : 'pointer', fontSize: '15px'
-            }}
-          >
+          <button type="submit" disabled={saving || uploading} style={{
+            background: (saving || uploading) ? '#374151' : '#00B5AD', color: '#fff',
+            padding: '12px 28px', borderRadius: '10px', fontWeight: 700,
+            border: 'none', cursor: (saving || uploading) ? 'not-allowed' : 'pointer', fontSize: '15px'
+          }}>
             {saving ? 'Хадгалж байна...' : 'Хадгалах'}
           </button>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            style={{
-              background: '#f3f4f6', color: 'var(--foreground)',
-              padding: '12px 24px', borderRadius: '10px',
-              fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '15px'
-            }}
-          >
+          <button type="button" onClick={() => router.back()} style={{
+            background: '#2a2a2a', color: '#e5e5e5', padding: '12px 24px', borderRadius: '10px',
+            fontWeight: 600, border: '1px solid #333', cursor: 'pointer', fontSize: '15px'
+          }}>
             Буцах
           </button>
         </div>
@@ -274,23 +268,14 @@ export default function NewArticlePage() {
   );
 }
 
-const inputStyle: React.CSSProperties = {
+const inp: React.CSSProperties = {
   width: '100%', padding: '10px 14px', borderRadius: '8px',
-  border: '1px solid var(--border)', fontSize: '14px',
-  boxSizing: 'border-box', outline: 'none', background: '#fff',
-  fontFamily: 'Arial, sans-serif',
+  border: '1px solid #333', fontSize: '14px', boxSizing: 'border-box',
+  outline: 'none', background: '#2a2a2a', color: '#e5e5e5', fontFamily: 'inherit',
 };
-
-const labelStyle: React.CSSProperties = {
-  fontSize: '13px', fontWeight: 600, color: '#374151',
-  display: 'block', marginBottom: '0.4rem',
+const lbl: React.CSSProperties = {
+  fontSize: '13px', fontWeight: 600, color: '#9ca3af', display: 'block', marginBottom: '0.4rem',
 };
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label style={labelStyle}>{label}</label>
-      {children}
-    </div>
-  );
+  return <div><label style={lbl}>{label}</label>{children}</div>;
 }

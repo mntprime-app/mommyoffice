@@ -129,7 +129,7 @@ export default function EditCoursePage() {
     router.push(`/${locale}/admin/courses`);
   }
 
-  if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: '#9ca3af' }}>Ачааллаж байна...</div>;
+  if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>Ачааллаж байна...</div>;
 
   return (
     <div style={{ maxWidth: '760px', margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -137,17 +137,17 @@ export default function EditCoursePage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.75rem' }}>
         <div>
           <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '0.25rem' }}>
-            <a href={`/${locale}/admin`} style={{ color: 'var(--teal)', textDecoration: 'none' }}>Admin</a>
+            <a href={`/${locale}/admin`} style={{ color: '#00B5AD', textDecoration: 'none' }}>Admin</a>
             {' / '}
-            <a href={`/${locale}/admin/courses`} style={{ color: 'var(--teal)', textDecoration: 'none' }}>Хичээлүүд</a>
+            <a href={`/${locale}/admin/courses`} style={{ color: '#00B5AD', textDecoration: 'none' }}>Хичээлүүд</a>
             {' / Засах'}
           </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>{form.title_mn || 'Хичээл засах'}</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>{form.title_mn || 'Хичээл засах'}</h1>
         </div>
         <button onClick={handleDelete} style={{
-          background: '#fee2e2', color: '#991b1b',
+          background: 'rgba(239,68,68,0.15)', color: '#ef4444',
           padding: '8px 16px', borderRadius: '8px',
-          fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '13px'
+          fontWeight: 600, border: '1px solid rgba(239,68,68,0.3)', cursor: 'pointer', fontSize: '13px'
         }}>
           Устгах
         </button>
@@ -188,7 +188,7 @@ export default function EditCoursePage() {
 
         {/* ── Media ── */}
         <Section title="Медиа">
-          <Field label="Cover Image URL">
+          <Field label="Cover Image URL" hint="💡 Зөвлөмж хэмжээ: 1280×720px (HD Video Poster, 16:9)">
             <input value={form.cover_image_url} onChange={(e) => set('cover_image_url', e.target.value)} style={inp} placeholder="https://..." />
           </Field>
           {form.cover_image_url && (
@@ -236,9 +236,9 @@ export default function EditCoursePage() {
           </label>
 
           {outline.map((mod, mi) => (
-            <div key={mi} style={{ border: '1px solid var(--border)', borderRadius: '10px', padding: '1rem', marginBottom: '0.75rem', background: '#fafafa' }}>
+            <div key={mi} style={{ border: '1px solid #333', borderRadius: '10px', padding: '1rem', marginBottom: '0.75rem', background: '#222' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '0.75rem', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#6b7280', minWidth: '24px' }}>{mi + 1}.</span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#9ca3af', minWidth: '24px' }}>{mi + 1}.</span>
                 <input
                   value={mod.title}
                   onChange={(e) => setModuleTitle(mi, e.target.value)}
@@ -265,7 +265,7 @@ export default function EditCoursePage() {
                   </div>
                 ))}
                 <button type="button" onClick={() => addLesson(mi)} style={{
-                  background: 'none', border: '1px dashed #d1d5db', color: '#6b7280',
+                  background: 'none', border: '1px dashed #444', color: '#9ca3af',
                   borderRadius: '6px', padding: '5px 12px', cursor: 'pointer',
                   fontSize: '12px', marginTop: '4px', textAlign: 'left'
                 }}>
@@ -275,7 +275,7 @@ export default function EditCoursePage() {
             </div>
           ))}
           <button type="button" onClick={addModule} style={{
-            background: 'var(--teal-light)', color: 'var(--teal)',
+            background: 'rgba(0,181,173,0.15)', color: '#00B5AD',
             border: '1px solid rgba(0,181,173,0.3)', borderRadius: '8px',
             padding: '8px 18px', cursor: 'pointer', fontWeight: 600, fontSize: '13px'
           }}>
@@ -284,33 +284,34 @@ export default function EditCoursePage() {
         </Section>
 
         {/* ── Publish ── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.25rem', background: form.is_published ? '#f0fdf4' : '#fefce8', borderRadius: '10px', border: `1px solid ${form.is_published ? '#86efac' : '#fde68a'}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.25rem', background: form.is_published ? 'rgba(16,185,129,0.1)' : '#1e1e1e', borderRadius: '10px', border: `1px solid ${form.is_published ? 'rgba(16,185,129,0.3)' : '#2a2a2a'}` }}>
           <input type="checkbox" id="pub" checked={form.is_published} onChange={(e) => set('is_published', e.target.checked)} style={{ accentColor: '#00B5AD', width: '16px', height: '16px' }} />
-          <label htmlFor="pub" style={{ cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+          <label htmlFor="pub" style={{ cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#e5e5e5' }}>
             {form.is_published ? '✓ Нийтлэгдсэн — сурагчдад харагдаж байна' : '○ Ноорог — сурагчдад харагдахгүй'}
           </label>
         </div>
 
-        {error && <p style={{ color: '#ef4444', fontSize: '13px', background: '#fee2e2', padding: '10px 14px', borderRadius: '8px' }}>{error}</p>}
-        {success && <p style={{ color: '#065f46', fontSize: '13px', background: '#d1fae5', padding: '10px 14px', borderRadius: '8px' }}>{success}</p>}
+        {error && <p style={{ color: '#fca5a5', fontSize: '13px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', padding: '10px 14px', borderRadius: '8px' }}>{error}</p>}
+        {success && <p style={{ color: '#6ee7b7', fontSize: '13px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', padding: '10px 14px', borderRadius: '8px' }}>{success}</p>}
 
-        <div style={{ display: 'flex', gap: '1rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', gap: '1rem', paddingTop: '0.5rem', borderTop: '1px solid #2a2a2a' }}>
           <button type="submit" disabled={saving} style={{
-            background: saving ? '#9ca3af' : 'var(--teal)', color: '#fff',
+            background: saving ? '#374151' : '#00B5AD', color: '#fff',
             padding: '12px 32px', borderRadius: '10px', fontWeight: 700,
             border: 'none', cursor: saving ? 'not-allowed' : 'pointer', fontSize: '15px'
           }}>
             {saving ? 'Хадгалж байна...' : 'Хадгалах'}
           </button>
           <a href={`/${locale}/admin/courses`} style={{
-            background: '#f3f4f6', color: 'var(--foreground)',
+            background: '#2a2a2a', color: '#e5e5e5',
             padding: '12px 24px', borderRadius: '10px', fontWeight: 600,
-            textDecoration: 'none', fontSize: '15px', display: 'inline-flex', alignItems: 'center'
+            textDecoration: 'none', fontSize: '15px', display: 'inline-flex', alignItems: 'center',
+            border: '1px solid #333'
           }}>
             Буцах
           </a>
           <a href={`/${locale}/courses/${form.slug}`} target="_blank" rel="noopener noreferrer" style={{
-            background: 'none', color: 'var(--teal)',
+            background: 'none', color: '#00B5AD',
             padding: '12px 16px', borderRadius: '10px', fontWeight: 600,
             textDecoration: 'none', fontSize: '13px', display: 'inline-flex', alignItems: 'center', marginLeft: 'auto'
           }}>
@@ -325,8 +326,8 @@ export default function EditCoursePage() {
 /* ── Sub-components ── */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ fontSize: '13px', fontWeight: 700, color: '#374151', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem', marginBottom: '0.25rem' }}>{title}</div>
+    <div style={{ border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: '#1a1a1a' }}>
+      <div style={{ fontSize: '13px', fontWeight: 700, color: '#9ca3af', borderBottom: '1px solid #2a2a2a', paddingBottom: '0.75rem', marginBottom: '0.25rem' }}>{title}</div>
       {children}
     </div>
   );
@@ -335,10 +336,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, children, required, hint }: { label: string; children: React.ReactNode; required?: boolean; hint?: string }) {
   return (
     <div>
-      <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: hint ? '0.15rem' : '0.35rem' }}>
+      <label style={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', display: 'block', marginBottom: hint ? '0.15rem' : '0.35rem' }}>
         {label}{required && <span style={{ color: '#ef4444' }}> *</span>}
       </label>
-      {hint && <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 0.35rem' }}>{hint}</p>}
+      {hint && <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 0.35rem' }}>{hint}</p>}
       {children}
     </div>
   );
@@ -346,7 +347,7 @@ function Field({ label, children, required, hint }: { label: string; children: R
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '9px 13px', borderRadius: '8px',
-  border: '1px solid var(--border)', fontSize: '14px',
-  boxSizing: 'border-box', outline: 'none', background: '#fff',
-  fontFamily: 'inherit',
+  border: '1px solid #333', fontSize: '14px',
+  boxSizing: 'border-box', outline: 'none', background: '#2a2a2a',
+  color: '#e5e5e5', fontFamily: 'inherit',
 };
