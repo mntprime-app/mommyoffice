@@ -529,20 +529,19 @@ function VideoCard({ video, index, onPlay, onInfo }: { video: AnyVideo; index: n
   const match = matchDisplay(video);
 
   return (
-    <div className="netflix-card" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', position:'relative', cursor:'pointer' }}>
-      <div onClick={onPlay} style={{ width:'280px', height:'157px', background: GRADIENTS[index % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
+    <div className="netflix-card" onClick={onInfo} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', position:'relative', cursor:'pointer' }}>
+      <div style={{ width:'280px', height:'157px', background: GRADIENTS[index % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
         {thumb ? <img src={thumb} alt={video.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy" /> : <span style={{ fontSize:'3rem' }}>🎬</span>}
         <span style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', color:'#fff', fontSize:'10px', fontWeight:700, padding:'3px 9px', borderRadius:'4px', textTransform:'uppercase', letterSpacing:'0.8px' }}>{video.category.split(' & ')[0]}</span>
         <span style={{ position:'absolute', bottom:'10px', right:'10px', background:'#00B5AD', color:'#fff', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'4px' }}>{video.duration_text}</span>
         {hovered && (
-          <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.35)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div onClick={(e) => { e.stopPropagation(); onPlay(); }} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.35)', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <div style={{ width:'44px', height:'44px', background:'#00B5AD', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', color:'#fff' }}>▶</div>
           </div>
         )}
       </div>
-      <div style={{ padding:'10px 14px 4px', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px' }}>
-        <p onClick={onPlay} style={{ fontWeight:600, fontSize:'13px', color:'#e5e5e5', lineHeight:1.45, margin:0, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden', flex:1 }}>{video.title_mn}</p>
-        <button onClick={onInfo} title="Дэлгэрэнгүй" style={{ flexShrink:0, width:'24px', height:'24px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.2)', color:'#9ca3af', fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', marginTop:'2px' }}>ⓘ</button>
+      <div style={{ padding:'10px 14px 4px' }}>
+        <p style={{ fontWeight:600, fontSize:'13px', color:'#e5e5e5', lineHeight:1.45, margin:0, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{video.title_mn}</p>
       </div>
       {/* Match % below title */}
       <div style={{ padding:'2px 14px 10px' }}>
@@ -565,16 +564,13 @@ function RelatedRow({ current, all, onPlay, onInfo }: { current: AnyVideo; all: 
           const thumb = getThumb(v);
           const match = matchDisplay(v);
           return (
-            <div key={v.id} style={{ flexShrink:0, width:'200px', borderRadius:'8px', overflow:'hidden', background:'#222' }}>
-              <div onClick={() => onPlay(v)} style={{ width:'200px', height:'113px', background: GRADIENTS[i % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden', cursor:'pointer' }}>
+            <div key={v.id} onClick={() => onInfo(v)} style={{ flexShrink:0, width:'200px', borderRadius:'8px', overflow:'hidden', background:'#222', cursor:'pointer' }}>
+              <div style={{ width:'200px', height:'113px', background: GRADIENTS[i % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
                 {thumb ? <img src={thumb} alt={v.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy" /> : <span style={{ fontSize:'2rem' }}>🎬</span>}
                 <span style={{ position:'absolute', bottom:'5px', right:'6px', background:'rgba(0,0,0,0.8)', color:'#e5e5e5', fontSize:'9px', padding:'1px 6px', borderRadius:'2px', fontWeight:600 }}>{v.duration_text}</span>
               </div>
               <div style={{ padding:'8px 10px' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'3px' }}>
-                  <p onClick={() => onPlay(v)} style={{ fontWeight:600, fontSize:'11px', color:'#e5e5e5', lineHeight:1.35, margin:0, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden', flex:1, cursor:'pointer' }}>{v.title_mn}</p>
-                  <button onClick={() => onInfo(v)} style={{ flexShrink:0, background:'none', border:'none', color:'#6b7280', fontSize:'12px', cursor:'pointer', padding:0, marginTop:'1px' }}>ⓘ</button>
-                </div>
+                <p style={{ fontWeight:600, fontSize:'11px', color:'#e5e5e5', lineHeight:1.35, margin:'0 0 3px', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{v.title_mn}</p>
                 <span style={{ fontSize:'10px', fontWeight:600, color: match.color }}>{match.label}</span>
               </div>
             </div>
