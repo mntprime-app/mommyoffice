@@ -110,12 +110,11 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { href: lp('/'), label: 'Нүүр' },
-    { href: lp('/courses'), label: 'Сургалтууд' },
-    { href: lp('/articles'), label: 'Нийтлэл' },
-    // Phase 2 — hidden until launch:
-    // { href: lp('/videos'), label: 'Видео & Кино' },
-    // { href: lp('/shop'), label: 'Дэлгүүр' },
+    { href: lp('/'), label: 'Нүүр', soon: false },
+    { href: lp('/courses'), label: 'Сургалтууд', soon: false },
+    { href: lp('/articles'), label: 'Нийтлэл', soon: false },
+    { href: lp('/videos'), label: 'Кино & Видео', soon: true },
+    { href: lp('/shop'), label: 'Дэлгүүр', soon: true },
   ];
 
   const iconBtn: React.CSSProperties = {
@@ -148,13 +147,25 @@ export default function Navbar() {
         <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center', flex: 1 }} className="desktop-nav">
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href} style={{
-              color: '#e5e5e5', textDecoration: 'none',
+              color: link.soon ? '#6b7280' : '#e5e5e5', textDecoration: 'none',
               fontWeight: 500, fontSize: '14px', letterSpacing: '0.2px',
               transition: 'color 0.15s', whiteSpace: 'nowrap',
+              display: 'flex', alignItems: 'center', gap: '6px',
             }}
               onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#e5e5e5')}
-            >{link.label}</Link>
+              onMouseLeave={e => (e.currentTarget.style.color = link.soon ? '#6b7280' : '#e5e5e5')}
+            >
+              {link.label}
+              {link.soon && (
+                <span style={{
+                  fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
+                  background: 'rgba(0,181,173,0.15)', color: '#00B5AD',
+                  border: '1px solid rgba(0,181,173,0.3)',
+                  padding: '1px 5px', borderRadius: '4px',
+                  textTransform: 'uppercase',
+                }}>Удахгүй</span>
+              )}
+            </Link>
           ))}
         </nav>
 
@@ -259,8 +270,11 @@ export default function Navbar() {
           </form>
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href} onClick={() => setOpen(false)}
-              style={{ color: '#e5e5e5', textDecoration: 'none', fontWeight: 500, fontSize: '15px' }}>
+              style={{ color: link.soon ? '#6b7280' : '#e5e5e5', textDecoration: 'none', fontWeight: 500, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               {link.label}
+              {link.soon && (
+                <span style={{ fontSize: '9px', fontWeight: 700, background: 'rgba(0,181,173,0.15)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.3)', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase' as const }}>Удахгүй</span>
+              )}
             </Link>
           ))}
           <Link href={`/${otherLocale}`} style={{ color: '#aaa', textDecoration: 'none', fontSize: '14px' }}>
