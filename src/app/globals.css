@@ -134,14 +134,18 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Home — hero content: full-width text area on mobile, pushed higher to clear next section */
+/* Home — hero: shorter on mobile so no dead space; content sits just above the fold edge */
 @media (max-width: 768px) {
+  .mo-hero-section {
+    height: 72vh !important;
+    min-height: auto !important;
+  }
   .mo-hero-content {
     left: 0 !important;
     right: 0 !important;
     padding: 0 5% !important;
     max-width: 100% !important;
-    bottom: 28% !important;
+    bottom: 6% !important;
   }
 }
 

@@ -45,7 +45,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* ═══════════════════════════════════════
           HERO — full-viewport cinematic
       ═══════════════════════════════════════ */}
-      <section style={{
+      <section className="mo-hero-section" style={{
         position: 'relative', width: '100%',
         height: '88vh', minHeight: '560px',
         overflow: 'hidden', background: '#000',
@@ -214,7 +214,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       ═══════════════════════════════════════ */}
       <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
         <div style={{ padding: '0 4%' }}>
-          <RowHeader title="Трендийн нийтлэлүүд" href={`/${locale}/articles`} badge="TRENDING" />
+          <RowHeader title="Трэндинг нийтлэлүүд" href={`/${locale}/articles`} badge="TRENDING" />
 
           {/* Featured editorial layout: 1 big + 3 side */}
           <div className="mo-editorial-grid">
