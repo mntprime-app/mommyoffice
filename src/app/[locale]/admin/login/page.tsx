@@ -29,56 +29,96 @@ export default function AdminLoginPage() {
 
   return (
     <div style={{
-      minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '2rem'
+      minHeight: '100vh',
+      background: '#141414',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2rem',
     }}>
       <div style={{
-        background: '#fff', border: '1px solid var(--border)',
-        borderRadius: '16px', padding: '2.5rem', width: '100%', maxWidth: '400px'
+        background: '#1f1f1f',
+        border: '1px solid #2d2d2d',
+        borderRadius: '20px',
+        padding: '2.5rem 2rem',
+        width: '100%',
+        maxWidth: '400px',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
       }}>
+        {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <img src="/squarelogo.png" alt="Mommyoffice" style={{ width: '64px', height: '64px', objectFit: 'contain', margin: '0 auto 1rem', display: 'block' }} />
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Admin нэвтрэх</h1>
-          <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '0.25rem' }}>Mommyoffice удирдлагын самбар</p>
+          <img
+            src="/squarelogo.png"
+            alt="Mommyoffice"
+            style={{ width: '60px', height: '60px', objectFit: 'contain', margin: '0 auto 1rem', display: 'block' }}
+          />
+          <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+            Admin нэвтрэх
+          </h1>
+          <p style={{ color: '#6b7280', fontSize: '13px', marginTop: '6px' }}>
+            Mommyoffice удирдлагын самбар
+          </p>
         </div>
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '0.4rem' }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               И-мэйл
             </label>
             <input
-              type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-              required placeholder="admin@mommyoffice.com"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="admin@mommyoffice.com"
               style={{
-                width: '100%', padding: '10px 14px', borderRadius: '8px',
-                border: '1px solid var(--border)', fontSize: '14px',
-                boxSizing: 'border-box', outline: 'none'
+                width: '100%', padding: '12px 14px', borderRadius: '10px',
+                border: '1px solid #333',
+                background: '#2a2a2a', color: '#fff',
+                fontSize: '14px', boxSizing: 'border-box', outline: 'none',
               }}
             />
           </div>
+
           <div>
-            <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '0.4rem' }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Нууц үг
             </label>
             <input
-              type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-              required placeholder="••••••••"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
               style={{
-                width: '100%', padding: '10px 14px', borderRadius: '8px',
-                border: '1px solid var(--border)', fontSize: '14px',
-                boxSizing: 'border-box', outline: 'none'
+                width: '100%', padding: '12px 14px', borderRadius: '10px',
+                border: '1px solid #333',
+                background: '#2a2a2a', color: '#fff',
+                fontSize: '14px', boxSizing: 'border-box', outline: 'none',
               }}
             />
           </div>
-          {error && <p style={{ color: '#ef4444', fontSize: '13px' }}>{error}</p>}
+
+          {error && (
+            <div style={{
+              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+              color: '#fca5a5', padding: '10px 14px', borderRadius: '8px', fontSize: '13px',
+            }}>
+              {error}
+            </div>
+          )}
+
           <button
-            type="submit" disabled={loading}
+            type="submit"
+            disabled={loading}
             style={{
-              background: loading ? '#9ca3af' : 'var(--teal)',
-              color: '#fff', padding: '12px', borderRadius: '10px',
+              background: loading ? '#374151' : '#00B5AD',
+              color: '#fff', padding: '13px', borderRadius: '10px',
               fontWeight: 700, fontSize: '15px', border: 'none',
-              cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem'
+              cursor: loading ? 'not-allowed' : 'pointer',
+              marginTop: '0.5rem',
+              boxShadow: loading ? 'none' : '0 4px 20px rgba(0,181,173,0.35)',
+              transition: 'background 0.2s',
             }}
           >
             {loading ? 'Нэвтэрч байна...' : 'Нэвтрэх'}
