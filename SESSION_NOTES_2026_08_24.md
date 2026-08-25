@@ -14,7 +14,7 @@
 | `QPAY_PASSWORD` | `okztYEao` |
 | `QPAY_INVOICE_CODE` | `MOMMY_INVOICE` |
 | `QPAY_SANDBOX` | `false` |
-| `BREVO_API_KEY` | `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` |
+| `BREVO_API_KEY` | `[REDACTED — key rotated 2026-08-26, update from Brevo dashboard]` |
 
 All 5 now live in **Vercel → mommyoffice → Settings → Environment Variables (Production)**.
 
@@ -155,6 +155,30 @@ CREATE INDEX IF NOT EXISTS idx_mo_access_tokens_email ON mo_access_tokens(email)
 **mo_access_tokens current schema:**
 `id (uuid NOT NULL), token (uuid), email (text NOT NULL), course_id (uuid), expires_at (timestamptz), created_at (timestamptz)`
 — NO `used` column. Never insert it.
+
+---
+
+---
+
+## Work Completed — 2026-08-25 (Mobile UX Pass)
+
+### Commit `651abbc` — mobile UX: site-wide responsive fixes ✅ Ready in 20s
+
+**Files changed:** `globals.css`, `[locale]/page.tsx`, `[locale]/courses/[slug]/page.tsx`, `CheckoutView.tsx`, `Footer.tsx`
+
+**Fixes applied:**
+- **globals.css** — added full mobile responsive rule set (breakpoints: 960px, 768px, 700px, 640px, 540px, 420px)
+- **Home — editorial grid** — `1.6fr 1fr` now collapses to `1fr` on mobile (was broken: side articles ~130px wide)
+- **Home — hero buttons** — stack vertically on < 420px screens
+- **Home — hero content** — goes full-width with 5% padding on mobile
+- **Course detail — mobile sticky buy bar** — fixed bottom bar appears on < 960px with price + "Худалдан авах" button. Page gets 80px bottom padding so content not hidden behind bar.
+- **Course detail — SectionCard** — padding reduced to `1.25rem 1rem` on mobile
+- **Course detail — course includes** — items go full-width on narrow phones (< 540px)
+- **Course detail — reviews grid** — `minmax(340px)` → `minmax(300px)`, collapses to 1fr on mobile
+- **Checkout — QR box** — wrapped in `.mo-qr-wrapper` which centres it on mobile
+- **Checkout — bank deep links** — horizontal scroll row on mobile (no more wrapping)
+- **Checkout — padding** — reduced to `1.5rem 1rem` on mobile
+- **Footer** — inner columns gap tightened on small screens
 
 ---
 

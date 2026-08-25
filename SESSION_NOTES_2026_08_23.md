@@ -20,7 +20,7 @@ Source: MNT Prime `.env.local` — credentials confirmed by QPay support (Uranch
 
 Brevo API key (same key, shared across both projects):
 ```
-BREVO_API_KEY=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
+BREVO_API_KEY=[REDACTED — key rotated 2026-08-26, update from Brevo dashboard]
 ```
 
 All 4 values must be in **Vercel → mommyoffice → Settings → Environment Variables** before checkout goes live.

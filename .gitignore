@@ -27,3 +27,8 @@ next-env.d.ts
 Thumbs.db
 
 .vercel
+
+# Session notes — contain credentials, never commit
+SESSION_NOTES_*.md
+LOCAL_PASSWORDS_DO_NOT_COMMIT.md
+UPGRADE_PLAN.md
