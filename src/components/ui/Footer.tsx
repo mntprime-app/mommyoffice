@@ -18,7 +18,7 @@ export default function Footer() {
             </div>
             <p style={{ fontSize: '14px', maxWidth: '260px', lineHeight: '1.6' }}>{t('tagline')}</p>
           </div>
-          <div style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap' }}>
+          <div className="mo-footer-inner-cols" style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap' }}>
             <div>
               <p style={{ color: '#fff', fontWeight: 600, marginBottom: '0.75rem', fontSize: '14px' }}>Platform</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '14px' }}>

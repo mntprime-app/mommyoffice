@@ -154,7 +154,7 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
 
   // ── STEP: FORM ──────────────────────────────────────────────────────────────
   if (step === 'form') return (
-    <div style={{ maxWidth: '920px', margin: '0 auto', padding: '3rem 2rem' }}>
+    <div className="mo-checkout-wrap" style={{ maxWidth: '920px', margin: '0 auto', padding: '3rem 2rem' }}>
       <Link href={`/${locale}/courses/${course.slug}`} style={{ fontSize: '13px', color: '#666', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '2rem' }}>
         ← Буцах
       </Link>
@@ -247,13 +247,14 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
 
   // ── STEP: QR ─────────────────────────────────────────────────────────────────
   if (step === 'qr') return (
-    <div style={{ maxWidth: '920px', margin: '0 auto', padding: '3rem 2rem' }}>
+    <div className="mo-checkout-wrap" style={{ maxWidth: '920px', margin: '0 auto', padding: '3rem 2rem' }}>
       <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#e5e5e5', margin: '0 0 2rem' }}>📱 QPay QR кодоор төлнө үү</h1>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '2.5rem', alignItems: 'flex-start' }}>
         <div>
           {/* QR box */}
-          <div style={{ background: '#fff', borderRadius: '20px', padding: '24px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '24px', boxShadow: '0 8px 40px rgba(0,181,173,0.2)' }}>
+          <div className="mo-qr-wrapper" style={{ marginBottom: '24px' }}>
+          <div style={{ background: '#fff', borderRadius: '20px', padding: '24px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '16px', boxShadow: '0 8px 40px rgba(0,181,173,0.2)' }}>
             {qrImage ? (
               <img src={`data:image/png;base64,${qrImage}`} alt="QPay QR" style={{ width: '240px', height: '240px' }} />
             ) : (
@@ -267,6 +268,7 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
               <p style={{ fontSize: '11px', color: '#999', margin: 0 }}>QPay апп → QR скан</p>
             </div>
           </div>
+          </div>{/* end mo-qr-wrapper */}
 
           {/* Steps */}
           <div style={{ background: '#1a1a1a', border: '1px solid #222', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
@@ -288,7 +290,7 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
           {deepLinks.length > 0 && (
             <div>
               <p style={{ fontSize: '12px', color: '#555', fontWeight: 600, margin: '0 0 10px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Эсвэл банкны апп сонгох</p>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <div className="mo-qr-deeplinks" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {deepLinks.slice(0, 6).map((dl) => (
                   <a key={dl.name} href={dl.link} target="_blank" rel="noopener noreferrer"
                     style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderRadius: '8px', background: '#1a1a1a', border: '1px solid #2a2a2a', textDecoration: 'none', fontSize: '12px', color: '#ccc', fontWeight: 600 }}>

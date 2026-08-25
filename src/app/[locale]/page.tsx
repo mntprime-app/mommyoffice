@@ -72,7 +72,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         }} />
 
         {/* Hero content */}
-        <div style={{
+        <div className="mo-hero-content" style={{
           position: 'absolute', bottom: '20%', left: '4%',
           maxWidth: '560px', zIndex: 2,
         }}>
@@ -107,7 +107,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             {t('hero_subtitle')}
           </p>
 
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className="mo-hero-buttons" style={{ display: 'flex', gap: '0.75rem' }}>
             <Link href={`/${locale}/courses`} style={{
               display: 'inline-flex', alignItems: 'center', gap: '8px',
               background: '#00B5AD', color: '#fff',
@@ -217,7 +217,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <RowHeader title="Трендийн нийтлэлүүд" href={`/${locale}/articles`} badge="TRENDING" />
 
           {/* Featured editorial layout: 1 big + 3 side */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div className="mo-editorial-grid">
             {/* Big featured article */}
             <Link href={featuredArticle?.slug ? `/${locale}/articles/${featuredArticle.slug}` : '#'} style={{ textDecoration: 'none' }}>
               <div className="netflix-card" style={{

@@ -101,3 +101,116 @@ h1, h2, h3, h4, h5, h6 {
     width: 100%;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE RESPONSIVE — site-wide overrides
+   ═══════════════════════════════════════════════════════ */
+
+/* Home — editorial articles grid: 2-col on desktop → 1-col on mobile */
+.mo-editorial-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+@media (max-width: 768px) {
+  .mo-editorial-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Home — hero buttons: stack on very small screens */
+@media (max-width: 420px) {
+  .mo-hero-buttons {
+    flex-direction: column !important;
+    align-items: flex-start;
+  }
+}
+
+/* Home — hero content: full-width text area on mobile */
+@media (max-width: 768px) {
+  .mo-hero-content {
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0 5% !important;
+    max-width: 100% !important;
+    bottom: 12% !important;
+  }
+}
+
+/* Course detail — section card: less side padding on mobile */
+@media (max-width: 640px) {
+  .mo-section-card {
+    padding: 1.25rem 1rem !important;
+    border-radius: 10px !important;
+  }
+}
+
+/* Course detail — "includes" items: full-width on mobile */
+@media (max-width: 540px) {
+  .mo-includes-item {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* Course detail — reviews grid: single col on mobile */
+@media (max-width: 640px) {
+  .mo-reviews-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Course detail — mobile sticky buy bar */
+.mo-mobile-buy {
+  display: none;
+}
+@media (max-width: 960px) {
+  .mo-mobile-buy {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    padding: 12px 16px env(safe-area-inset-bottom, 0px);
+    background: rgba(20, 20, 20, 0.97);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid #2a2a2a;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.5);
+  }
+  /* Add bottom padding to course page so content isn't hidden behind bar */
+  .mo-course-page { padding-bottom: 80px; }
+}
+@media (min-width: 961px) {
+  .mo-mobile-buy { display: none !important; }
+}
+
+/* Checkout — centre QR box on mobile */
+@media (max-width: 700px) {
+  .mo-qr-wrapper {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100%;
+  }
+  .mo-checkout-wrap {
+    padding: 1.5rem 1rem !important;
+  }
+  .mo-qr-deeplinks {
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    flex-wrap: nowrap !important;
+  }
+  .mo-qr-deeplinks::-webkit-scrollbar { display: none; }
+}
+
+/* Footer — tighter columns on mobile */
+@media (max-width: 640px) {
+  .mo-footer-inner-cols {
+    gap: 1.5rem !important;
+  }
+}

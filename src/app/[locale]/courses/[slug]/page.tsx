@@ -115,7 +115,7 @@ function StarRow({ rating, count }: { rating: number; count: number }) {
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section style={{
+    <section className="mo-section-card" style={{
       background: '#1a1a1a', border: '1px solid #2a2a2a',
       borderRadius: '12px', padding: '1.75rem 2rem', marginBottom: '1.5rem',
     }}>
@@ -197,7 +197,7 @@ export default async function CourseDetailPage({
   const hasOutline = showOutline && (lectureCount > 0 || outlineData.length > 0);
 
   return (
-    <div style={{ background: '#141414', minHeight: '100vh' }}>
+    <div className="mo-course-page" style={{ background: '#141414', minHeight: '100vh' }}>
 
       {/* ── HEADER — full-width: back link, badges, title, description, meta ── */}
       <div style={{ borderBottom: '1px solid #1a1a1a' }}>
@@ -273,7 +273,7 @@ export default async function CourseDetailPage({
                   (Number(course.exercise_count) || 0) > 0 && { icon: '✏️', text: `${Number(course.exercise_count)} дасгал ажил` },
                   course.has_certificate && { icon: '🎓', text: 'Гэрчилгээ олгодог' },
                 ].filter(Boolean).map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 0', width: '50%', minWidth: '200px', borderBottom: '1px solid #222', fontSize: '13px', color: '#ccc' }}>
+                  <div key={i} className="mo-includes-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 0', width: '50%', minWidth: '200px', borderBottom: '1px solid #222', fontSize: '13px', color: '#ccc' }}>
                     <span style={{ fontSize: '15px', flexShrink: 0 }}>{(item as {icon:string;text:string}).icon}</span>
                     <span>{(item as {icon:string;text:string}).text}</span>
                   </div>
@@ -479,7 +479,7 @@ export default async function CourseDetailPage({
                 </div>
               )}
               {reviews.length > 0 ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1rem' }}>
+                <div className="mo-reviews-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
                   {reviews.map((r) => (
                     <div key={r.id} style={{ background: '#222', borderRadius: '8px', padding: '1rem 1.25rem', border: '1px solid #2a2a2a' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -559,6 +559,30 @@ export default async function CourseDetailPage({
           )}
 
         </div>
+      </div>
+
+      {/* ── MOBILE STICKY BUY BAR — shows on mobile only (< 960px) ── */}
+      <div className="mo-mobile-buy">
+        <div style={{ flexShrink: 0 }}>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+            {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
+          </div>
+          {originalPrice > price && originalPrice > 0 && (
+            <div style={{ fontSize: '11px', color: '#666', textDecoration: 'line-through', marginTop: 2 }}>
+              {originalPrice.toLocaleString()}₮
+            </div>
+          )}
+        </div>
+        <Link href={`/${locale}/checkout/${slug}`} style={{
+          flex: 1, display: 'block', textAlign: 'center',
+          background: '#00B5AD', color: '#fff',
+          padding: '13px 16px', borderRadius: '10px',
+          fontWeight: 800, textDecoration: 'none', fontSize: '15px',
+          boxShadow: '0 4px 20px rgba(0,181,173,0.4)',
+          letterSpacing: '0.2px',
+        }}>
+          {price === 0 ? 'Үнэгүй авах' : 'Худалдан авах'}
+        </Link>
       </div>
     </div>
   );

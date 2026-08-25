@@ -1,7 +1,8 @@
 # Session Ledger — 2026-08-24
 **Project:** Mommyoffice
 **Assistant:** Alex
-**Session start:** ~12:00 PM | **End:** ongoing
+**Session start:** ~12:00 PM | **End:** ~8:20 PM
+**Status:** ✅ Full payment → email → dashboard pipeline working end-to-end
 
 ---
 
@@ -86,31 +87,74 @@ UPDATE mo_courses SET price = 19900 WHERE slug = 'geriin-hool-hiih-urlag';
 
 ---
 
-## Work Completed — Session Continuation (2026-08-24 afternoon)
+## Work Completed — Session Continuation (2026-08-24 afternoon/evening)
 
-### 5. User Account & Student Dashboard Architecture
+### 5. User Account & Student Dashboard — Full Pipeline ✅ CONFIRMED WORKING
 
-**Files changed:**
-- `src/app/api/qpay/check/route.ts` — full rewrite:
-  - Fetches `access_duration_days` from `mo_courses`
-  - `expires_at = null` for lifetime courses (NULL or 0 days)
-  - `supabase.auth.admin.createUser()` on payment (idempotent)
-  - `supabase.auth.admin.generateLink({ type: 'magiclink', redirectTo: siteUrl + '/mn/welcome' })`
-  - Magic link used as email CTA button URL
-  - Email copy: "Насан туршийн хандалт" vs "Хандалтын хугацаа: [date] хүртэл"
-  - Fixed siteUrl fallback → `https://mommyoffice-smoky.vercel.app`
-- `src/app/api/qpay/create/route.ts` — fixed siteUrl fallback
-- `src/app/[locale]/access/[token]/page.tsx` — fixed null expires_at bug (line 16)
-- `src/app/[locale]/welcome/page.tsx` — NEW: magic link handler, optional password setup, redirect to /my-courses
-- `src/app/[locale]/my-courses/page.tsx` — NEW: student dashboard, course cards with progress bars, lifetime/expiry badge, "Үргэлжлүүлэх →" / "Эхлүүлэх →" / "✅ Дуусгасан" CTAs
+**Flow verified end-to-end:**
+Pay ₮1,000 → QPay QR → Payment confirmed → Email sent → Click magic link → `/welcome` dark page with real logo + SVG eye icons + password guide → Set password → `/my-courses` shows course card with cover image + ∞ Lifetime badge + progress bar + "Эхлүүлэх →" button ✅
+
+**Files changed (final state):**
+
+`src/app/api/qpay/check/route.ts` — full rewrite:
+- Fetches `access_duration_days` from `mo_courses`
+- `expires_at = null` for lifetime courses
+- `supabase.auth.admin.createUser()` on payment (idempotent)
+- `supabase.auth.admin.generateLink({ type: 'magiclink', redirectTo: siteUrl + '/mn/welcome' })`
+- Removed `used: false` from mo_access_tokens insert (BUG-001 fix)
+- Email: "Насан туршийн хандалт" vs "Хандалтын хугацаа: [date] хүртэл"
+
+`src/app/api/qpay/create/route.ts` — fixed siteUrl fallback
+
+`src/app/[locale]/access/[token]/page.tsx` — fixed null expires_at bug
+
+`src/app/[locale]/welcome/page.tsx` — NEW, fully working:
+- Real logo.png at top
+- Dark theme (#141414 bg, #1f1f1f card)
+- SVG eye icons (not emoji) perfectly centered on input fields
+- Password requirements guide below first field
+- PKCE hash-token manual parsing
+- getSession() first → onAuthStateChange → hash parse → 5s fallback
+
+`src/app/[locale]/my-courses/page.tsx` — NEW, fully working:
+- Dark theme throughout (#1a1a1a empty state)
+- Clean SVG book icon (no emoji)
+- Course cards: cover image, ∞ Lifetime / expiry badge, progress bar, CTA
+- Calls `/api/my-enrollments` admin route
+
+`src/app/api/my-enrollments/route.ts` — rebuilt to use `mo_orders` as primary source:
+- Queries `mo_orders WHERE buyer_email = email AND status = 'paid'`
+- Deduplicates by course_id
+- Fetches courses separately
+- Gets expiry from mo_access_tokens (best-effort) OR derives from access_duration_days
+
+`src/lib/supabase/server.ts` — **CRITICAL FIX** (BUG-010):
+- `createAdminClient()` now uses raw `createClient` from `@supabase/supabase-js`
+- `{ auth: { autoRefreshToken: false, persistSession: false } }`
+- Removed `createServerClient` from `@supabase/ssr` for admin — was silently blocking all queries
+
+`src/components/ui/CheckoutView.tsx` — success step:
+- Removed illogical "Хичээл эхлүүлэх →" button (user not logged in yet at this point)
+- Added "📬 И-мэйлээ шалгана уу" instruction box
+- Added secondary "Миний хичээлүүд →" link
+
+**Supabase SQL run (2026-08-24):**
+```sql
+ALTER TABLE mo_access_tokens ADD COLUMN IF NOT EXISTS email TEXT;
+CREATE INDEX IF NOT EXISTS idx_mo_access_tokens_email ON mo_access_tokens(email);
+```
 
 **Vercel env vars added:**
 - `NEXT_PUBLIC_SITE_URL=https://mommyoffice-smoky.vercel.app`
 
-**Supabase Auth URL Configuration:**
-- Redirect URLs: added `https://mommyoffice-smoky.vercel.app/**` (MNT Prime URL untouched)
+**Supabase Auth Redirect URLs added:**
+- `https://mommyoffice-smoky.vercel.app/**`
 
-**Deployed:** commit `735dd74` → redeployed, ✅ Ready in 26s
+**Final deployed commit:** `231fdb5` — ✅ Ready in 31s
+
+**mo_access_tokens current schema:**
+`id (uuid NOT NULL), token (uuid), email (text NOT NULL), course_id (uuid), expires_at (timestamptz), created_at (timestamptz)`
+— NO `used` column. Never insert it.
 
 ---
 
@@ -173,6 +217,12 @@ UPDATE mo_courses SET price = 19900 WHERE slug = 'geriin-hool-hiih-urlag';
 - **Symptom:** `fatal: cannot lock ref 'HEAD'` on every sandbox git commit
 - **Root cause:** Sandbox can't delete Windows-owned git lock files (permission denied)
 - **Fix:** User runs `del "F:\MNT\Workspace\GLink Strategic Projects\mommyoffice\.git\HEAD.lock"` in CMD before each deploy command
+
+### BUG-010 — createAdminClient used wrong Supabase client (critical)
+- **Symptom:** `/api/my-enrollments` returned empty even though `mo_orders` had 10 paid rows
+- **Root cause:** `createAdminClient` used `createServerClient` from `@supabase/ssr`. That package adds cookie-based auth headers which interfere with the `service_role_key` RLS bypass. Table queries silently returned no data.
+- **Fix:** Rewrote `createAdminClient` to use raw `createClient` from `@supabase/supabase-js` with `{ auth: { autoRefreshToken: false, persistSession: false } }`. This is the ONLY correct way to create a server-side admin client.
+- **Rule:** NEVER use `createServerClient` (@supabase/ssr) with service_role_key. Always use `createClient` (@supabase/supabase-js) for admin operations.
 
 ### BUG-009 — Shared Supabase project — NEVER change Site URL
 - **Rule:** Supabase project `madhsuvuoxrlywykktvz` is shared between MNT Prime and MommyOffice. Site URL must stay as `https://mntprime-app.vercel.app`. Only add MO URLs to the Redirect URLs list, never touch Site URL.
