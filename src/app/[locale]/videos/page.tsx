@@ -20,6 +20,9 @@ export type Video = {
   placement: string;
   video_type: string;
   created_at: string;
+  upvotes_count: number;
+  downvotes_count: number;
+  super_likes_count: number;
 };
 
 export default async function VideosPage({
@@ -37,7 +40,7 @@ export default async function VideosPage({
   const { data: videos } = await supabase
     .from('mo_videos')
     .select(
-      'id, title_mn, title_en, slug, description_mn, description_en, youtube_id, cloudflare_stream_id, thumbnail_url, duration_text, category, view_count, is_featured, placement, video_type, created_at',
+      'id, title_mn, title_en, slug, description_mn, description_en, youtube_id, cloudflare_stream_id, thumbnail_url, duration_text, category, view_count, is_featured, placement, video_type, created_at, upvotes_count, downvotes_count, super_likes_count',
     )
     .eq('is_published', true)
     .order('created_at', { ascending: false });
