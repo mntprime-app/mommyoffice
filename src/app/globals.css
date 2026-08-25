@@ -119,11 +119,18 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Home — hero buttons: stack on very small screens */
-@media (max-width: 420px) {
+/* Home — hero buttons: stay side-by-side on mobile, equal width, compact padding */
+@media (max-width: 540px) {
   .mo-hero-buttons {
-    flex-direction: column !important;
-    align-items: flex-start;
+    flex-direction: row !important;
+    width: 100%;
+  }
+  .mo-hero-buttons a {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 11px 8px !important;
+    font-size: 13px !important;
+    min-width: 0;
   }
 }
 
@@ -212,5 +219,12 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 640px) {
   .mo-footer-inner-cols {
     gap: 1.5rem !important;
+  }
+}
+
+/* Home — tighter section spacing on mobile */
+@media (max-width: 768px) {
+  .mo-section-gap {
+    padding-bottom: 2rem !important;
   }
 }

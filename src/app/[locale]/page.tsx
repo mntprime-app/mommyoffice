@@ -136,7 +136,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           ROW 1 — FEATURED COURSES
           MasterClass-style large landscape cards
       ═══════════════════════════════════════ */}
-      <section style={{ padding: '0 0 3rem', marginTop: '-5rem', position: 'relative', zIndex: 2 }}>
+      <section className="mo-section-gap" style={{ padding: '0 0 3rem', marginTop: '-5rem', position: 'relative', zIndex: 2 }}>
         <div style={{ padding: '0 4%' }}>
           <RowHeader title={t('featured_courses')} href={`/${locale}/courses`} />
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '8px' }}>
@@ -212,7 +212,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           ROW 2 — TRENDING ARTICLES
           Refinery29-inspired editorial grid
       ═══════════════════════════════════════ */}
-      <section style={{ padding: '0 0 3rem' }}>
+      <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
         <div style={{ padding: '0 4%' }}>
           <RowHeader title="Трендийн нийтлэлүүд" href={`/${locale}/articles`} badge="TRENDING" />
 
@@ -364,7 +364,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           ROW 3 — КИНО & ВИДЕО
           Disney+-style landscape row
       ═══════════════════════════════════════ */}
-      <section style={{ padding: '0 0 3rem' }}>
+      <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
         <div style={{ padding: '0 4%' }}>
           <RowHeader title="Кино & Видео" href={`/${locale}/videos`} badge="ТУНУДАХГҮЙ" />
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
@@ -411,7 +411,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           ROW 4 — ДЭЛГҮҮР / SHOP
           Product cards
       ═══════════════════════════════════════ */}
-      <section style={{ padding: '0 0 5rem' }}>
+      <section className="mo-section-gap" style={{ padding: '0 0 5rem' }}>
         <div style={{ padding: '0 4%' }}>
           <RowHeader title="Дэлгүүр" href={`/${locale}/shop`} badge="ШИНЭ" />
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
@@ -457,25 +457,32 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 /* ── Shared row header component ── */
 function RowHeader({ title, href, badge }: { title: string; href: string; badge?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e5e5e5', margin: 0 }}>
-        {title}
-      </h2>
-      {badge && (
-        <span style={{
-          fontSize: '9px', fontWeight: 800, color: '#00B5AD',
-          border: '1px solid rgba(0,181,173,0.5)',
-          padding: '2px 8px', borderRadius: '3px',
-          letterSpacing: '1.5px', textTransform: 'uppercase',
+    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '8px', marginBottom: '1rem' }}>
+      <div>
+        {badge && (
+          <span style={{
+            display: 'inline-block', marginBottom: '5px',
+            fontSize: '9px', fontWeight: 800, color: '#00B5AD',
+            border: '1px solid rgba(0,181,173,0.5)',
+            padding: '2px 8px', borderRadius: '3px',
+            letterSpacing: '1.5px', textTransform: 'uppercase',
+          }}>
+            {badge}
+          </span>
+        )}
+        <h2 style={{
+          fontSize: '1.15rem', fontWeight: 700, color: '#e5e5e5',
+          margin: 0, letterSpacing: '-0.3px', lineHeight: 1.2,
         }}>
-          {badge}
-        </span>
-      )}
+          {title}
+        </h2>
+      </div>
       <Link href={href} style={{
         color: 'rgba(0,181,173,0.8)', textDecoration: 'none',
         fontWeight: 600, fontSize: '11px', letterSpacing: '0.5px',
-        textTransform: 'uppercase', marginLeft: 'auto',
+        textTransform: 'uppercase', flexShrink: 0,
         display: 'flex', alignItems: 'center', gap: '4px',
+        whiteSpace: 'nowrap',
       }}>
         Бүгдийг харах <span style={{ fontSize: '14px' }}>›</span>
       </Link>
