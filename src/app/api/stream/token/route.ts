@@ -20,8 +20,8 @@ const KEY_ID     = process.env.CF_STREAM_KEY_ID     ?? '';
 const KEY_SECRET = process.env.CF_STREAM_KEY_SECRET  ?? '';  // base64url JWK private key
 const EXPIRES_IN = 4 * 60 * 60; // 4 hours in seconds
 
-function base64url(data: ArrayBuffer): string {
-  return Buffer.from(data)
+function base64url(data: ArrayBuffer | Buffer): string {
+  return Buffer.from(data as ArrayBuffer)
     .toString('base64')
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
