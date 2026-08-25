@@ -36,8 +36,10 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
   const quickActions = [
     { label: '+ Хичээл нэмэх', href: `/${locale}/admin/courses/new`, bg: '#00B5AD', color: '#fff' },
     { label: '+ Нийтлэл нэмэх', href: `/${locale}/admin/articles/new`, bg: '#6366f1', color: '#fff' },
+    { label: '+ Видео нэмэх', href: `/${locale}/admin/videos/new`, bg: '#f59e0b', color: '#1a0f00' },
     { label: 'Хичээлүүд', href: `/${locale}/admin/courses`, bg: '#2a2a2a', color: '#e5e5e5' },
     { label: 'Нийтлэлүүд', href: `/${locale}/admin/articles`, bg: '#2a2a2a', color: '#e5e5e5' },
+    { label: '🎬 Видеонууд', href: `/${locale}/admin/videos`, bg: '#2a2a2a', color: '#e5e5e5' },
     { label: 'Захиалгууд', href: `/${locale}/admin/orders`, bg: '#2a2a2a', color: '#e5e5e5' },
   ];
 

@@ -1,35 +1,46 @@
-import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
+import VideosClient from './VideosClient';
 
-export default async function VideosPage({ params }: { params: Promise<{ locale: string }> }) {
+export const revalidate = 60; // ISR: refresh every 60s
+
+export type Video = {
+  id: string;
+  title_mn: string;
+  title_en: string | null;
+  slug: string | null;
+  description_mn: string | null;
+  description_en: string | null;
+  youtube_id: string | null;
+  cloudflare_stream_id: string | null;
+  thumbnail_url: string | null;
+  duration_text: string;
+  category: string;
+  view_count: number;
+  is_featured: boolean;
+  placement: string;
+  video_type: string;
+  created_at: string;
+};
+
+export default async function VideosPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const { locale } = await params;
-  return (
-    <main style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 1.5rem' }}>
-      <div style={{ textAlign: 'center', maxWidth: '520px' }}>
-        <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>🎬</div>
-        <div style={{
-          display: 'inline-block', marginBottom: '1.25rem',
-          fontSize: '10px', fontWeight: 800, color: '#00B5AD',
-          border: '1px solid rgba(0,181,173,0.4)',
-          padding: '3px 12px', borderRadius: '4px',
-          letterSpacing: '2px', textTransform: 'uppercase',
-        }}>
-          Тун удахгүй
-        </div>
-        <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', margin: '0 0 1rem', lineHeight: 1.2 }}>
-          Кино & Видео
-        </h1>
-        <p style={{ color: '#9ca3af', fontSize: '15px', lineHeight: 1.7, marginBottom: '2rem' }}>
-          Монгол эмэгтэйчүүдэд зориулсан сонирхолтой кино, баримтат болон сургалтын видео контент удахгүй нэмэгдэнэ. Анхны шинэчлэл авахын тулд бүртгүүлээрэй.
-        </p>
-        <Link href={`/${locale}/courses`} style={{
-          display: 'inline-block',
-          background: '#00B5AD', color: '#fff',
-          padding: '12px 28px', borderRadius: '10px',
-          fontWeight: 700, textDecoration: 'none', fontSize: '15px',
-        }}>
-          Сургалтуудыг үзэх →
-        </Link>
-      </div>
-    </main>
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
+
+  const { data: videos } = await supabase
+    .from('mo_videos')
+    .select(
+      'id, title_mn, title_en, slug, description_mn, description_en, youtube_id, cloudflare_stream_id, thumbnail_url, duration_text, category, view_count, is_featured, placement, video_type, created_at',
+    )
+    .eq('is_published', true)
+    .order('created_at', { ascending: false });
+
+  return <VideosClient videos={videos ?? []} locale={locale} />;
 }
