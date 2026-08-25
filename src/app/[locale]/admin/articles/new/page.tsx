@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { compressImage, fmtSize } from '@/lib/imageCompress';
 
 const CATEGORIES = ['Эрүүл мэнд', 'Гоо сайхан', 'Хоол тэжээл', 'Гэр бүл', 'Бизнес', 'Хувийн хөгжил'];
 const PLACEMENTS = [
@@ -49,15 +50,19 @@ export default function NewArticlePage() {
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPreview(URL.createObjectURL(file));
+    const raw = e.target.files?.[0];
+    if (!raw) return;
+    setPreview(URL.createObjectURL(raw));
     setUploading(true); setError('');
     try {
+      // Compress → WebP 1280×720, target <200KB
+      const file = await compressImage(raw, { preset: 'article' });
+      setError(`✓ Шахагдсан: ${fmtSize(raw.size)} → ${fmtSize(file.size)} (WebP)`);
+      setTimeout(() => setError(''), 4000);
+      setPreview(URL.createObjectURL(file));
       const supabase = createClient();
-      const ext = file.name.split('.').pop();
-      const path = `articles/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from('mommyoffice-public').upload(path, file, { upsert: true });
+      const path = `articles/${Date.now()}.webp`;
+      const { error: upErr } = await supabase.storage.from('mommyoffice-public').upload(path, file, { upsert: true, contentType: 'image/webp' });
       if (upErr) { setError('Storage тохиргоо хийгдээгүй байна. URL-аар оруулна уу.'); setUploading(false); return; }
       const { data: { publicUrl } } = supabase.storage.from('mommyoffice-public').getPublicUrl(path);
       setForm((f) => ({ ...f, cover_image_url: publicUrl }));

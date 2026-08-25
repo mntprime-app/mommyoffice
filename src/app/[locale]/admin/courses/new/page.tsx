@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { compressImage, fmtSize } from '@/lib/imageCompress';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 
@@ -41,22 +42,23 @@ export default function NewCoursePage() {
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > MAX_IMG_MB * 1024 * 1024) {
-      setError(`Зургийн хэмжээ ${MAX_IMG_MB}MB-аас хэтрэхгүй байх ёстой. (Одоогийн: ${(file.size / 1024 / 1024).toFixed(1)}MB)`);
-      return;
-    }
+    const raw = e.target.files?.[0];
+    if (!raw) return;
+    setImgPreview(URL.createObjectURL(raw));
     setError('');
-    setImgPreview(URL.createObjectURL(file));
-    const supabase = createClient();
-    const ext = file.name.split('.').pop();
-    const path = `courses/${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from('mommyoffice-public').upload(path, file, { upsert: true });
-    if (upErr) { setError('Storage тохиргоо хийгдээгүй байна. URL-аар оруулна уу.'); return; }
-    const { data: { publicUrl } } = supabase.storage.from('mommyoffice-public').getPublicUrl(path);
-    setForm((f) => ({ ...f, cover_image_url: publicUrl }));
-    setImgPreview(publicUrl);
+    try {
+      const file = await compressImage(raw, { preset: 'course' });
+      setError(`✓ WebP шахагдсан: ${fmtSize(raw.size)} → ${fmtSize(file.size)}`);
+      setTimeout(() => setError(''), 4000);
+      setImgPreview(URL.createObjectURL(file));
+      const supabase = createClient();
+      const path = `courses/${Date.now()}.webp`;
+      const { error: upErr } = await supabase.storage.from('mommyoffice-public').upload(path, file, { upsert: true, contentType: 'image/webp' });
+      if (upErr) { setError('Storage тохиргоо хийгдээгүй байна. URL-аар оруулна уу.'); return; }
+      const { data: { publicUrl } } = supabase.storage.from('mommyoffice-public').getPublicUrl(path);
+      setForm((f) => ({ ...f, cover_image_url: publicUrl }));
+      setImgPreview(publicUrl);
+    } catch { setError('Зураг upload хийхэд алдаа гарлаа.'); }
   }
 
   async function handleSave(e: React.FormEvent) {

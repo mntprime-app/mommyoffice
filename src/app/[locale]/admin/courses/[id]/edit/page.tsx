@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/client';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 
-type OutlineModule = { title: string; lessons: string[] };
+type OutlineLesson = { title: string; stream_id?: string };
+type OutlineModule = { title: string; lessons: OutlineLesson[] };
 
 export default function EditCoursePage() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function EditCoursePage() {
 
   // Outline stored as array of modules
   const [outline, setOutline] = useState<OutlineModule[]>([
-    { title: '', lessons: [''] },
+    { title: '', lessons: [{ title: '', stream_id: '' }] },
   ]);
 
   useEffect(() => {
@@ -63,7 +64,14 @@ export default function EditCoursePage() {
           show_outline: data.show_outline !== false,
         });
         if (Array.isArray(data.outline) && data.outline.length > 0) {
-          setOutline(data.outline);
+          // Normalize: old data may have lessons as string[], upgrade to OutlineLesson[]
+          const normalized: OutlineModule[] = data.outline.map((m: OutlineModule) => ({
+            title: m.title,
+            lessons: (m.lessons || []).map((l: OutlineLesson | string) =>
+              typeof l === 'string' ? { title: l, stream_id: '' } : { title: l.title || '', stream_id: l.stream_id || '' }
+            ),
+          }));
+          setOutline(normalized);
         }
         setLoading(false);
       });
@@ -75,7 +83,7 @@ export default function EditCoursePage() {
 
   // Outline helpers
   function addModule() {
-    setOutline((o) => [...o, { title: '', lessons: [''] }]);
+    setOutline((o) => [...o, { title: '', lessons: [{ title: '', stream_id: '' }] }]);
   }
   function removeModule(mi: number) {
     setOutline((o) => o.filter((_, i) => i !== mi));
@@ -84,13 +92,16 @@ export default function EditCoursePage() {
     setOutline((o) => o.map((m, i) => i === mi ? { ...m, title: val } : m));
   }
   function addLesson(mi: number) {
-    setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: [...m.lessons, ''] } : m));
+    setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: [...m.lessons, { title: '', stream_id: '' }] } : m));
   }
   function removeLesson(mi: number, li: number) {
     setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: m.lessons.filter((_, j) => j !== li) } : m));
   }
-  function setLesson(mi: number, li: number, val: string) {
-    setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: m.lessons.map((l, j) => j === li ? val : l) } : m));
+  function setLessonTitle(mi: number, li: number, val: string) {
+    setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: m.lessons.map((l, j) => j === li ? { ...l, title: val } : l) } : m));
+  }
+  function setLessonStreamId(mi: number, li: number, val: string) {
+    setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: m.lessons.map((l, j) => j === li ? { ...l, stream_id: val } : l) } : m));
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -100,7 +111,12 @@ export default function EditCoursePage() {
     setSuccess('');
     const cleanOutline = outline
       .filter((m) => m.title.trim())
-      .map((m) => ({ title: m.title.trim(), lessons: m.lessons.filter((l) => l.trim()) }));
+      .map((m) => ({
+        title: m.title.trim(),
+        lessons: m.lessons
+          .filter((l) => l.title.trim())
+          .map((l) => ({ title: l.title.trim(), stream_id: l.stream_id?.trim() || undefined })),
+      }));
     const supabase = createClient();
     const { error: err } = await supabase
       .from('mo_courses')
@@ -249,19 +265,30 @@ export default function EditCoursePage() {
                   <button type="button" onClick={() => removeModule(mi)} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', fontSize: '12px' }}>✕</button>
                 )}
               </div>
-              <div style={{ paddingLeft: '32px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ paddingLeft: '32px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {mod.lessons.map((lesson, li) => (
-                  <div key={li} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', color: '#9ca3af', minWidth: '18px' }}>{li + 1}.</span>
-                    <input
-                      value={lesson}
-                      onChange={(e) => setLesson(mi, li, e.target.value)}
-                      placeholder={`Хичээл ${li + 1}`}
-                      style={{ ...inp, flex: 1, fontSize: '13px', padding: '7px 12px' }}
-                    />
-                    {mod.lessons.length > 1 && (
-                      <button type="button" onClick={() => removeLesson(mi, li)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }}>✕</button>
-                    )}
+                  <div key={li} style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px', padding: '10px 12px' }}>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', color: '#9ca3af', minWidth: '18px' }}>{li + 1}.</span>
+                      <input
+                        value={lesson.title}
+                        onChange={(e) => setLessonTitle(mi, li, e.target.value)}
+                        placeholder={`Хичээл ${li + 1} — гарчиг`}
+                        style={{ ...inp, flex: 1, fontSize: '13px', padding: '7px 12px' }}
+                      />
+                      {mod.lessons.length > 1 && (
+                        <button type="button" onClick={() => removeLesson(mi, li)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }}>✕</button>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', paddingLeft: '24px' }}>
+                      <span style={{ fontSize: '11px', color: '#6b7280', whiteSpace: 'nowrap' }}>🎬 CF ID:</span>
+                      <input
+                        value={lesson.stream_id || ''}
+                        onChange={(e) => setLessonStreamId(mi, li, e.target.value)}
+                        placeholder="a8765f2b... (Cloudflare Stream ID)"
+                        style={{ ...inp, flex: 1, fontSize: '12px', padding: '5px 10px', fontFamily: 'monospace', color: lesson.stream_id ? '#10b981' : '#6b7280' }}
+                      />
+                    </div>
                   </div>
                 ))}
                 <button type="button" onClick={() => addLesson(mi)} style={{
