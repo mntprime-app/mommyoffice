@@ -3,24 +3,30 @@ import { createAdminClient } from '@/lib/supabase/server';
 
 // ─── STORAGE UPLOAD (service role — bypasses bucket RLS) ──────────────────────
 
+const BUCKET = 'mommyoffice-media';
+
 export async function uploadImage(formData: FormData, folder: string): Promise<{ error: string | null; url: string | null }> {
   const file = formData.get('file') as File | null;
   if (!file) return { error: 'Файл олдсонгүй', url: null };
 
   const supabase = await createAdminClient();
+
+  // Ensure bucket exists (service role can create it; ignores error if already exists)
+  await supabase.storage.createBucket(BUCKET, { public: true, fileSizeLimit: 10485760 });
+
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
   const ext = file.type === 'image/webp' ? 'webp' : (file.name.split('.').pop() || 'jpg');
   const path = `${folder}/${Date.now()}.${ext}`;
 
   const { error } = await supabase.storage
-    .from('mommyoffice-public')
+    .from(BUCKET)
     .upload(path, buffer, { upsert: true, contentType: file.type || 'image/webp' });
 
   if (error) return { error: error.message, url: null };
 
   const { data: { publicUrl } } = supabase.storage
-    .from('mommyoffice-public')
+    .from(BUCKET)
     .getPublicUrl(path);
 
   return { error: null, url: publicUrl };
