@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
+import { getArticleById, updateArticle, deleteArticleById } from '../../actions';
 
 const CATEGORIES = [
   // Editorial series
@@ -44,10 +45,9 @@ export default function EditArticlePage() {
   });
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.from('mo_articles').select('*').eq('id', id).single()
-      .then(({ data, error: err }) => {
-        if (err || !data) { setError('Нийтлэл олдсонгүй'); setLoading(false); return; }
+    getArticleById(id).then((data) => {
+      const err = !data;
+      if (err) { setError('Нийтлэл олдсонгүй'); setLoading(false); return; }
         const f = {
           title_mn: data.title_mn || '',
           title_en: data.title_en || '',
@@ -102,8 +102,7 @@ export default function EditArticlePage() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true); setError(''); setSuccess('');
-    const supabase = createClient();
-    const { error: err } = await supabase.from('mo_articles').update({
+    const { error: err } = await updateArticle(id, {
       title_mn: form.title_mn,
       title_en: form.title_en || null,
       excerpt_mn: form.excerpt_mn || null,
@@ -119,17 +118,15 @@ export default function EditArticlePage() {
       placement: form.placement,
       is_pinned_trending: form.is_pinned_trending,
       pin_rank: form.is_pinned_trending ? Number(form.pin_rank) : null,
-      updated_at: new Date().toISOString(),
-    }).eq('id', id);
-    if (err) setError(err.message);
+    });
+    if (err) setError(err);
     else { setSuccess('Амжилттай хадгаллаа ✓'); setTimeout(() => setSuccess(''), 3000); }
     setSaving(false);
   }
 
   async function handleDelete() {
     if (!confirm(`"${form.title_mn}" нийтлэлийг устгах уу?`)) return;
-    const supabase = createClient();
-    await supabase.from('mo_articles').delete().eq('id', id);
+    await deleteArticleById(id);
     router.push(`/${locale}/admin/articles`);
   }
 

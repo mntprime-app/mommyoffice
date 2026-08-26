@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
+import { createVideo } from '@/app/actions/admin';
 
 const CATEGORIES = [
   'Бизнес & Санхүү',
@@ -79,9 +79,8 @@ export default function NewVideoPage() {
     if (form.video_type === 'paid' && !form.cloudflare_stream_id) { setError('CF Stream ID оруулна уу.'); return; }
 
     setSaving(true); setError('');
-    const supabase = createClient();
 
-    const { error: err } = await supabase.from('mo_videos').insert({
+    const { error: err } = await createVideo({
       title_mn:             form.title_mn,
       title_en:             form.title_en || null,
       slug:                 form.slug || slugify(form.title_mn),
@@ -98,7 +97,7 @@ export default function NewVideoPage() {
       placement:            form.placement,
     });
 
-    if (err) { setError(err.message); setSaving(false); return; }
+    if (err) { setError(err); setSaving(false); return; }
     router.push(`/${locale}/admin/videos`);
   }
 

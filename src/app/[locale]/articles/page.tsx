@@ -304,8 +304,10 @@ export default async function ArticlesPage({
           {featured?.cover_image_url ? (
             <img src={String(featured.cover_image_url)} alt={featuredTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.65 }} />
           ) : (
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8%', opacity: 0.12, fontSize: 'min(40vw,320px)' }}>
-              {String(featured?.emoji || '✨')}
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '6%', overflow: 'hidden' }}>
+              <div style={{ fontSize: '13rem', fontWeight: 900, color: 'rgba(0,181,173,0.07)', lineHeight: 1, userSelect: 'none', letterSpacing: '-8px', fontFamily: 'Georgia,serif' }}>
+                MO
+              </div>
             </div>
           )}
         </div>

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { getCourseById, updateCourse, deleteCourseById } from '@/app/actions/admin';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 
@@ -37,44 +37,37 @@ export default function EditCoursePage() {
   ]);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase
-      .from('mo_courses')
-      .select('*')
-      .eq('id', id)
-      .single()
-      .then(({ data, error: err }) => {
-        if (err || !data) { setError('Хичээл олдсонгүй'); setLoading(false); return; }
-        setForm({
-          title_mn: data.title_mn || '',
-          title_en: data.title_en || '',
-          description_mn: data.description_mn || '',
-          description_en: data.description_en || '',
-          about_course_mn: data.about_course_mn || '',
-          about_course_en: data.about_course_en || '',
-          price: String(data.price ?? 0),
-          original_price: String(data.original_price ?? 0),
-          category: data.category || 'Хоол',
-          slug: data.slug || '',
-          cover_image_url: data.cover_image_url || '',
-          trailer_url: data.trailer_url || '',
-          cloudflare_stream_id: data.cloudflare_stream_id || '',
-          access_duration_days: String(data.access_duration_days ?? 0),
-          is_published: Boolean(data.is_published),
-          show_outline: data.show_outline !== false,
-        });
-        if (Array.isArray(data.outline) && data.outline.length > 0) {
-          // Normalize: old data may have lessons as string[], upgrade to OutlineLesson[]
-          const normalized: OutlineModule[] = data.outline.map((m: OutlineModule) => ({
-            title: m.title,
-            lessons: (m.lessons || []).map((l: OutlineLesson | string) =>
-              typeof l === 'string' ? { title: l, stream_id: '' } : { title: l.title || '', stream_id: l.stream_id || '' }
-            ),
-          }));
-          setOutline(normalized);
-        }
-        setLoading(false);
+    getCourseById(id).then((data) => {
+      if (!data) { setError('Хичээл олдсонгүй'); setLoading(false); return; }
+      setForm({
+        title_mn: data.title_mn || '',
+        title_en: data.title_en || '',
+        description_mn: data.description_mn || '',
+        description_en: data.description_en || '',
+        about_course_mn: data.about_course_mn || '',
+        about_course_en: data.about_course_en || '',
+        price: String(data.price ?? 0),
+        original_price: String(data.original_price ?? 0),
+        category: data.category || 'Хоол',
+        slug: data.slug || '',
+        cover_image_url: data.cover_image_url || '',
+        trailer_url: data.trailer_url || '',
+        cloudflare_stream_id: data.cloudflare_stream_id || '',
+        access_duration_days: String(data.access_duration_days ?? 0),
+        is_published: Boolean(data.is_published),
+        show_outline: data.show_outline !== false,
       });
+      if (Array.isArray(data.outline) && data.outline.length > 0) {
+        const normalized: OutlineModule[] = data.outline.map((m: OutlineModule) => ({
+          title: m.title,
+          lessons: (m.lessons || []).map((l: OutlineLesson | string) =>
+            typeof l === 'string' ? { title: l, stream_id: '' } : { title: l.title || '', stream_id: l.stream_id || '' }
+          ),
+        }));
+        setOutline(normalized);
+      }
+      setLoading(false);
+    });
   }, [id]);
 
   function set(key: string, val: string | boolean) {
@@ -117,20 +110,15 @@ export default function EditCoursePage() {
           .filter((l) => l.title.trim())
           .map((l) => ({ title: l.title.trim(), stream_id: l.stream_id?.trim() || undefined })),
       }));
-    const supabase = createClient();
-    const { error: err } = await supabase
-      .from('mo_courses')
-      .update({
-        ...form,
-        price: Number(form.price),
-        original_price: Number(form.original_price),
-        access_duration_days: Number(form.access_duration_days),
-        outline: cleanOutline.length > 0 ? cleanOutline : null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id);
+    const { error: err } = await updateCourse(id, {
+      ...form,
+      price: Number(form.price),
+      original_price: Number(form.original_price),
+      access_duration_days: Number(form.access_duration_days),
+      outline: cleanOutline.length > 0 ? cleanOutline : null,
+    });
     if (err) {
-      setError(err.message);
+      setError(err);
     } else {
       setSuccess('Амжилттай хадгаллаа ✓');
       setTimeout(() => setSuccess(''), 3000);
@@ -140,8 +128,7 @@ export default function EditCoursePage() {
 
   async function handleDelete() {
     if (!confirm(`"${form.title_mn}" хичээлийг устгах уу? Энэ үйлдлийг буцааж болохгүй.`)) return;
-    const supabase = createClient();
-    await supabase.from('mo_courses').delete().eq('id', id);
+    await deleteCourseById(id);
     router.push(`/${locale}/admin/courses`);
   }
 

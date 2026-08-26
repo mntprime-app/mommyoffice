@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
+import { createCourse } from '@/app/actions/admin';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 
@@ -66,8 +67,7 @@ export default function NewCoursePage() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true); setError('');
-    const supabase = createClient();
-    const { error: err } = await supabase.from('mo_courses').insert({
+    const { error: err } = await createCourse({
       title_mn: form.title_mn,
       title_en: form.title_en || null,
       description_mn: form.description_mn || null,
@@ -85,7 +85,7 @@ export default function NewCoursePage() {
       is_published: form.is_published,
       show_outline: form.show_outline,
     });
-    if (err) { setError(err.message); setSaving(false); }
+    if (err) { setError(err); setSaving(false); }
     else router.push(`/${locale}/admin/courses`);
   }
 

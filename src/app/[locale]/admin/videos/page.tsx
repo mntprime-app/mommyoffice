@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
+import { listVideos, toggleVideoPublished, deleteVideoById } from '@/app/actions/admin';
 
 type Video = {
   id: string;
@@ -41,28 +41,21 @@ export default function AdminVideosPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase
-      .from('mo_videos')
-      .select('id, title_mn, youtube_id, cloudflare_stream_id, category, duration_text, view_count, is_published, is_featured, video_type, created_at')
-      .order('created_at', { ascending: false })
-      .then(({ data, error: err }) => {
-        if (err) setError(err.message);
-        else setVideos(data ?? []);
-        setLoading(false);
-      });
+    listVideos().then(({ data, error: err }) => {
+      if (err) setError(err);
+      else setVideos(data);
+      setLoading(false);
+    });
   }, []);
 
   async function togglePublished(id: string, current: boolean) {
-    const supabase = createClient();
-    await supabase.from('mo_videos').update({ is_published: !current }).eq('id', id);
+    await toggleVideoPublished(id, current);
     setVideos((v) => v.map((x) => x.id === id ? { ...x, is_published: !current } : x));
   }
 
   async function deleteVideo(id: string, title: string) {
     if (!confirm(`"${title}" видеог устгах уу?`)) return;
-    const supabase = createClient();
-    await supabase.from('mo_videos').delete().eq('id', id);
+    await deleteVideoById(id);
     setVideos((v) => v.filter((x) => x.id !== id));
   }
 

@@ -1,0 +1,116 @@
+'use server';
+import { createAdminClient } from '@/lib/supabase/server';
+
+// ─── COURSES ──────────────────────────────────────────────────────────────────
+
+export async function getCourseById(id: string) {
+  const supabase = await createAdminClient();
+  const { data } = await supabase.from('mo_courses').select('*').eq('id', id).single();
+  return data || null;
+}
+
+export async function createCourse(data: {
+  title_mn: string;
+  title_en: string | null;
+  description_mn: string | null;
+  description_en: string | null;
+  about_course_mn: string | null;
+  about_course_en: string | null;
+  price: number;
+  original_price: number | null;
+  access_duration_days: number;
+  category: string;
+  cover_image_url: string | null;
+  trailer_url: string | null;
+  cloudflare_stream_id: string | null;
+  slug: string;
+  is_published: boolean;
+  show_outline: boolean;
+}) {
+  const supabase = await createAdminClient();
+  const { error } = await supabase.from('mo_courses').insert(data);
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+export async function updateCourse(id: string, data: {
+  title_mn: string;
+  title_en: string;
+  description_mn: string;
+  description_en: string;
+  about_course_mn: string;
+  about_course_en: string;
+  price: number;
+  original_price: number;
+  access_duration_days: number;
+  category: string;
+  slug: string;
+  cover_image_url: string;
+  trailer_url: string;
+  cloudflare_stream_id: string;
+  is_published: boolean;
+  show_outline: boolean;
+  outline: unknown[] | null;
+}) {
+  const supabase = await createAdminClient();
+  const { error } = await supabase
+    .from('mo_courses')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+export async function deleteCourseById(id: string) {
+  const supabase = await createAdminClient();
+  await supabase.from('mo_courses').delete().eq('id', id);
+}
+
+// ─── VIDEOS ───────────────────────────────────────────────────────────────────
+
+export async function listVideos() {
+  const supabase = await createAdminClient();
+  const { data, error } = await supabase
+    .from('mo_videos')
+    .select('id, title_mn, youtube_id, cloudflare_stream_id, category, duration_text, view_count, is_published, is_featured, video_type, created_at')
+    .order('created_at', { ascending: false });
+  if (error) return { data: [], error: error.message };
+  return { data: data ?? [], error: null };
+}
+
+export async function createVideo(data: {
+  title_mn: string;
+  title_en: string | null;
+  slug: string;
+  description_mn: string | null;
+  description_en: string | null;
+  youtube_id: string | null;
+  cloudflare_stream_id: string | null;
+  thumbnail_url: string | null;
+  duration_text: string;
+  category: string;
+  video_type: string;
+  is_published: boolean;
+  is_featured: boolean;
+  placement: string;
+}) {
+  const supabase = await createAdminClient();
+  const { error } = await supabase.from('mo_videos').insert(data);
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+export async function toggleVideoPublished(id: string, current: boolean) {
+  const supabase = await createAdminClient();
+  const { error } = await supabase
+    .from('mo_videos')
+    .update({ is_published: !current })
+    .eq('id', id);
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+export async function deleteVideoById(id: string) {
+  const supabase = await createAdminClient();
+  await supabase.from('mo_videos').delete().eq('id', id);
+}
