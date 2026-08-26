@@ -389,7 +389,7 @@ export default async function ArticleDetailPage({
 
       <style>{`
         /* ── Article body typography ── */
-        .mo-article-body { font-size: 17px; line-height: 1.85; color: #c8c8c8; }
+        .mo-article-body { font-size: 16px; line-height: 1.85; color: #c8c8c8; text-align: justify; }
         .mo-article-body h2 { font-size: 1.45rem; font-weight: 800; color: #e5e5e5; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1f1f1f; }
         .mo-article-body h3 { font-size: 1.15rem; font-weight: 700; color: #e5e5e5; margin: 2rem 0 0.75rem; }
         .mo-article-body p { margin: 0 0 1.4rem; }
@@ -436,7 +436,7 @@ export default async function ArticleDetailPage({
 
         /* ── MOBILE: article body font scaling ── */
         @media (max-width: 600px) {
-          .mo-article-body { font-size: 15px !important; line-height: 1.75 !important; }
+          .mo-article-body { font-size: 14.5px !important; line-height: 1.75 !important; }
           .mo-article-body h2 { font-size: 1.2rem !important; }
           .mo-article-body h3 { font-size: 1.05rem !important; }
           .mo-article-body blockquote { font-size: 15px !important; padding: 0.75rem 1rem !important; }
