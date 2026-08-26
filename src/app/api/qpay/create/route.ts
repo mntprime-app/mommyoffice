@@ -18,8 +18,8 @@ async function getQPayToken(): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
-    const { slug, buyerName, buyerEmail, buyerPhone } = await req.json() as {
-      slug: string; buyerName: string; buyerEmail: string; buyerPhone: string;
+    const { slug, buyerName, buyerEmail, buyerPhone, userId } = await req.json() as {
+      slug: string; buyerName: string; buyerEmail: string; buyerPhone: string; userId?: string;
     };
 
     if (!slug || !buyerEmail || !buyerPhone) {
@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
       qpay_invoice_id: invoice.invoice_id,
       qpay_qr_text: invoice.qr_text,
       status: 'pending',
+      ...(userId ? { user_id: userId } : {}),
     });
 
     if (orderErr) {

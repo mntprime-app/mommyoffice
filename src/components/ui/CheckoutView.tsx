@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 interface Course {
   id: string;
@@ -35,6 +36,8 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [emailLocked, setEmailLocked] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,6 +48,23 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
   const [checking, setChecking] = useState(false);
   const [accessUrl, setAccessUrl] = useState('');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Scenario B: detect active session → pre-fill + lock email
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.email) {
+        setEmail(data.session.user.email);
+        setEmailLocked(true);
+        setUserId(data.session.user.id);
+        // Pre-fill name from user_metadata if available
+        const meta = data.session.user.user_metadata as Record<string, string> | undefined;
+        if (meta?.first_name || meta?.last_name) {
+          setName([meta.first_name, meta.last_name].filter(Boolean).join(' '));
+        }
+      }
+    });
+  }, []);
 
   // Poll every 3s once QR is shown
   useEffect(() => {
@@ -78,7 +98,7 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
       const res = await fetch('/api/qpay/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: course.slug, buyerName: name, buyerEmail: email, buyerPhone: phone }),
+        body: JSON.stringify({ slug: course.slug, buyerName: name, buyerEmail: email, buyerPhone: phone, userId }),
       });
       const data = await res.json() as {
         ok: boolean; error?: string;
@@ -179,11 +199,13 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#aaa' }}>И-мэйл хаяг <span style={{ color: '#ef4444' }}>*</span></span>
                 <input
-                  type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="example@gmail.com" required
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #2a2a2a', background: '#111', color: '#e5e5e5', fontSize: '15px', outline: 'none' }}
+                  type="email" value={email} onChange={e => !emailLocked && setEmail(e.target.value)}
+                  placeholder="example@gmail.com" required readOnly={emailLocked}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: emailLocked ? '1px solid #1a3a39' : '1px solid #2a2a2a', background: emailLocked ? '#0a1f1f' : '#111', color: emailLocked ? '#4dd0c8' : '#e5e5e5', fontSize: '15px', outline: 'none', cursor: emailLocked ? 'default' : 'text' }}
                 />
-                <span style={{ fontSize: '11px', color: '#555' }}>Хандалтын холбоосыг энэ хаяг руу илгээнэ</span>
+                <span style={{ fontSize: '11px', color: '#555' }}>
+                  {emailLocked ? '🔒 Нэвтэрсэн хаягаар автоматаар дүүргэгдлээ' : 'Хандалтын холбоосыг энэ хаяг руу илгээнэ'}
+                </span>
               </label>
 
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -326,24 +348,43 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
     <div style={{ maxWidth: '560px', margin: '5rem auto', padding: '2rem', textAlign: 'center' }}>
       <div style={{ fontSize: '4rem', marginBottom: '20px', animation: 'bounce 0.6s ease' }}>🎉</div>
       <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#e5e5e5', margin: '0 0 12px' }}>Төлбөр амжилттай!</h1>
-      <p style={{ fontSize: '16px', color: '#888', lineHeight: 1.7, marginBottom: '28px' }}>
-        {email} хаяг руу хандалтын холбоосыг илгээлээ.<br />
-        Хэдхэн минутын дотор ирнэ.
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '360px', margin: '0 auto' }}>
-        <div style={{
-          background: 'rgba(0,181,173,0.12)', border: '1px solid rgba(0,181,173,0.4)',
-          borderRadius: '12px', padding: '16px 20px', textAlign: 'left'
-        }}>
-          <p style={{ margin: 0, fontSize: 14, color: '#ccc', lineHeight: 1.7 }}>
-            📬 <strong style={{ color: '#fff' }}>И-мэйлээ шалгана уу.</strong><br />
-            Хандалтын холбоос илгээгдлээ. И-мэйлийн товч дээр дарж нэвтрэн хичээлдээ хандана уу.
+
+      {emailLocked ? (
+        /* Scenario B — logged-in user: redirect straight to profile */
+        <>
+          <p style={{ fontSize: '16px', color: '#888', lineHeight: 1.7, marginBottom: '28px' }}>
+            Хичээлд таны эрх нэн даруй нэмэгдлээ. Профайл хуудас руу шилжинэ үү.
           </p>
-        </div>
-        <Link href={`/${locale}/my-courses`} style={{ display: 'block', padding: '12px 28px', background: 'transparent', color: '#aaa', borderRadius: '10px', fontWeight: 600, fontSize: '14px', textDecoration: 'none', border: '1px solid #2a2a2a', textAlign: 'center' }}>
-          Миний хичээлүүд →
-        </Link>
-      </div>
+          <Link href={`/${locale}/user/profile`} style={{
+            display: 'inline-block', padding: '14px 36px',
+            background: '#00B5AD', color: '#fff', borderRadius: '10px',
+            fontWeight: 800, fontSize: '16px', textDecoration: 'none',
+            boxShadow: '0 4px 20px rgba(0,181,173,0.35)',
+          }}>
+            Миний профайл руу →
+          </Link>
+        </>
+      ) : (
+        /* Scenario A — guest: check email */
+        <>
+          <p style={{ fontSize: '16px', color: '#888', lineHeight: 1.7, marginBottom: '28px' }}>
+            {email} хаяг руу хандалтын холбоосыг илгээлээ.<br />
+            Хэдхэн минутын дотор ирнэ.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '360px', margin: '0 auto' }}>
+            <div style={{ background: 'rgba(0,181,173,0.12)', border: '1px solid rgba(0,181,173,0.4)', borderRadius: '12px', padding: '16px 20px', textAlign: 'left' }}>
+              <p style={{ margin: 0, fontSize: 14, color: '#ccc', lineHeight: 1.7 }}>
+                📬 <strong style={{ color: '#fff' }}>И-мэйлээ шалгана уу.</strong><br />
+                Хандалтын холбоос илгээгдлээ. И-мэйлийн товч дээр дарж нэвтрэн хичээлдээ хандана уу.
+              </p>
+            </div>
+            <Link href={`/${locale}/my-courses`} style={{ display: 'block', padding: '12px 28px', background: 'transparent', color: '#aaa', borderRadius: '10px', fontWeight: 600, fontSize: '14px', textDecoration: 'none', border: '1px solid #2a2a2a', textAlign: 'center' }}>
+              Миний хичээлүүд →
+            </Link>
+          </div>
+        </>
+      )}
+
       <style>{`
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
       `}</style>

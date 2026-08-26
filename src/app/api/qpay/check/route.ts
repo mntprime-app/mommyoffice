@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
     // Fetch order
     const { data: order, error: orderErr } = await supabase
       .from('mo_orders')
-      .select('id, status, qpay_invoice_id, course_id, buyer_email, amount, access_token')
+      .select('id, status, qpay_invoice_id, course_id, buyer_email, amount, access_token, user_id')
       .eq('id', orderId)
       .single();
 
@@ -168,8 +168,29 @@ export async function GET(req: NextRequest) {
         expires_at: expiresAt,
       });
 
-      // 4. Create / ensure Supabase Auth user exists
       const email = String(order.buyer_email);
+      const orderUserId = (order as Record<string, unknown>).user_id as string | null;
+
+      if (orderUserId) {
+        // ── Scenario B: logged-in user ────────────────────────────────────────
+        // Enrollment already handled by upsert above (email-based).
+        // Also upsert with user_id for direct lookup later.
+        await supabase.from('mo_enrollments').upsert({
+          course_id: String(order.course_id),
+          email: email,
+          order_id: orderId,
+          user_id: orderUserId,
+        }, { onConflict: 'email,course_id' });
+
+        // No magic link, no email — they're already in-app
+        return NextResponse.json({
+          ok: true,
+          paid: true,
+          accessUrl: `${siteUrl}/mn/user/profile?tab=courses`,
+        });
+      }
+
+      // ── Scenario A: guest checkout ────────────────────────────────────────
       let welcomeUrl = `${siteUrl}/mn/my-courses`;
 
       try {
@@ -199,11 +220,10 @@ export async function GET(req: NextRequest) {
         }
       } catch (e) {
         console.error('Magic link generation failed:', e);
-        // Fall back to /my-courses
         welcomeUrl = `${siteUrl}/mn/my-courses`;
       }
 
-      // 5. Send welcome email
+      // Send welcome email
       if (course) {
         await sendWelcomeEmail(
           email,
