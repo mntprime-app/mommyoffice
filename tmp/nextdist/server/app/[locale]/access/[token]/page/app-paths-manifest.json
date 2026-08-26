@@ -1,0 +1,3 @@
+{
+  "/[locale]/access/[token]/page": "app/[locale]/access/[token]/page.js"
+}

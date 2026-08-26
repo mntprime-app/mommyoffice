@@ -1,0 +1,27 @@
+{
+  "node": {
+    "40b29b988f828b15d3425bec6ec8da2c3a738c0579": {
+      "workers": {
+        "app/[locale]/admin/articles/new/page": {
+          "moduleId": 39832,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "createArticle",
+      "filename": "src/app/[locale]/admin/articles/actions.ts"
+    },
+    "6018bdf8a845fca11da605f911ee04d78f444eae7e": {
+      "workers": {
+        "app/[locale]/admin/articles/new/page": {
+          "moduleId": 39832,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "uploadImage",
+      "filename": "src/app/actions/admin.ts"
+    }
+  },
+  "edge": {}
+}

@@ -1,0 +1,300 @@
+{
+  "node": {
+    "00750db39dcd88077a4894202f1342d585f395e9ed": {
+      "workers": {
+        "app/[locale]/admin/articles/page": {
+          "moduleId": 35696,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/[locale]/admin/articles/actions.ts",
+      "exportedName": "listArticles"
+    },
+    "60b153e9363b365310a53f0b121c5624f9c6aca46e": {
+      "workers": {
+        "app/[locale]/admin/articles/page": {
+          "moduleId": 35696,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/[locale]/admin/articles/actions.ts",
+      "exportedName": "toggleArticlePublish"
+    },
+    "4019236e8801e67e68d9653ddecc1583df9b7540be": {
+      "workers": {
+        "app/[locale]/admin/articles/[id]/edit/page": {
+          "moduleId": 78518,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/admin/articles/page": {
+          "moduleId": 35696,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/[locale]/admin/articles/actions.ts",
+      "exportedName": "deleteArticleById"
+    },
+    "4052457623f3c96a17e8d56e8af5266d418f083a49": {
+      "workers": {
+        "app/[locale]/admin/articles/[id]/edit/page": {
+          "moduleId": 78518,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/[locale]/admin/articles/actions.ts",
+      "exportedName": "getArticleById"
+    },
+    "60c0439ee6b0dab775ddf55932e59181b95dd9e605": {
+      "workers": {
+        "app/[locale]/admin/articles/[id]/edit/page": {
+          "moduleId": 78518,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/[locale]/admin/articles/actions.ts",
+      "exportedName": "updateArticle"
+    },
+    "6018bdf8a845fca11da605f911ee04d78f444eae7e": {
+      "workers": {
+        "app/[locale]/admin/articles/[id]/edit/page": {
+          "moduleId": 78518,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/admin/articles/new/page": {
+          "moduleId": 39832,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/admin/courses/new/page": {
+          "moduleId": 51167,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "uploadImage"
+    },
+    "40b29b988f828b15d3425bec6ec8da2c3a738c0579": {
+      "workers": {
+        "app/[locale]/admin/articles/new/page": {
+          "moduleId": 39832,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/[locale]/admin/articles/actions.ts",
+      "exportedName": "createArticle"
+    },
+    "4019f0d82668dcfbdeffb54e83819a92989a8b33cd": {
+      "workers": {
+        "app/[locale]/admin/courses/[id]/edit/page": {
+          "moduleId": 65054,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "getCourseById"
+    },
+    "60446aab6e983b4958202f287aaf2a6f83076492f1": {
+      "workers": {
+        "app/[locale]/admin/courses/[id]/edit/page": {
+          "moduleId": 65054,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "updateCourse"
+    },
+    "40a70baf06cdd7fa3deb75183d71418b392832c07b": {
+      "workers": {
+        "app/[locale]/admin/courses/[id]/edit/page": {
+          "moduleId": 65054,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "deleteCourseById"
+    },
+    "4026a668f6118f8347bbe354315483f0ed0ec3467a": {
+      "workers": {
+        "app/[locale]/admin/courses/new/page": {
+          "moduleId": 51167,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "createCourse"
+    },
+    "002df89ad84999fcee5190bd7624a8473320680624": {
+      "workers": {
+        "app/[locale]/admin/settings/page": {
+          "moduleId": 62103,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "getSiteSettings"
+    },
+    "60ca861d91e728f5c34a5336b46f4508cfb319b633": {
+      "workers": {
+        "app/[locale]/admin/settings/page": {
+          "moduleId": 62103,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "updateSiteSetting"
+    },
+    "00e0701268d4dec909d542bf401bfffe6ec232dfdb": {
+      "workers": {
+        "app/[locale]/admin/videos/page": {
+          "moduleId": 69474,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "listVideos"
+    },
+    "604c4a818002a283f082a6985f6ed54bdf4fa6a84c": {
+      "workers": {
+        "app/[locale]/admin/videos/page": {
+          "moduleId": 69474,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "toggleVideoPublished"
+    },
+    "402a78c6c3c30653e61a607c63e81dacea58360df9": {
+      "workers": {
+        "app/[locale]/admin/videos/[id]/edit/page": {
+          "moduleId": 33964,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/admin/videos/page": {
+          "moduleId": 69474,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "deleteVideoById"
+    },
+    "403bf32a527eaf6d526ab591eea6d976462aa6138c": {
+      "workers": {
+        "app/[locale]/admin/videos/[id]/edit/page": {
+          "moduleId": 33964,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "getVideoById"
+    },
+    "60392e480bc1a8eeabeea704e8a681f4fade424c14": {
+      "workers": {
+        "app/[locale]/admin/videos/[id]/edit/page": {
+          "moduleId": 33964,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "updateVideo"
+    },
+    "40ed1dc5ff6a9eab36b9023dc2bda990d2a18068e8": {
+      "workers": {
+        "app/[locale]/admin/videos/new/page": {
+          "moduleId": 13796,
+          "async": false,
+          "codeHash": null
+        },
+        "app/[locale]/articles/[slug]/page": {
+          "moduleId": 15784,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "filename": "src/app/actions/admin.ts",
+      "exportedName": "createVideo"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "p+Wi57J67xLhuuTtY+MDZmbmC3vo4yIG5Fo5VLbuTUc="
+}

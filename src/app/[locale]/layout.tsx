@@ -54,7 +54,7 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <Navbar />
-      <main>{children}</main>
+      <main style={{ overflowX: 'hidden', maxWidth: '100vw' }}>{children}</main>
       <Footer />
     </NextIntlClientProvider>
   );

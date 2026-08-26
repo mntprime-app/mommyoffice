@@ -1,0 +1,38 @@
+{
+  "node": {
+    "00e0701268d4dec909d542bf401bfffe6ec232dfdb": {
+      "workers": {
+        "app/[locale]/admin/videos/page": {
+          "moduleId": 69474,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "listVideos",
+      "filename": "src/app/actions/admin.ts"
+    },
+    "604c4a818002a283f082a6985f6ed54bdf4fa6a84c": {
+      "workers": {
+        "app/[locale]/admin/videos/page": {
+          "moduleId": 69474,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "toggleVideoPublished",
+      "filename": "src/app/actions/admin.ts"
+    },
+    "402a78c6c3c30653e61a607c63e81dacea58360df9": {
+      "workers": {
+        "app/[locale]/admin/videos/page": {
+          "moduleId": 69474,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "deleteVideoById",
+      "filename": "src/app/actions/admin.ts"
+    }
+  },
+  "edge": {}
+}

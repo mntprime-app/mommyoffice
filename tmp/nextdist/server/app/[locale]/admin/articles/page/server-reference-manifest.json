@@ -1,0 +1,38 @@
+{
+  "node": {
+    "00750db39dcd88077a4894202f1342d585f395e9ed": {
+      "workers": {
+        "app/[locale]/admin/articles/page": {
+          "moduleId": 35696,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "listArticles",
+      "filename": "src/app/[locale]/admin/articles/actions.ts"
+    },
+    "60b153e9363b365310a53f0b121c5624f9c6aca46e": {
+      "workers": {
+        "app/[locale]/admin/articles/page": {
+          "moduleId": 35696,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "toggleArticlePublish",
+      "filename": "src/app/[locale]/admin/articles/actions.ts"
+    },
+    "4019236e8801e67e68d9653ddecc1583df9b7540be": {
+      "workers": {
+        "app/[locale]/admin/articles/page": {
+          "moduleId": 35696,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "deleteArticleById",
+      "filename": "src/app/[locale]/admin/articles/actions.ts"
+    }
+  },
+  "edge": {}
+}

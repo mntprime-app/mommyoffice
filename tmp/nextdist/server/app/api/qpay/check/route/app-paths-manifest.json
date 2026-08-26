@@ -1,0 +1,3 @@
+{
+  "/api/qpay/check/route": "app/api/qpay/check/route.js"
+}

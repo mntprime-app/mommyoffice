@@ -1,0 +1,38 @@
+{
+  "node": {
+    "403bf32a527eaf6d526ab591eea6d976462aa6138c": {
+      "workers": {
+        "app/[locale]/admin/videos/[id]/edit/page": {
+          "moduleId": 33964,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "getVideoById",
+      "filename": "src/app/actions/admin.ts"
+    },
+    "60392e480bc1a8eeabeea704e8a681f4fade424c14": {
+      "workers": {
+        "app/[locale]/admin/videos/[id]/edit/page": {
+          "moduleId": 33964,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "updateVideo",
+      "filename": "src/app/actions/admin.ts"
+    },
+    "402a78c6c3c30653e61a607c63e81dacea58360df9": {
+      "workers": {
+        "app/[locale]/admin/videos/[id]/edit/page": {
+          "moduleId": 33964,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "deleteVideoById",
+      "filename": "src/app/actions/admin.ts"
+    }
+  },
+  "edge": {}
+}

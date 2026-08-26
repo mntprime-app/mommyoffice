@@ -1,14 +1,6 @@
 'use client';
 
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import Highlight from '@tiptap/extension-highlight';
-import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
-import Placeholder from '@tiptap/extension-placeholder';
-import { useEffect, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import { uploadImage } from '@/app/actions/admin';
 
 interface Props {
@@ -18,39 +10,31 @@ interface Props {
   folder?: string;
 }
 
-export default function RichTextEditor({ value, onChange, placeholder = 'Нийтлэлийн агуулга энд бичнэ...', folder = 'articles' }: Props) {
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ heading: { levels: [2, 3] } }),
-      Underline,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Highlight.configure({ multicolor: false }),
-      Link.configure({ openOnClick: false, HTMLAttributes: { class: 'mo-link' } }),
-      Image.configure({ inline: false, allowBase64: false }),
-      Placeholder.configure({ placeholder }),
-    ],
-    content: value,
-    onUpdate({ editor }) {
-      onChange(editor.getHTML());
-    },
-    editorProps: {
-      attributes: {
-        class: 'mo-tiptap-body',
-        spellcheck: 'false',
-      },
-    },
-  });
+export default function RichTextEditor({ value, onChange, placeholder = 'HTML эсвэл энгийн текст...', folder = 'articles' }: Props) {
+  const ref = useRef<HTMLTextAreaElement>(null);
 
-  // Sync external value changes (e.g. edit page loading data)
-  useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || '', { emitUpdate: false });
-    }
+  function wrap(open: string, close: string) {
+    const ta = ref.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end   = ta.selectionEnd;
+    const sel   = ta.value.slice(start, end);
+    const next  = ta.value.slice(0, start) + open + (sel || '...') + close + ta.value.slice(end);
+    onChange(next);
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(start + open.length, start + open.length + (sel || '...').length);
+    }, 0);
+  }
+
+  const addLink = useCallback(() => {
+    const url = window.prompt('URL оруулна уу:', 'https://');
+    if (!url) return;
+    wrap(`<a href="${url}">`, '</a>');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   const addImage = useCallback(async () => {
-    if (!editor) return;
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -60,30 +44,27 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Ний�
       const fd = new FormData();
       fd.append('file', file);
       const { url, error } = await uploadImage(fd, folder);
-      if (url) editor.chain().focus().setImage({ src: url }).run();
-      else alert('Зураг upload хийхэд алдаа: ' + error);
+      if (url) {
+        const ta = ref.current;
+        if (!ta) return;
+        const pos  = ta.selectionStart;
+        const tag  = `<img src="${url}" alt="" style="max-width:100%;border-radius:8px;margin:1rem 0;" />`;
+        const next = ta.value.slice(0, pos) + tag + ta.value.slice(pos);
+        onChange(next);
+      } else {
+        alert('Зураг upload хийхэд алдаа: ' + error);
+      }
     };
     input.click();
-  }, [editor, folder]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folder, value]);
 
-  const setLink = useCallback(() => {
-    if (!editor) return;
-    const prev = editor.getAttributes('link').href || '';
-    const url = window.prompt('URL оруулна уу:', prev);
-    if (url === null) return;
-    if (url === '') { editor.chain().focus().unsetLink().run(); return; }
-    editor.chain().focus().setLink({ href: url }).run();
-  }, [editor]);
-
-  if (!editor) return null;
-
-  const btn = (active: boolean): React.CSSProperties => ({
-    padding: '5px 9px', borderRadius: '6px', border: 'none', cursor: 'pointer',
+  const btn = (extra?: React.CSSProperties): React.CSSProperties => ({
+    padding: '5px 10px', borderRadius: '6px', border: 'none', cursor: 'pointer',
     fontWeight: 700, fontSize: '13px', lineHeight: 1,
-    background: active ? '#00B5AD' : '#2a2a2a',
-    color: active ? '#fff' : '#bbb',
-    transition: 'all 0.12s',
-    minWidth: '30px',
+    background: '#2a2a2a', color: '#bbb',
+    transition: 'background 0.1s',
+    ...extra,
   });
 
   const sep: React.CSSProperties = {
@@ -98,89 +79,40 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Ний�
         display: 'flex', flexWrap: 'wrap', gap: '4px', padding: '10px 12px',
         borderBottom: '1px solid #2a2a2a', background: '#141414', alignItems: 'center',
       }}>
-
-        {/* History */}
-        <button type="button" title="Буцаах" style={btn(false)} onClick={() => editor.chain().focus().undo().run()}>↩</button>
-        <button type="button" title="Дахин хийх" style={btn(false)} onClick={() => editor.chain().focus().redo().run()}>↪</button>
+        <button type="button" title="Bold" style={btn({ fontWeight: 900 })} onClick={() => wrap('<strong>', '</strong>')}><b>B</b></button>
+        <button type="button" title="Italic" style={btn({ fontStyle: 'italic' })} onClick={() => wrap('<em>', '</em>')}><i>I</i></button>
+        <button type="button" title="Underline" style={btn({ textDecoration: 'underline' })} onClick={() => wrap('<u>', '</u>')}>U</button>
         <div style={sep} />
-
-        {/* Headings */}
-        <button type="button" title="Дэд гарчиг 1" style={btn(editor.isActive('heading', { level: 2 }))}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>H2</button>
-        <button type="button" title="Дэд гарчиг 2" style={btn(editor.isActive('heading', { level: 3 }))}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>H3</button>
+        <button type="button" title="H2 гарчиг" style={btn()} onClick={() => wrap('<h2>', '</h2>')}>H2</button>
+        <button type="button" title="H3 гарчиг" style={btn()} onClick={() => wrap('<h3>', '</h3>')}>H3</button>
         <div style={sep} />
-
-        {/* Inline marks */}
-        <button type="button" title="Тод (Bold)" style={{ ...btn(editor.isActive('bold')), fontWeight: 900 }}
-          onClick={() => editor.chain().focus().toggleBold().run()}><b>B</b></button>
-        <button type="button" title="Налуу (Italic)" style={{ ...btn(editor.isActive('italic')), fontStyle: 'italic' }}
-          onClick={() => editor.chain().focus().toggleItalic().run()}><i>I</i></button>
-        <button type="button" title="Доогуур зураас" style={{ ...btn(editor.isActive('underline')), textDecoration: 'underline' }}
-          onClick={() => editor.chain().focus().toggleUnderline().run()}>U</button>
-        <button type="button" title="Тодруулах" style={{ ...btn(editor.isActive('highlight')), background: editor.isActive('highlight') ? '#fbbf24' : '#2a2a2a', color: editor.isActive('highlight') ? '#000' : '#bbb' }}
-          onClick={() => editor.chain().focus().toggleHighlight().run()}>★</button>
+        <button type="button" title="Параграф" style={btn()} onClick={() => wrap('<p>', '</p>')}>&lt;p&gt;</button>
+        <button type="button" title="Цэгтэй жагсаалт" style={btn()} onClick={() => wrap('<ul>\n  <li>', '</li>\n</ul>')}>• —</button>
+        <button type="button" title="List item" style={btn()} onClick={() => wrap('<li>', '</li>')}>&lt;li&gt;</button>
+        <button type="button" title="Иш татах" style={btn()} onClick={() => wrap('<blockquote>', '</blockquote>')}>&ldquo;</button>
         <div style={sep} />
-
-        {/* Lists */}
-        <button type="button" title="Цэгтэй жагсаалт" style={btn(editor.isActive('bulletList'))}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}>• —</button>
-        <button type="button" title="Дугаарлагдсан жагсаалт" style={btn(editor.isActive('orderedList'))}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}>1.</button>
-        <button type="button" title="Иш татах" style={btn(editor.isActive('blockquote'))}
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}>&ldquo;</button>
-        <div style={sep} />
-
-        {/* Alignment */}
-        <button type="button" title="Зүүн" style={btn(editor.isActive({ textAlign: 'left' }))}
-          onClick={() => editor.chain().focus().setTextAlign('left').run()}>⬜L</button>
-        <button type="button" title="Төв" style={btn(editor.isActive({ textAlign: 'center' }))}
-          onClick={() => editor.chain().focus().setTextAlign('center').run()}>≡C</button>
-        <button type="button" title="Баруун" style={btn(editor.isActive({ textAlign: 'right' }))}
-          onClick={() => editor.chain().focus().setTextAlign('right').run()}>R⬜</button>
-        <button type="button" title="Тэгш" style={btn(editor.isActive({ textAlign: 'justify' }))}
-          onClick={() => editor.chain().focus().setTextAlign('justify').run()}>≡≡</button>
-        <div style={sep} />
-
-        {/* Link & Image */}
-        <button type="button" title="Холбоос" style={btn(editor.isActive('link'))} onClick={setLink}>🔗</button>
-        <button type="button" title="Зураг оруулах" style={btn(false)} onClick={addImage}>🖼</button>
-        <div style={sep} />
-
-        {/* Clear */}
-        <button type="button" title="Формат арилгах" style={btn(false)}
-          onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}>✕</button>
+        <button type="button" title="Холбоос" style={btn()} onClick={addLink}>🔗</button>
+        <button type="button" title="Зураг оруулах" style={btn()} onClick={addImage}>🖼</button>
       </div>
 
-      {/* ── EDITOR BODY ── */}
-      <EditorContent editor={editor} />
+      {/* ── EDITOR ── */}
+      <textarea
+        ref={ref}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        spellCheck={false}
+        style={{
+          width: '100%', minHeight: '300px', padding: '16px 18px',
+          background: 'transparent', color: '#e5e5e5', border: 'none', outline: 'none',
+          fontSize: '13px', lineHeight: 1.75, fontFamily: '"Fira Code", "Cascadia Code", monospace',
+          resize: 'vertical', boxSizing: 'border-box',
+        }}
+      />
 
-      <style>{`
-        .mo-tiptap-body {
-          min-height: 280px;
-          padding: 16px 18px;
-          outline: none;
-          color: #e5e5e5;
-          font-size: 15px;
-          line-height: 1.75;
-          font-family: inherit;
-        }
-        .mo-tiptap-body p { margin: 0 0 1rem; }
-        .mo-tiptap-body h2 { font-size: 1.3rem; font-weight: 800; color: #fff; margin: 1.5rem 0 0.6rem; border-bottom: 1px solid #2a2a2a; padding-bottom: 4px; }
-        .mo-tiptap-body h3 { font-size: 1.1rem; font-weight: 700; color: #fff; margin: 1.2rem 0 0.4rem; }
-        .mo-tiptap-body strong { color: #fff; font-weight: 700; }
-        .mo-tiptap-body em { font-style: italic; color: #c8c8c8; }
-        .mo-tiptap-body u { text-decoration: underline; }
-        .mo-tiptap-body mark { background: #fbbf24; color: #000; border-radius: 3px; padding: 0 3px; }
-        .mo-tiptap-body ul { list-style: disc; padding-left: 1.5rem; margin: 0 0 1rem; }
-        .mo-tiptap-body ol { list-style: decimal; padding-left: 1.5rem; margin: 0 0 1rem; }
-        .mo-tiptap-body li { margin-bottom: 4px; }
-        .mo-tiptap-body blockquote { border-left: 4px solid #00B5AD; margin: 1.5rem 0; padding: 0.75rem 1.25rem; background: rgba(0,181,173,0.07); border-radius: 0 8px 8px 0; font-style: italic; color: #aaa; }
-        .mo-tiptap-body a.mo-link { color: #00B5AD; text-decoration: underline; }
-        .mo-tiptap-body img { max-width: 100%; border-radius: 8px; margin: 1rem 0; display: block; }
-        .mo-tiptap-body p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: #4b5563; pointer-events: none; height: 0; }
-        .mo-tiptap-body:focus { outline: none; }
-      `}</style>
+      <div style={{ padding: '6px 14px', borderTop: '1px solid #1f1f1f', fontSize: '11px', color: '#444', background: '#111' }}>
+        HTML · Текст сонгоод товч дарж формат хийнэ
+      </div>
     </div>
   );
 }

@@ -1,0 +1,7 @@
+User-Agent: *
+Allow: /
+Disallow: /mn/admin/
+Disallow: /en/admin/
+Disallow: /api/
+
+Sitemap: https://mommyoffice.com/sitemap.xml
