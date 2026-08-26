@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server';
 
 // ─── SITE SETTINGS ────────────────────────────────────────────────────────────
 
-export const SETTING_DEFAULTS: Record<string, string> = {
+const SETTING_DEFAULTS: Record<string, string> = {
   article_font_size:  '16',
   article_text_align: 'justify',
 };
