@@ -358,7 +358,7 @@ export default async function ArticleDetailPage({
           <div style={{ marginTop: '3rem', padding: '2rem', background: 'linear-gradient(135deg, #0d2537, #1a4a6b)', borderRadius: '14px', border: '1px solid rgba(0,181,173,0.2)', textAlign: 'center' }}>
             <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>📬 Шинэ нийтлэлийг хамгийн түрүүнд аваарай</p>
             <p style={{ fontSize: '13px', color: '#aaa', margin: '0 0 20px' }}>7 хоног бүр эрүүл мэнд, амьдралын хэв маяг, гэр бүлийн мэдээлэл — шууд цахим шуудан руу чинь</p>
-            <form action="#" style={{ display: 'flex', gap: '8px', maxWidth: '420px', margin: '0 auto' }}>
+            <form action="#" className="mo-newsletter-form" style={{ display: 'flex', gap: '8px', maxWidth: '420px', margin: '0 auto' }}>
               <input type="email" placeholder="Цахим шуудан хаяг" required
                 style={{ flex: 1, padding: '11px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.35)', color: '#fff', fontSize: '14px', outline: 'none' }} />
               <button type="submit"
@@ -405,7 +405,11 @@ export default async function ArticleDetailPage({
           display: grid;
           grid-template-columns: 1fr 300px;
           gap: 3.5rem;
+          overflow-x: hidden;
         }
+        /* Grid item min-width fix — prevents article overflowing its grid cell */
+        .mo-detail-grid > article { min-width: 0; overflow-x: hidden; }
+        .mo-detail-grid > aside  { min-width: 0; }
 
         /* ── TABLET (≤900px): collapse sidebar ── */
         @media (max-width: 900px) {
@@ -422,6 +426,12 @@ export default async function ArticleDetailPage({
         @media (max-width: 600px) {
           .mo-meta-bar { flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 16px; }
           .mo-meta-bar > div:last-child { width: 100%; justify-content: center; margin-left: 0 !important; }
+        }
+
+        /* ── MOBILE: newsletter form stacks ── */
+        @media (max-width: 520px) {
+          .mo-newsletter-form { flex-direction: column; }
+          .mo-newsletter-form input, .mo-newsletter-form button { width: 100%; box-sizing: border-box; }
         }
 
         /* ── MOBILE: article body font scaling ── */

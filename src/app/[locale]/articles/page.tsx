@@ -452,10 +452,14 @@ export default async function ArticlesPage({
           gap: 3rem;
           padding-top: 2rem;
           align-items: flex-start;
+          overflow-x: hidden;
         }
+        /* Prevent grid children from overflowing their cells */
+        .mo-main-grid > div { min-width: 0; }
         .mo-sidebar {
           position: sticky;
           top: 80px;
+          min-width: 0;
         }
 
         /* ── TABLET (≤900px): collapse to single column, sidebar stacks below ── */
