@@ -145,3 +145,34 @@ export async function deleteVideoById(id: string) {
   const supabase = await createAdminClient();
   await supabase.from('mo_videos').delete().eq('id', id);
 }
+
+export async function getVideoById(id: string) {
+  const supabase = await createAdminClient();
+  const { data } = await supabase.from('mo_videos').select('*').eq('id', id).single();
+  return data || null;
+}
+
+export async function updateVideo(id: string, data: {
+  title_mn: string;
+  title_en: string | null;
+  slug: string;
+  description_mn: string | null;
+  description_en: string | null;
+  youtube_id: string | null;
+  cloudflare_stream_id: string | null;
+  thumbnail_url: string | null;
+  duration_text: string;
+  category: string;
+  video_type: string;
+  is_published: boolean;
+  is_featured: boolean;
+  placement: string;
+}) {
+  const supabase = await createAdminClient();
+  const { error } = await supabase
+    .from('mo_videos')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) return { error: error.message };
+  return { error: null };
+}

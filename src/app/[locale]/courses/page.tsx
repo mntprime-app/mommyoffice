@@ -1,6 +1,8 @@
+export const dynamic = 'force-dynamic';
+
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 const CATEGORIES = ['Бүх ангилал', 'Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 
@@ -17,7 +19,7 @@ const CAT_GRADIENTS: Record<string, string> = {
 
 async function getCourses(category?: string) {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     let query = supabase
       .from('mo_courses')
       .select('id, title_mn, title_en, description_mn, description_en, price, original_price, cover_image_url, slug, category, instructor_id, is_bestseller, rating, rating_count, created_at')
@@ -31,17 +33,6 @@ async function getCourses(category?: string) {
   } catch { return []; }
 }
 
-const PLACEHOLDER_COURSES = [
-  { id: 1, title_mn: 'Гэрийн хоол хийх урлаг',           price: 19900, original_price: 29900, emoji: '🍳', category: 'Хоол',           desc_mn: 'Гэртээ эрүүл, амттай хоол хийж сур',           is_bestseller: true,  rating: 4.8, rating_count: 312 },
-  { id: 2, title_mn: 'Арьс нүүрний мэргэжлийн арчилгаа', price: 29900, original_price: 49900, emoji: '💆', category: 'Гоо сайхан',     desc_mn: 'Мэргэжилтний нууц аргуудыг сур',               is_bestseller: true,  rating: 4.9, rating_count: 187 },
-  { id: 3, title_mn: 'Дотоод амар тайван — Meditation',   price: 24900, original_price: 0,     emoji: '🧘', category: 'Эрүүл мэнд',    desc_mn: 'Оюун санааны тайван байдлыг олж ав',           is_bestseller: false, rating: 4.7, rating_count: 98  },
-  { id: 4, title_mn: 'Бизнес эхлүүлэх 101',               price: 39900, original_price: 59900, emoji: '💼', category: 'Бизнес',         desc_mn: 'Өөрийн бизнесийг эхлүүлэх алхамууд',          is_bestseller: true,  rating: 4.8, rating_count: 245 },
-  { id: 5, title_mn: 'Гэрийн дотоод чимэглэл',            price: 19900, original_price: 0,     emoji: '🏠', category: 'Дизайн',         desc_mn: 'Гэрээ хэрхэн чимэглэх вэ',                    is_bestseller: false, rating: 4.6, rating_count: 64  },
-  { id: 6, title_mn: 'Хувийн санхүүгийн удирдлага',       price: 34900, original_price: 49900, emoji: '💰', category: 'Бизнес',         desc_mn: 'Хувийн санхүүгээ зөв удирдаж сур',            is_bestseller: false, rating: 4.7, rating_count: 143 },
-  { id: 7, title_mn: 'Гэр бүлийн эрүүл харилцаа',         price: 29900, original_price: 0,     emoji: '💝', category: 'Гэр бүл',       desc_mn: 'Гэр бүлийн бат бөх харилцаа',                  is_bestseller: false, rating: 4.5, rating_count: 77  },
-  { id: 8, title_mn: 'Зорилго тавих — Goal Setting',       price: 0,     original_price: 0,     emoji: '🎯', category: 'Хувийн хөгжил', desc_mn: 'Амьдралын зорилгоо олж, хэрэгжүүл',           is_bestseller: false, rating: 4.6, rating_count: 52  },
-];
-
 export default async function CoursesPage({
   params,
   searchParams,
@@ -54,17 +45,17 @@ export default async function CoursesPage({
   const t = await getTranslations('courses');
 
   const courses = await getCourses(category);
-  const displayCourses = courses.length > 0 ? courses : PLACEHOLDER_COURSES;
+  const displayCourses = courses as Record<string, unknown>[];
 
-  const featured = displayCourses[0] as Record<string, unknown>;
-  const featuredTitle         = locale === 'mn' ? String(featured.title_mn || '') : String(featured.title_en || featured.title_mn || '');
-  const featuredDesc          = locale === 'mn' ? String(featured.desc_mn || featured.description_mn || '') : String(featured.desc_en || featured.description_en || featured.desc_mn || '');
-  const featuredPrice         = Number(featured.price) || 0;
-  const featuredOriginalPrice = Number(featured.original_price) || 0;
-  const featuredRating        = Number(featured.rating) || 0;
-  const featuredRatingCount   = Number(featured.rating_count) || 0;
-  const featuredSlug          = featured.slug ? `/${locale}/courses/${featured.slug}` : '#';
-  const featuredGrad          = CAT_GRADIENTS[String(featured.category || '')] || CAT_GRADIENTS.default;
+  const featured = displayCourses[0] as Record<string, unknown> | undefined;
+  const featuredTitle         = featured ? (locale === 'mn' ? String(featured.title_mn || '') : String(featured.title_en || featured.title_mn || '')) : '';
+  const featuredDesc          = featured ? (locale === 'mn' ? String(featured.description_mn || '') : String(featured.description_en || featured.description_mn || '')) : '';
+  const featuredPrice         = Number(featured?.price) || 0;
+  const featuredOriginalPrice = Number(featured?.original_price) || 0;
+  const featuredRating        = Number(featured?.rating) || 0;
+  const featuredRatingCount   = Number(featured?.rating_count) || 0;
+  const featuredSlug          = featured?.slug ? `/${locale}/courses/${featured.slug}` : '#';
+  const featuredGrad          = CAT_GRADIENTS[String(featured?.category || '')] || CAT_GRADIENTS.default;
 
   return (
     <div style={{ background: '#141414', minHeight: '100vh' }}>
@@ -80,21 +71,21 @@ export default async function CoursesPage({
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
           background: featuredGrad,
         }}>
-          {Boolean(featured.cover_image_url) && (
+          {Boolean(featured?.cover_image_url) && (
             <img
-              src={String(featured.cover_image_url)}
+              src={String(featured!.cover_image_url)}
               alt={featuredTitle}
               style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45 }}
             />
           )}
-          {!featured.cover_image_url && (
+          {!featured?.cover_image_url && (
             <div style={{
               position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
               paddingRight: '8%', opacity: 0.18,
               fontSize: 'min(40vw, 360px)',
             }}>
-              {String(featured.emoji || '📚')}
+              📚
             </div>
           )}
         </div>
@@ -119,7 +110,7 @@ export default async function CoursesPage({
             fontSize: '10px', fontWeight: 700, letterSpacing: '2px',
             textTransform: 'uppercase', marginBottom: '1rem',
           }}>
-            {String(featured.category || 'Сургалт')}
+            {String(featured?.category || 'Сургалт')}
           </span>
 
           <h1 style={{

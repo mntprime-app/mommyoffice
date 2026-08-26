@@ -45,17 +45,6 @@ const CAT_COLORS: Record<string, string> = {
   'Lifestyle': '#ec4899', 'default': '#00B5AD',
 };
 
-const PLACEHOLDER_ARTICLES = [
-  { id:'1', title_mn:'Өглөөний эрүүл дэглэм — 5 алхам', title_en:'Morning Wellness Routine', category:'Эрүүл мэнд', emoji:'🌅', slug:'#', excerpt_mn:'Өглөөгөө зөв эхлүүлж эрүүл амьдралын суурийг тавь. Энгийн 5 алхам таны өдрийг бүхэлд нь өөрчилнэ.', cover_image_url:null, published_at:'2026-08-23' },
-  { id:'2', title_mn:'Гэрийнхнийхээ хоолны дэглэмийг яаж сайжруулах вэ?', title_en:"Improve Family's Diet", category:'Хоол тэжээл', emoji:'🥗', slug:'#', excerpt_mn:'Гэр бүлийнхэндээ эрүүл амттай хоол хийх нууц. Мэргэжилтэний зөвлөмжийг дагана уу.', cover_image_url:null, published_at:'2026-08-22' },
-  { id:'3', title_mn:'Монгол эмэгтэйчүүдийн бизнес амжилтын нууц', title_en:"Women's Business Success", category:'Бизнес', emoji:'🚀', slug:'#', excerpt_mn:'Амжилтанд хүрсэн Монгол эмэгтэйчүүдийн туршлагаас суралц.', cover_image_url:null, published_at:'2026-08-21' },
-  { id:'4', title_mn:'Арьсаа хэрхэн арчлах вэ — мэргэжилтний зөвлөгөө', title_en:'Expert Skincare Advice', category:'Гоо сайхан', emoji:'✨', slug:'#', excerpt_mn:'Мэргэжилтэн арьс арчлалын тухай дэлгэрэнгүй тайлбарлав.', cover_image_url:null, published_at:'2026-08-20' },
-  { id:'5', title_mn:'Гэр бүлийн бат бөх холбоо', title_en:'Strong Family Bonds', category:'Гэр бүл', emoji:'💝', slug:'#', excerpt_mn:'Гэр бүлийн гишүүдийн хоорондох харилцааг хэрхэн бэхжүүлэх вэ?', cover_image_url:null, published_at:'2026-08-19' },
-  { id:'6', title_mn:'Зорилгодоо хэрхэн хурдан хүрэх вэ?', title_en:'Reach Goals Faster', category:'Хувийн хөгжил', emoji:'🎯', slug:'#', excerpt_mn:'Зорилгоо тодорхой тавьж хурдан хэрэгжүүлэх арга замууд.', cover_image_url:null, published_at:'2026-08-18' },
-  { id:'7', title_mn:'Дотоод амар тайвнаа хэрхэн олох вэ', title_en:'Find Inner Peace', category:'Эрүүл мэнд', emoji:'🧘', slug:'#', excerpt_mn:'Стресс тайлж оюун санааны амар тайвнаа олох дасгалууд.', cover_image_url:null, published_at:'2026-08-17' },
-  { id:'8', title_mn:'Гэрийн чимэглэл: энгийн боловч гоё', title_en:'Simple Home Decor', category:'Lifestyle', emoji:'🏡', slug:'#', excerpt_mn:'Бага мөнгөөр гэрээ хэрхэн гоёмсог болгох вэ — практик зөвлөгөө.', cover_image_url:null, published_at:'2026-08-16' },
-  { id:'9', title_mn:'Хүүхэдтэйгээ чанарын цагийг хэрхэн өнгөрүүлэх', title_en:'Quality Time With Kids', category:'Гэр бүл', emoji:'👨‍👩‍👧', slug:'#', excerpt_mn:'Хүүхдийнхээ хөгжилд ач тустай үйл ажиллагаанууд.', cover_image_url:null, published_at:'2026-08-15' },
-];
 
 const CATEGORIES = ['Бүх ангилал', 'Эрүүл мэнд', 'Гоо сайхан', 'Хоол тэжээл', 'Гэр бүл', 'Бизнес', 'Хувийн хөгжил'];
 
