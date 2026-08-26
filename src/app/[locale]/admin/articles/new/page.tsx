@@ -4,8 +4,14 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
+import { createArticle } from '../actions';
 
-const CATEGORIES = ['Эрүүл мэнд', 'Гоо сайхан', 'Хоол тэжээл', 'Гэр бүл', 'Бизнес', 'Хувийн хөгжил'];
+const CATEGORIES = [
+  // Editorial series
+  'Амжилтын эзэд', 'StartUp Women', 'Money Talk', 'Mom Hacks', 'Ээжүүдийн хобби', 'Шинэхэн ээжүүд', 'Дотно харилцаа',
+  // Topic categories
+  'Бизнес', 'Гэр бүл', 'Эрүүл мэнд', 'Гоо сайхан', 'Хоол тэжээл', 'Хувийн хөгжил',
+];
 const PLACEMENTS = [
   { value: 'hero', label: 'Онцлох Hero Banner', desc: 'Нүүр хуудасны дээд хэсэг' },
   { value: 'trending', label: 'Трэндинг Нийтлэл', desc: 'Баруун талын жагсаалт — Manual Pin' },
@@ -75,8 +81,7 @@ export default function NewArticlePage() {
     e.preventDefault();
     if (!form.title_mn) { setError('Монгол нэр заавал бөглөнө үү.'); return; }
     setSaving(true); setError('');
-    const supabase = createClient();
-    const { error: err } = await supabase.from('mo_articles').insert({
+    const { error: err } = await createArticle({
       title_mn: form.title_mn,
       title_en: form.title_en || null,
       excerpt_mn: form.excerpt_mn || null,
@@ -93,7 +98,7 @@ export default function NewArticlePage() {
       is_pinned_trending: form.is_pinned_trending,
       pin_rank: form.is_pinned_trending ? Number(form.pin_rank) : null,
     });
-    if (err) { setError(err.message); setSaving(false); }
+    if (err) { setError(err); setSaving(false); }
     else router.push(`/${locale}/admin/articles`);
   }
 

@@ -5,7 +5,12 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
 
-const CATEGORIES = ['Эрүүл мэнд', 'Гоо сайхан', 'Хоол тэжээл', 'Гэр бүл', 'Бизнес', 'Хувийн хөгжил', 'Lifestyle'];
+const CATEGORIES = [
+  // Editorial series
+  'Амжилтын эзэд', 'StartUp Women', 'Money Talk', 'Mom Hacks', 'Ээжүүдийн хобби', 'Шинэхэн ээжүүд', 'Дотно харилцаа',
+  // Topic categories
+  'Бизнес', 'Гэр бүл', 'Эрүүл мэнд', 'Гоо сайхан', 'Хоол тэжээл', 'Хувийн хөгжил',
+];
 const PLACEMENTS = [
   { value: 'hero', label: 'Онцлох Hero Banner', desc: 'Нүүр хуудасны дээд хэсэг' },
   { value: 'trending', label: 'Трэндинг Нийтлэл', desc: 'Баруун талын жагсаалт — Manual Pin' },
