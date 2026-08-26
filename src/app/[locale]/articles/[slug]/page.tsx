@@ -275,13 +275,13 @@ export default async function ArticleDetailPage({
       </div>
 
       {/* ── BODY ── */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2.5rem 2rem 4rem', display: 'grid', gridTemplateColumns: '1fr 300px', gap: '3.5rem', alignItems: 'flex-start' }}>
+      <div className="mo-detail-grid" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2.5rem 2rem 4rem', display: 'grid', gridTemplateColumns: '1fr 300px', gap: '3.5rem', alignItems: 'flex-start' }}>
 
         {/* ── LEFT: Article ── */}
         <article>
 
           {/* Meta bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '2rem', padding: '14px 20px', background: '#1a1a1a', borderRadius: '10px', border: '1px solid #222' }}>
+          <div className="mo-meta-bar" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '2rem', padding: '14px 20px', background: '#1a1a1a', borderRadius: '10px', border: '1px solid #222' }}>
             {/* Author */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: `${catColor}33`, border: `2px solid ${catColor}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 700, color: catColor, flexShrink: 0 }}>
@@ -389,66 +389,47 @@ export default async function ArticleDetailPage({
       </div>
 
       <style>{`
-        .mo-article-body {
-          font-size: 17px;
-          line-height: 1.85;
-          color: #c8c8c8;
-        }
-        .mo-article-body h2 {
-          font-size: 1.45rem;
-          font-weight: 800;
-          color: #e5e5e5;
-          margin: 2.5rem 0 1rem;
-          padding-bottom: 0.5rem;
-          border-bottom: 1px solid #1f1f1f;
-        }
-        .mo-article-body h3 {
-          font-size: 1.15rem;
-          font-weight: 700;
-          color: #e5e5e5;
-          margin: 2rem 0 0.75rem;
-        }
-        .mo-article-body p {
-          margin: 0 0 1.4rem;
-        }
-        .mo-article-body img {
-          max-width: 100%;
-          border-radius: 10px;
-          margin: 1.5rem 0;
-        }
-        .mo-article-body blockquote {
-          border-left: 4px solid #00B5AD;
-          margin: 2rem 0;
-          padding: 1rem 1.5rem;
-          background: rgba(0,181,173,0.07);
-          border-radius: 0 10px 10px 0;
-          font-style: italic;
-          color: #aaa;
-          font-size: 18px;
-        }
-        .mo-article-body ul, .mo-article-body ol {
-          margin: 0 0 1.4rem;
-          padding-left: 1.5rem;
-        }
-        .mo-article-body li {
-          margin-bottom: 0.5rem;
-        }
-        .mo-article-body a {
-          color: #00B5AD;
-          text-decoration: underline;
-        }
-        .mo-article-body strong {
-          color: #e5e5e5;
-          font-weight: 700;
-        }
+        /* ── Article body typography ── */
+        .mo-article-body { font-size: 17px; line-height: 1.85; color: #c8c8c8; }
+        .mo-article-body h2 { font-size: 1.45rem; font-weight: 800; color: #e5e5e5; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1f1f1f; }
+        .mo-article-body h3 { font-size: 1.15rem; font-weight: 700; color: #e5e5e5; margin: 2rem 0 0.75rem; }
+        .mo-article-body p { margin: 0 0 1.4rem; }
+        .mo-article-body img { max-width: 100%; border-radius: 10px; margin: 1.5rem 0; }
+        .mo-article-body blockquote { border-left: 4px solid #00B5AD; margin: 2rem 0; padding: 1rem 1.5rem; background: rgba(0,181,173,0.07); border-radius: 0 10px 10px 0; font-style: italic; color: #aaa; font-size: 18px; }
+        .mo-article-body ul, .mo-article-body ol { margin: 0 0 1.4rem; padding-left: 1.5rem; }
+        .mo-article-body li { margin-bottom: 0.5rem; }
+        .mo-article-body a { color: #00B5AD; text-decoration: underline; }
+        .mo-article-body strong { color: #e5e5e5; font-weight: 700; }
+
+        /* ── TABLET (≤900px): collapse sidebar ── */
         @media (max-width: 900px) {
-          div[style*="grid-template-columns: 1fr 300px"] {
-            grid-template-columns: 1fr !important;
-          }
-          aside[style*="position: sticky"] {
-            position: static !important;
-          }
+          .mo-detail-grid { grid-template-columns: 1fr !important; padding: 1.5rem 1.5rem 3rem !important; gap: 2rem !important; }
+          .mo-detail-grid > aside { display: none !important; }
         }
+
+        /* ── MOBILE (≤768px): hero ── */
+        @media (max-width: 768px) {
+          .mo-detail-grid { padding: 1.25rem 1rem 3rem !important; }
+        }
+
+        /* ── MOBILE: meta bar stacks vertically ── */
+        @media (max-width: 600px) {
+          .mo-meta-bar { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; padding: 12px 14px !important; }
+          .mo-meta-bar > div:last-child { width: 100%; justify-content: flex-start !important; }
+          .mo-meta-bar > div[style*="width: 1px"] { display: none !important; }
+        }
+
+        /* ── MOBILE: article body font scaling ── */
+        @media (max-width: 600px) {
+          .mo-article-body { font-size: 15px !important; line-height: 1.75 !important; }
+          .mo-article-body h2 { font-size: 1.2rem !important; }
+          .mo-article-body h3 { font-size: 1.05rem !important; }
+          .mo-article-body blockquote { font-size: 15px !important; padding: 0.75rem 1rem !important; }
+        }
+
+        /* ── Prevent overflow ── */
+        .mo-article-body img { max-width: 100% !important; }
+        .mo-article-body { overflow-x: hidden; }
       `}</style>
     </div>
   );

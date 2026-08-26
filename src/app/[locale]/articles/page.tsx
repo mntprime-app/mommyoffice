@@ -360,7 +360,7 @@ export default async function ArticlesPage({
         </div>
 
         {/* ── MAIN 2-COL GRID ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '3rem', paddingTop: '2rem', alignItems: 'flex-start' }}>
+        <div className="mo-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '3rem', paddingTop: '2rem', alignItems: 'flex-start' }}>
 
           {/* ── LEFT: Article feed ── */}
           <div>
@@ -442,74 +442,82 @@ export default async function ArticlesPage({
         .netflix-card { transition: transform 0.18s; }
         .netflix-card:hover { transform: translateY(-3px); }
 
-        /* ── Tablet: collapse sidebar ── */
+        /* ── Prevent horizontal overflow ── */
+        .mo-hero-section, .mo-body-wrap { overflow-x: hidden; }
+
+        /* ── TABLET (≤900px): collapse sidebar ── */
         @media (max-width: 900px) {
-          div[style*="grid-template-columns: 1fr 300px"] { grid-template-columns: 1fr !important; }
-          div[style*="position: sticky"] { position: static !important; }
+          .mo-main-grid { grid-template-columns: 1fr !important; }
+          .mo-main-grid > div:last-child { position: static !important; display: none; }
         }
 
-        /* ── Mobile: body wrapper padding ── */
+        /* ── MOBILE (≤768px): body padding ── */
         @media (max-width: 768px) {
           .mo-body-wrap { padding: 0 1rem !important; }
         }
 
-        /* ── Mobile: hero ── */
+        /* ── MOBILE: hero — bottom-weighted overlay, full-width content ── */
         @media (max-width: 768px) {
-          .mo-hero-section { height: 58vh !important; min-height: 340px !important; }
-          /* On portrait mobile, add a stronger bottom+left overlay so text stays readable */
+          .mo-hero-section { height: 56vh !important; min-height: 320px !important; }
           .mo-hero-overlay {
             background: linear-gradient(
               to bottom,
-              rgba(0,0,0,0.25) 0%,
-              rgba(0,0,0,0.55) 40%,
-              rgba(0,0,0,0.92) 100%
+              rgba(0,0,0,0.15) 0%,
+              rgba(0,0,0,0.5)  45%,
+              rgba(0,0,0,0.95) 100%
             ) !important;
           }
           .mo-hero-content {
-            bottom: 12% !important;
+            bottom: 8% !important;
             left: 0 !important;
             right: 0 !important;
             max-width: 100% !important;
             padding: 0 1.25rem !important;
           }
-          .mo-hero-content h1 { font-size: 1.45rem !important; -webkit-line-clamp: 3 !important; }
+          .mo-hero-content h1 {
+            font-size: 1.35rem !important;
+            line-height: 1.3 !important;
+            -webkit-line-clamp: 3 !important;
+          }
           .mo-hero-excerpt { display: none !important; }
         }
 
-        /* ── Mobile: category pill bar — horizontal scroll, no wrap ── */
+        /* ── MOBILE: category pill bar — horizontal scroll ── */
         @media (max-width: 768px) {
           .mo-cat-bar {
             flex-wrap: nowrap !important;
             overflow-x: auto !important;
             -webkit-overflow-scrolling: touch !important;
             scrollbar-width: none !important;
+            margin: 0 -1rem !important;
             padding-left: 0 !important;
             padding-right: 0 !important;
-            margin: 0 -1rem !important;
-            padding-top: 1.25rem !important;
+            padding-top: 1rem !important;
             padding-bottom: 1rem !important;
+            border-bottom: 1px solid #1f1f1f !important;
           }
           .mo-cat-bar::-webkit-scrollbar { display: none; }
-          .mo-cat-bar a { flex-shrink: 0 !important; }
-          /* First + last pill breathing room */
+          .mo-cat-bar a {
+            flex-shrink: 0 !important;
+            min-height: 40px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+          }
           .mo-cat-bar a:first-child { margin-left: 1rem; }
-          .mo-cat-bar a:last-child { margin-right: 1rem; }
+          .mo-cat-bar a:last-child  { margin-right: 1rem; }
         }
 
-        /* ── Mobile: article card — stack thumbnail above text ── */
+        /* ── MOBILE (≤520px): article card — thumbnail stacks above text ── */
         @media (max-width: 520px) {
           .mo-art-card { flex-direction: column !important; gap: 0 !important; }
-          .mo-art-thumb { width: 100% !important; height: 180px !important; border-radius: 8px 8px 0 0 !important; }
+          .mo-art-thumb {
+            width: 100% !important;
+            height: 200px !important;
+            border-radius: 8px 8px 0 0 !important;
+            flex-shrink: unset !important;
+          }
           .mo-art-text { padding-top: 12px !important; }
         }
-
-        /* ── Touch targets ── */
-        @media (max-width: 768px) {
-          .mo-cat-bar a { min-height: 40px; display: inline-flex; align-items: center; }
-        }
-
-        /* ── Prevent horizontal overflow globally ── */
-        .mo-hero-section, .mo-body-wrap { overflow-x: hidden; }
       `}</style>
     </div>
   );
