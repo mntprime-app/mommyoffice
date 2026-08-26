@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
 import { getArticleById, updateArticle, deleteArticleById } from '../../actions';
 import { uploadImage } from '@/app/actions/admin';
@@ -263,15 +264,27 @@ export default function EditArticlePage() {
           </Field>
         </div>
 
-        {/* Body */}
-        <Field label="Нийтлэлийн агуулга (МН) — HTML дэмждэг">
-          <textarea value={form.body_mn} onChange={(e) => set('body_mn', e.target.value)}
-            style={{ ...inp, height: '260px', resize: 'vertical', fontFamily: 'monospace', fontSize: '13px' }} />
-        </Field>
-        <Field label="Нийтлэлийн агуулга (EN)">
-          <textarea value={form.body_en} onChange={(e) => set('body_en', e.target.value)}
-            style={{ ...inp, height: '180px', resize: 'vertical', fontFamily: 'monospace', fontSize: '13px' }} />
-        </Field>
+        {/* Body MN */}
+        <div>
+          <label style={lbl}>Нийтлэлийн агуулга (МН)</label>
+          <RichTextEditor
+            value={form.body_mn}
+            onChange={(html) => set('body_mn', html)}
+            placeholder="Монгол агуулга энд бичнэ..."
+            folder="articles"
+          />
+        </div>
+
+        {/* Body EN */}
+        <div>
+          <label style={lbl}>Нийтлэлийн агуулга (EN)</label>
+          <RichTextEditor
+            value={form.body_en}
+            onChange={(html) => set('body_en', html)}
+            placeholder="Write English content here..."
+            folder="articles"
+          />
+        </div>
 
         {/* Publish */}
         <div style={{
