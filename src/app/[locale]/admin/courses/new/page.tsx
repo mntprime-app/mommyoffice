@@ -22,9 +22,11 @@ export default function NewCoursePage() {
     title_mn: '', title_en: '',
     description_mn: '', description_en: '',
     about_course_mn: '', about_course_en: '',
-    price: '0', category: 'Хоол',
+    price: '0', original_price: '0',
+    category: 'Хоол',
     cover_image_url: '', trailer_url: '',
     cloudflare_stream_id: '',
+    access_duration_days: '0',
     slug: '', is_published: false,
     show_outline: true,
   });
@@ -73,6 +75,8 @@ export default function NewCoursePage() {
       about_course_mn: form.about_course_mn || null,
       about_course_en: form.about_course_en || null,
       price: Number(form.price),
+      original_price: Number(form.original_price) || null,
+      access_duration_days: Number(form.access_duration_days) || 0,
       category: form.category,
       cover_image_url: form.cover_image_url || null,
       trailer_url: form.trailer_url || null,
@@ -121,6 +125,15 @@ export default function NewCoursePage() {
           </Field>
           <Field label="Үнэ (₮)">
             <input type="number" value={form.price} onChange={(e) => set('price', e.target.value)} style={inp} min="0" />
+          </Field>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <Field label="Эх үнэ (₮)" hint="Хөнгөлөлтийн өмнөх үнэ — strike-through болж харагдана (заавал биш)">
+            <input type="number" value={form.original_price} onChange={(e) => set('original_price', e.target.value)} style={inp} min="0" />
+          </Field>
+          <Field label="Хандалтын хугацаа (өдөр)" hint="0 = насан туршийн хандалт">
+            <input type="number" value={form.access_duration_days} onChange={(e) => set('access_duration_days', e.target.value)} style={inp} min="0" />
           </Field>
         </div>
 

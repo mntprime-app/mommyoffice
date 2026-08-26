@@ -366,7 +366,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       ═══════════════════════════════════════ */}
       <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
         <div style={{ padding: '0 4%' }}>
-          <RowHeader title="Кино & Видео" href={`/${locale}/videos`} badge="ТУНУДАХГҮЙ" />
+          <RowHeader title="Кино & Видео" href={`/${locale}/videos`} badge="УДАХГҮЙ" />
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
             {PLACEHOLDER_VIDEOS.map((v, i) => (
               <Link key={i} href={`/${locale}/videos`} style={{ textDecoration: 'none', flexShrink: 0 }}>
