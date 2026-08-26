@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -17,10 +17,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 async function getArticles() {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_articles')
-      .select('id, title_mn, title_en, cover_image_url, slug, category, published_at, excerpt_mn, excerpt_en, emoji')
+      .select('id, title_mn, title_en, cover_image_url, slug, category, published_at, excerpt_mn, excerpt_en')
       .eq('is_published', true)
       .order('published_at', { ascending: false });
     return data || [];
