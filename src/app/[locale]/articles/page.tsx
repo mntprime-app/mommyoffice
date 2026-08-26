@@ -20,7 +20,7 @@ async function getArticles() {
     const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_articles')
-      .select('id, title_mn, title_en, cover_image_url, slug, category, published_at, excerpt_mn, excerpt_en')
+      .select('id, title_mn, title_en, cover_image_url, slug, category, published_at, excerpt_mn, excerpt_en, body_mn, body_en')
       .eq('is_published', true)
       .order('published_at', { ascending: false });
     return data || [];
@@ -48,9 +48,21 @@ const CAT_COLORS: Record<string, string> = {
 
 const CATEGORIES = ['Бүх ангилал', 'Эрүүл мэнд', 'Гоо сайхан', 'Хоол тэжээл', 'Гэр бүл', 'Бизнес', 'Хувийн хөгжил'];
 
+function stripHtml(html: string) {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 function readTime(text: string) {
-  const words = text.trim().split(/\s+/).length;
+  const plain = stripHtml(text);
+  const words = plain.trim().split(/\s+/).length;
   return Math.max(1, Math.ceil(words / 60));
+}
+
+function articleReadTime(a: Record<string, unknown>, locale: string) {
+  const body = locale === 'mn'
+    ? String(a.body_mn || a.body_en || a.excerpt_mn || '')
+    : String(a.body_en || a.body_mn || a.excerpt_en || a.excerpt_mn || '');
+  return readTime(body);
 }
 
 function formatDate(dateStr: string | null, locale: string) {
@@ -105,7 +117,7 @@ function ArticleCard({ a, locale }: { a: Record<string, unknown>; locale: string
   const catColor = CAT_COLORS[cat] || CAT_COLORS.default;
   const href    = a.slug && a.slug !== '#' ? `/${locale}/articles/${String(a.slug)}` : '#';
   const date    = formatDate(a.published_at as string | null, locale);
-  const mins    = readTime(excerpt + ' ' + title);
+  const mins    = articleReadTime(a, locale);
 
   return (
     <Link href={href} style={{ textDecoration: 'none', display: 'block' }}>
@@ -318,7 +330,7 @@ export default async function ArticlesPage({
             <Link href={String(featuredSlug)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#00B5AD', color: '#fff', padding: '11px 28px', borderRadius: '6px', fontWeight: 700, textDecoration: 'none', fontSize: '14px', boxShadow: '0 4px 20px rgba(0,181,173,0.4)' }}>
               Унших →
             </Link>
-            <span style={{ fontSize: '12px', color: '#666' }}>⏱ {readTime(featuredExcerpt + featuredTitle)} мин унших</span>
+            <span style={{ fontSize: '12px', color: '#666' }}>⏱ {featured ? articleReadTime(featured, locale) : 1} мин унших</span>
           </div>
         </div>
       </section>
