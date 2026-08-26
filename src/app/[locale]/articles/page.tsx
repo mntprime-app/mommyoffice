@@ -291,7 +291,7 @@ export default async function ArticlesPage({
       <section style={{ position: 'relative', width: '100%', height: '72vh', minHeight: '480px', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: featuredGrad }}>
           {featured?.cover_image_url ? (
-            <img src={String(featured.cover_image_url)} alt={featuredTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.65 }} />
+            <img src={String(featured.cover_image_url)} alt={featuredTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '6%', overflow: 'hidden' }}>
               <div style={{ fontSize: '13rem', fontWeight: 900, color: 'rgba(0,181,173,0.07)', lineHeight: 1, userSelect: 'none', letterSpacing: '-8px', fontFamily: 'Georgia,serif' }}>
@@ -300,7 +300,7 @@ export default async function ArticlesPage({
             </div>
           )}
         </div>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right,rgba(0,0,0,0.92) 0%,rgba(0,0,0,0.55) 55%,transparent 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.15) 70%, transparent 100%)' }} />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to bottom,transparent,#111)' }} />
         <div style={{ position: 'absolute', bottom: '20%', left: '4%', maxWidth: '560px', zIndex: 2 }}>
           <span style={{ display: 'inline-block', background: 'rgba(0,181,173,0.15)', border: '1px solid rgba(0,181,173,0.4)', color: '#00B5AD', padding: '3px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '14px' }}>

@@ -230,22 +230,23 @@ export default async function ArticleDetailPage({
     <div style={{ background: '#111', minHeight: '100vh' }}>
 
       {/* ── HERO COVER ── */}
-      <div style={{ position: 'relative', width: '100%', height: '420px', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', width: '100%', height: '480px', overflow: 'hidden' }}>
         {article.cover_image_url ? (
-          <img src={String(article.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
+          <img src={String(article.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
-          <div style={{ width: '100%', height: '100%', background: CAT_GRADIENTS[cat] || CAT_GRADIENTS.default, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '120px', opacity: 0.25 }}>
-            {String(article.emoji || '✨')}
-          </div>
+          <div style={{ width: '100%', height: '100%', background: CAT_GRADIENTS[cat] || CAT_GRADIENTS.default }} />
         )}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(17,17,17,0.3) 0%, rgba(17,17,17,0.7) 60%, #111 100%)' }} />
+        {/* Left-to-right gradient — keeps right 50% of image at full clarity */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(17,17,17,0.95) 0%, rgba(17,17,17,0.6) 48%, rgba(17,17,17,0.15) 75%, transparent 100%)' }} />
+        {/* Bottom fade to body background */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to bottom, transparent, #111)' }} />
         {/* Breadcrumb */}
         <div style={{ position: 'absolute', top: '24px', left: '0', right: '0', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-            <Link href={`/${locale}`} style={{ color: '#888', textDecoration: 'none' }}>Нүүр</Link>
-            <span style={{ color: '#444' }}>›</span>
-            <Link href={`/${locale}/articles`} style={{ color: '#888', textDecoration: 'none' }}>Нийтлэл</Link>
-            <span style={{ color: '#444' }}>›</span>
+            <Link href={`/${locale}`} style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Нүүр</Link>
+            <span style={{ color: '#555' }}>›</span>
+            <Link href={`/${locale}/articles`} style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Нийтлэл</Link>
+            <span style={{ color: '#555' }}>›</span>
             <Link href={`/${locale}/articles?category=${encodeURIComponent(cat)}`} style={{ color: catColor, textDecoration: 'none', fontWeight: 600 }}>{cat}</Link>
           </div>
         </div>
@@ -254,7 +255,20 @@ export default async function ArticleDetailPage({
           <span style={{ display: 'inline-block', background: `${catColor}22`, border: `1px solid ${catColor}55`, color: catColor, padding: '3px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '12px' }}>
             {cat}
           </span>
-          <h1 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.6rem)', fontWeight: 800, lineHeight: 1.2, color: '#fff', margin: 0, textShadow: '0 2px 20px rgba(0,0,0,0.5)', maxWidth: '800px' }}>
+          <h1 style={{
+            fontSize: 'clamp(1.5rem, 2.5vw, 2.2rem)',
+            fontWeight: 800,
+            lineHeight: 1.25,
+            color: '#fff',
+            margin: 0,
+            letterSpacing: '-0.5px',
+            textShadow: '0 2px 20px rgba(0,0,0,0.6)',
+            maxWidth: '620px',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
             {title}
           </h1>
         </div>
