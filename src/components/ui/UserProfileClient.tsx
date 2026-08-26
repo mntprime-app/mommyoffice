@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/imageCompress';
 import Link from 'next/link';
 
 type Tab = 'profile' | 'courses' | 'wishlist';
@@ -14,6 +15,7 @@ interface Props {
   initialFirstName: string;
   initialLastName: string;
   initialPhone: string;
+  initialAvatarUrl: string;
 }
 
 interface Enrollment {
@@ -55,19 +57,64 @@ const BORDER = '#2a2a2a';
 const TEXT = '#e5e5e5';
 const MUTED = '#888';
 
-// ─── Avatar initials ─────────────────────────────────────────────────────────
-function Avatar({ name, email }: { name: string; email: string }) {
+// ─── Avatar ───────────────────────────────────────────────────────────────────
+function Avatar({
+  name, email, avatarUrl, uploading, onClick,
+}: {
+  name: string; email: string; avatarUrl: string;
+  uploading: boolean; onClick: () => void;
+}) {
   const initials = name
     ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : email.slice(0, 2).toUpperCase();
+
   return (
-    <div style={{
-      width: 72, height: 72, borderRadius: '50%',
-      background: `linear-gradient(135deg, ${TEAL}, #0d9488)`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 26, fontWeight: 800, color: '#fff', flexShrink: 0,
-      boxShadow: `0 0 0 3px ${BG}, 0 0 0 5px ${TEAL}33`,
-    }}>{initials}</div>
+    <div
+      onClick={onClick}
+      title="Зураг солих"
+      style={{
+        width: 80, height: 80, borderRadius: '50%', flexShrink: 0, cursor: 'pointer',
+        position: 'relative', boxShadow: `0 0 0 3px ${BG}, 0 0 0 5px ${TEAL}55`,
+        transition: 'box-shadow 0.15s',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 0 0 3px ${BG}, 0 0 0 5px ${TEAL}`)}
+      onMouseLeave={e => (e.currentTarget.style.boxShadow = `0 0 0 3px ${BG}, 0 0 0 5px ${TEAL}55`)}
+    >
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt="Avatar"
+          style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+        />
+      ) : (
+        <div style={{
+          width: '100%', height: '100%', borderRadius: '50%',
+          background: `linear-gradient(135deg, ${TEAL}, #0d9488)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 28, fontWeight: 800, color: '#fff',
+        }}>{initials}</div>
+      )}
+
+      {/* Hover overlay — camera icon */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: '50%',
+        background: 'rgba(0,0,0,0.45)', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', opacity: uploading ? 1 : 0,
+        transition: 'opacity 0.15s',
+      }}
+        onMouseEnter={e => !uploading && (e.currentTarget.style.opacity = '1')}
+        onMouseLeave={e => !uploading && (e.currentTarget.style.opacity = '0')}
+      >
+        {uploading ? (
+          <div style={{ width: 20, height: 20, border: '2px solid #ffffff44', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        ) : (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -100,9 +147,14 @@ function Toast({ msg, ok }: { msg: string; ok: boolean }) {
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export function UserProfileClient({ locale, userId, email, initialFirstName, initialLastName, initialPhone }: Props) {
+export function UserProfileClient({ locale, userId, email, initialFirstName, initialLastName, initialPhone, initialAvatarUrl }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('profile');
+
+  // avatar
+  const [avatarUrl,      setAvatarUrl]      = useState(initialAvatarUrl);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // personal info
   const [firstName, setFirstName] = useState(initialFirstName);
@@ -129,6 +181,42 @@ export function UserProfileClient({ locale, userId, email, initialFirstName, ini
   function showToast(msg: string, ok: boolean) {
     setToast({ msg, ok });
     setTimeout(() => setToast(null), 3000);
+  }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // reset so same file can be re-selected
+    e.target.value = '';
+
+    setAvatarUploading(true);
+    try {
+      // 1. Compress to 400×400 WebP ≤50KB
+      const compressed = await compressImage(file, { preset: 'avatar' });
+
+      // 2. Upload to Supabase Storage: avatars/{userId}/avatar.webp
+      const supabase = createClient();
+      const path = `${userId}/avatar.webp`;
+      const { error: uploadErr } = await supabase.storage
+        .from('avatars')
+        .upload(path, compressed, { upsert: true, contentType: 'image/webp' });
+      if (uploadErr) throw uploadErr;
+
+      // 3. Get public URL (with cache-bust so browser refreshes)
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
+      const bustedUrl = `${publicUrl}?t=${Date.now()}`;
+
+      // 4. Persist in user_metadata
+      await supabase.auth.updateUser({ data: { avatar_url: bustedUrl } });
+
+      setAvatarUrl(bustedUrl);
+      showToast('Профайл зураг хадгалагдлаа ✓', true);
+    } catch (err) {
+      console.error('Avatar upload error:', err);
+      showToast('Зураг хадгалахад алдаа гарлаа', false);
+    } finally {
+      setAvatarUploading(false);
+    }
   }
 
   // Load courses when tab becomes active
@@ -195,15 +283,34 @@ export function UserProfileClient({ locale, userId, email, initialFirstName, ini
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '2.5rem 1.5rem' }}>
 
+      {/* Hidden file input for avatar upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleAvatarChange}
+      />
+
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <Avatar name={displayName} email={email} />
+          <Avatar
+            name={displayName}
+            email={email}
+            avatarUrl={avatarUrl}
+            uploading={avatarUploading}
+            onClick={() => !avatarUploading && fileInputRef.current?.click()}
+          />
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: TEXT, margin: '0 0 4px' }}>
               {displayName}
             </h1>
             <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>{email}</p>
+            <p style={{ fontSize: 11, color: '#555', margin: '3px 0 0', cursor: 'pointer' }}
+               onClick={() => !avatarUploading && fileInputRef.current?.click()}>
+              📷 Зураг солих
+            </p>
           </div>
         </div>
         <button onClick={handleSignOut} disabled={signingOut} style={{

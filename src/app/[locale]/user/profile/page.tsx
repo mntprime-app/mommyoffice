@@ -29,6 +29,7 @@ export default async function ProfilePage({
         initialFirstName={meta.first_name ?? ''}
         initialLastName={meta.last_name ?? ''}
         initialPhone={meta.phone ?? ''}
+        initialAvatarUrl={meta.avatar_url ?? ''}
       />
     </div>
   );
