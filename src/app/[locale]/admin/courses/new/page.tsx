@@ -6,6 +6,10 @@ import { compressImage, fmtSize } from '@/lib/imageCompress';
 import { createCourse, uploadImage } from '@/app/actions/admin';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
+const COURSE_PLACEMENTS = [
+  { value: 'home_featured', label: '🏠 Нүүр хуудас — Онцлох', desc: '/mn нүүрийн "Онцлох сургалт" мөрт харагдана' },
+  { value: 'standard', label: '📚 Стандарт каталог', desc: 'Зөвхөн /mn/courses-д харагдана' },
+];
 
 const MAX_IMG_MB = 2;
 
@@ -29,6 +33,7 @@ export default function NewCoursePage() {
     access_duration_days: '0',
     slug: '', is_published: false,
     show_outline: true,
+    placement: 'standard',
   });
 
   function slugify(str: string) {
@@ -82,6 +87,7 @@ export default function NewCoursePage() {
       slug: form.slug,
       is_published: form.is_published,
       show_outline: form.show_outline,
+      placement: form.placement,
     });
     if (err) { setError(err); setSaving(false); }
     else router.push(`/${locale}/admin/courses`);
@@ -201,6 +207,32 @@ export default function NewCoursePage() {
             <input value={form.cloudflare_stream_id} onChange={(e) => set('cloudflare_stream_id', e.target.value)}
               style={{ ...inp, fontFamily: 'monospace', fontSize: '13px' }} placeholder="a8765f2b3c4d..." />
           </Field>
+        </div>
+
+        {/* Placement zone */}
+        <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.25rem' }}>
+          <label style={{ fontSize: '13px', fontWeight: 600, color: '#9ca3af', display: 'block', marginBottom: '0.75rem' }}>
+            📍 Хаана харагдах вэ? (Placement Zone)
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {COURSE_PLACEMENTS.map((p) => (
+              <label key={p.value} style={{
+                display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer',
+                padding: '10px 14px', borderRadius: '8px',
+                background: form.placement === p.value ? 'rgba(0,181,173,0.1)' : 'transparent',
+                border: `1px solid ${form.placement === p.value ? 'rgba(0,181,173,0.4)' : '#2a2a2a'}`,
+              }}>
+                <input type="radio" name="course_placement" value={p.value}
+                  checked={form.placement === p.value}
+                  onChange={(e) => set('placement', e.target.value)}
+                  style={{ marginTop: '2px', accentColor: '#00B5AD' }} />
+                <div>
+                  <span style={{ fontWeight: 600, fontSize: '14px', color: '#e5e5e5' }}>{p.label}</span>
+                  <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '8px' }}>{p.desc}</span>
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
 
         {/* Toggles */}

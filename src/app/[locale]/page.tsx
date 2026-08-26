@@ -3,41 +3,65 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 
 async function getFeaturedCourses() {
+  const supabase = await createClient();
+  const SEL = 'id, title_mn, title_en, price, cover_image_url, slug, category';
+  // Try placement-filtered first (requires migration); fallback to all published
   try {
-    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('mo_courses').select(SEL)
+      .eq('is_published', true).eq('placement', 'home_featured')
+      .order('created_at', { ascending: false }).limit(8);
+    if (!error && data && data.length > 0) return data;
+  } catch {}
+  try {
     const { data } = await supabase
-      .from('mo_courses')
-      .select('id, title_mn, title_en, price, cover_image_url, slug, category')
+      .from('mo_courses').select(SEL)
       .eq('is_published', true)
-      .order('created_at', { ascending: false })
-      .limit(10);
+      .order('created_at', { ascending: false }).limit(8);
     return data || [];
   } catch { return []; }
 }
 
-async function getLatestArticles() {
+const ARTICLE_FIELDS = 'id, title_mn, title_en, emoji, cover_image_url, slug, category, published_at, placement, pin_rank';
+
+async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null; trending: Record<string, unknown>[]; more: Record<string, unknown>[] }> {
   try {
     const supabase = await createClient();
-    const { data } = await supabase
-      .from('mo_articles')
-      .select('id, title_mn, title_en, emoji, cover_image_url, slug, category, published_at')
-      .eq('is_published', true)
-      .order('published_at', { ascending: false })
-      .limit(10);
-    return data || [];
-  } catch { return []; }
+    const [heroRes, trendingRes, recentRes] = await Promise.all([
+      supabase.from('mo_articles').select(ARTICLE_FIELDS)
+        .eq('is_published', true).eq('placement', 'hero')
+        .order('published_at', { ascending: false }).limit(1),
+      supabase.from('mo_articles').select(ARTICLE_FIELDS)
+        .eq('is_published', true).eq('placement', 'trending')
+        .order('pin_rank', { ascending: true }).order('published_at', { ascending: false }).limit(3),
+      supabase.from('mo_articles').select(ARTICLE_FIELDS)
+        .eq('is_published', true)
+        .order('published_at', { ascending: false }).limit(10),
+    ]);
+    const recent: Record<string, unknown>[] = recentRes.data || [];
+    const hero: Record<string, unknown> | null = (heroRes.data?.[0] as Record<string, unknown>) ?? recent[0] ?? null;
+    const heroId = hero?.id;
+    const trendingFromDB: Record<string, unknown>[] = (trendingRes.data || []) as Record<string, unknown>[];
+    const trending = trendingFromDB.length > 0
+      ? trendingFromDB
+      : recent.filter(a => a.id !== heroId).slice(0, 3);
+    const usedIds = new Set([heroId, ...trending.map(a => a.id)].filter(Boolean));
+    const more = recent.filter(a => !usedIds.has(a.id)).slice(0, 6);
+    return { hero, trending, more };
+  } catch {
+    return { hero: null, trending: [], more: [] };
+  }
 }
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations('home');
-  const [courses, articles] = await Promise.all([getFeaturedCourses(), getLatestArticles()]);
+  const [courses, articles] = await Promise.all([getFeaturedCourses(), getHomeArticles()]);
 
   const displayCourses = courses.length > 0 ? courses : PLACEHOLDER_COURSES;
-  const displayArticles = articles.length > 0 ? articles : PLACEHOLDER_ARTICLES;
-  const featuredArticle = displayArticles[0];
-  const sideArticles = displayArticles.slice(1, 4);
-  const moreArticles = displayArticles.slice(4, 10);
+  const featuredArticle = articles.hero;
+  const sideArticles = articles.trending;
+  const moreArticles = articles.more;
 
   return (
     <div style={{ background: '#141414', minHeight: '100vh', overflowX: 'hidden' }}>
@@ -500,19 +524,6 @@ const PLACEHOLDER_COURSES: Record<string, unknown>[] = [
   { id: 'p6', title_mn: 'Хувийн санхүүгийн удирдлага', price: 34900, emoji: '💰', category: 'Бизнес' },
   { id: 'p7', title_mn: 'Гэр бүлийн эрүүл харилцаа', price: 29900, emoji: '💝', category: 'Гэр бүл' },
   { id: 'p8', title_mn: 'Зорилго тавих — Goal Setting', price: 0, emoji: '🎯', category: 'Хувийн хөгжил' },
-];
-
-const PLACEHOLDER_ARTICLES: Record<string, unknown>[] = [
-  { id: 'a1', title_mn: 'Өглөөний эрүүл дэглэм — 5 алхам гэрийн тайлбар', category: 'Эрүүл мэнд', emoji: '🌅' },
-  { id: 'a2', title_mn: 'Гэрийнхнийхээ хоолны дэглэмийг яаж сайжруулах вэ?', category: 'Хоол тэжээл', emoji: '🥗' },
-  { id: 'a3', title_mn: 'Монгол эмэгтэйчүүдийн бизнес амжилтын нууц', category: 'Бизнес', emoji: '🚀' },
-  { id: 'a4', title_mn: 'Арьсаа хэрхэн арчлах вэ — мэргэжилтний зөвлөгөө', category: 'Гоо сайхан', emoji: '✨' },
-  { id: 'a5', title_mn: 'Гэр бүлийн бат бөх холбоо', category: 'Гэр бүл', emoji: '💝' },
-  { id: 'a6', title_mn: 'Зорилгодоо хэрхэн хурдан хүрэх вэ?', category: 'Хувийн хөгжил', emoji: '🎯' },
-  { id: 'a7', title_mn: 'Дотоод амар тайвнаа хэрхэн олох вэ', category: 'Эрүүл мэнд', emoji: '🧘' },
-  { id: 'a8', title_mn: 'Гэрийн чимэглэл: энгийн боловч гоё', category: 'Дизайн', emoji: '🏡' },
-  { id: 'a9', title_mn: 'Хүүхэдтэйгээ чанарын цагийг хэрхэн өнгөрүүлэх', category: 'Гэр бүл', emoji: '👨‍👩‍👧' },
-  { id: 'a10', title_mn: 'Монгол эмэгтэйчүүдийн эрүүл амьдралын философи', category: 'Lifestyle', emoji: '🌸' },
 ];
 
 const PLACEHOLDER_VIDEOS = [

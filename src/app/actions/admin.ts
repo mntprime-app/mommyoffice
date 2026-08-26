@@ -75,6 +75,7 @@ export async function createCourse(data: {
   slug: string;
   is_published: boolean;
   show_outline: boolean;
+  placement: string;
 }) {
   const supabase = await createAdminClient();
   const { error } = await supabase.from('mo_courses').insert(data);
@@ -99,6 +100,7 @@ export async function updateCourse(id: string, data: {
   cloudflare_stream_id: string;
   is_published: boolean;
   show_outline: boolean;
+  placement: string;
   outline: unknown[] | null;
 }) {
   const supabase = await createAdminClient();

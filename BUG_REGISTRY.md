@@ -95,6 +95,68 @@ When writing crypto helpers that accept binary data, always type the parameter a
 
 ---
 
+## [BUG-005] Vercel stale node_modules cache causes `Module not found` for newly added packages
+
+**Status**: Fixed. Preventive measure in place.
+**First seen**: 2026-08-26
+**Module**: Vercel build / npm install
+
+### Symptom
+`npm install` reports "up to date in 496ms" but Turbopack fails with `Module not found: Can't resolve '@package/name'` for packages that ARE in `package-lock.json`.
+
+### Root cause
+Vercel's build cache restores `node_modules` from the last successful deployment. When new packages are added, `npm install` may incorrectly report "up to date" against the stale cache, leaving new packages uninstalled.
+
+### Fix
+Added `vercel.json` with `"installCommand": "npm ci"`. `npm ci` deletes `node_modules` and reinstalls from the lockfile every time, ignoring any cached state.
+
+### Prevention
+Keep `vercel.json` in the repo with `"installCommand": "npm ci"` permanently.
+
+---
+
+## [BUG-006] Turbopack cannot resolve `@tiptap/*` ESM packages on Vercel Linux build
+
+**Status**: Fixed by removing Tiptap.
+**First seen**: 2026-08-26
+**Module**: `src/components/admin/RichTextEditor.tsx`
+
+### Symptom
+Turbopack reports `Module not found: Can't resolve '@tiptap/extension-underline'` (and all other `@tiptap/extension-*` imports) during Vercel production build, even when packages are installed. Local builds succeed because the `.next` cache has prior compiled artifacts.
+
+### Root cause
+Tiptap v3's ESM package exports (`"import": "./dist/index.js"` with no `default` condition) are incompatible with Turbopack on Vercel's Linux environment. The incompatibility is masked locally by incremental compilation caching.
+
+### Fix
+Replaced all `@tiptap/*` with a pure React textarea + HTML formatting toolbar (zero npm dependencies). `src/components/admin/RichTextEditor.tsx` is now a self-contained React component.
+
+### Prevention
+Before adopting any ESM-heavy npm package with Tiptap-style export maps, test a production Vercel build (not just local) before committing to the dependency.
+
+---
+
+## [BUG-007] `git add -A` stages local build artifacts (tmp/nextdist)
+
+**Status**: Fixed. Prevention added.
+**First seen**: 2026-08-26
+**Module**: Developer workflow / git
+
+### Symptom
+`git push` uploads 53 MB of build artifacts. GitHub shows hundreds of `tmp/nextdist/` files in the commit.
+
+### Root cause
+`git add -A` was run after a local `next build` test wrote output to `tmp/nextdist/` inside the project dir. The `.gitignore` update to add `tmp/` was done AFTER staging.
+
+### Fix
+`git rm -r --cached tmp/` followed by commit + push. Added `tmp/` to `.gitignore`.
+
+### Prevention
+- Always update `.gitignore` BEFORE running `git add -A`.
+- Never run `next build` from inside the project directory in the sandbox — use a separate `distDir` outside the project, OR don't run builds locally at all (rely on Vercel).
+- Run `git status --short` and scan for unexpected large directories before committing.
+
+---
+
 ## Template for new entries
 
 ```
