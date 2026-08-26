@@ -126,14 +126,14 @@ function ArticleCard({ a, locale }: { a: Record<string, unknown>; locale: string
         padding: '20px 0', borderBottom: '1px solid #1f1f1f',
       }}>
         {/* Thumbnail */}
-        <div style={{ width: '160px', height: '108px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden', background: grad, position: 'relative' }}>
+        <div className="mo-art-thumb" style={{ width: '160px', height: '108px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden', background: grad, position: 'relative' }}>
           {a.cover_image_url
             ? <img src={String(a.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px' }}>{String(a.emoji || '✨')}</div>
           }
         </div>
         {/* Text */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="mo-art-text" style={{ flex: 1, minWidth: 0 }}>
           {/* Meta row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '7px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '10px', fontWeight: 800, color: catColor, textTransform: 'uppercase', letterSpacing: '0.8px', background: `${catColor}18`, padding: '2px 8px', borderRadius: '3px' }}>{cat}</span>
@@ -300,7 +300,7 @@ export default async function ArticlesPage({
     <div style={{ background: '#111', minHeight: '100vh' }}>
 
       {/* ── HERO ── */}
-      <section style={{ position: 'relative', width: '100%', height: '72vh', minHeight: '480px', overflow: 'hidden' }}>
+      <section className="mo-hero-section" style={{ position: 'relative', width: '100%', height: '72vh', minHeight: '480px', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: featuredGrad }}>
           {featured?.cover_image_url ? (
             <img src={String(featured.cover_image_url)} alt={featuredTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -312,34 +312,35 @@ export default async function ArticlesPage({
             </div>
           )}
         </div>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.15) 70%, transparent 100%)' }} />
+        {/* Desktop: left-to-right. Mobile: overridden to bottom-heavy via CSS */}
+        <div className="mo-hero-overlay" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.15) 70%, transparent 100%)' }} />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to bottom,transparent,#111)' }} />
-        <div style={{ position: 'absolute', bottom: '20%', left: '4%', maxWidth: '560px', zIndex: 2 }}>
+        <div className="mo-hero-content" style={{ position: 'absolute', bottom: '20%', left: '4%', maxWidth: '560px', zIndex: 2 }}>
           <span style={{ display: 'inline-block', background: 'rgba(0,181,173,0.15)', border: '1px solid rgba(0,181,173,0.4)', color: '#00B5AD', padding: '3px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '14px' }}>
             {String(featured?.category || 'Нийтлэл')}
           </span>
-          <h1 style={{ fontSize: 'clamp(1.5rem,2.5vw,2.2rem)', fontWeight: 800, lineHeight: 1.2, color: '#fff', marginBottom: '12px', letterSpacing: '-0.5px', textShadow: '0 2px 20px rgba(0,0,0,0.6)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <h1 style={{ fontSize: 'clamp(1.4rem,2.5vw,2.2rem)', fontWeight: 800, lineHeight: 1.25, color: '#fff', marginBottom: '12px', letterSpacing: '-0.5px', textShadow: '0 2px 20px rgba(0,0,0,0.6)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {featuredTitle}
           </h1>
           {featuredExcerpt && (
-            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, marginBottom: '20px', maxWidth: '440px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <p className="mo-hero-excerpt" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, marginBottom: '20px', maxWidth: '440px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {featuredExcerpt}
             </p>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Link href={String(featuredSlug)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#00B5AD', color: '#fff', padding: '11px 28px', borderRadius: '6px', fontWeight: 700, textDecoration: 'none', fontSize: '14px', boxShadow: '0 4px 20px rgba(0,181,173,0.4)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <Link href={String(featuredSlug)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#00B5AD', color: '#fff', padding: '11px 28px', borderRadius: '6px', fontWeight: 700, textDecoration: 'none', fontSize: '14px', boxShadow: '0 4px 20px rgba(0,181,173,0.4)', minHeight: '44px' }}>
               Унших →
             </Link>
-            <span style={{ fontSize: '12px', color: '#666' }}>⏱ {featured ? articleReadTime(featured, locale) : 1} мин унших</span>
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>⏱ {featured ? articleReadTime(featured, locale) : 1} мин унших</span>
           </div>
         </div>
       </section>
 
       {/* ── BODY: 2-COLUMN EDITORIAL GRID ── */}
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 2rem' }}>
+      <div className="mo-body-wrap" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 2rem' }}>
 
         {/* ── CATEGORY FILTER TABS ── */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '1.75rem 0 1.25rem', borderBottom: '1px solid #1f1f1f' }}>
+        <div className="mo-cat-bar" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '1.75rem 0 1.25rem', borderBottom: '1px solid #1f1f1f' }}>
           {CATEGORIES.map((cat) => {
             const isActive = category === cat || (!category && cat === 'Бүх ангилал');
             const catColor = CAT_COLORS[cat] || '#00B5AD';
@@ -433,16 +434,82 @@ export default async function ArticlesPage({
       </div>
 
       <style>{`
+        /* ── Base interactions ── */
         .mo-art-card { transition: background 0.15s; border-radius: 8px; }
         .mo-art-card:hover { background: rgba(255,255,255,0.025); }
         .mo-sb-item { transition: opacity 0.15s; }
         .mo-sb-item:hover { opacity: 0.7; }
         .netflix-card { transition: transform 0.18s; }
         .netflix-card:hover { transform: translateY(-3px); }
+
+        /* ── Tablet: collapse sidebar ── */
         @media (max-width: 900px) {
           div[style*="grid-template-columns: 1fr 300px"] { grid-template-columns: 1fr !important; }
           div[style*="position: sticky"] { position: static !important; }
         }
+
+        /* ── Mobile: body wrapper padding ── */
+        @media (max-width: 768px) {
+          .mo-body-wrap { padding: 0 1rem !important; }
+        }
+
+        /* ── Mobile: hero ── */
+        @media (max-width: 768px) {
+          .mo-hero-section { height: 58vh !important; min-height: 340px !important; }
+          /* On portrait mobile, add a stronger bottom+left overlay so text stays readable */
+          .mo-hero-overlay {
+            background: linear-gradient(
+              to bottom,
+              rgba(0,0,0,0.25) 0%,
+              rgba(0,0,0,0.55) 40%,
+              rgba(0,0,0,0.92) 100%
+            ) !important;
+          }
+          .mo-hero-content {
+            bottom: 12% !important;
+            left: 0 !important;
+            right: 0 !important;
+            max-width: 100% !important;
+            padding: 0 1.25rem !important;
+          }
+          .mo-hero-content h1 { font-size: 1.45rem !important; -webkit-line-clamp: 3 !important; }
+          .mo-hero-excerpt { display: none !important; }
+        }
+
+        /* ── Mobile: category pill bar — horizontal scroll, no wrap ── */
+        @media (max-width: 768px) {
+          .mo-cat-bar {
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            scrollbar-width: none !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin: 0 -1rem !important;
+            padding-top: 1.25rem !important;
+            padding-bottom: 1rem !important;
+          }
+          .mo-cat-bar::-webkit-scrollbar { display: none; }
+          .mo-cat-bar a { flex-shrink: 0 !important; }
+          /* First + last pill breathing room */
+          .mo-cat-bar a:first-child { margin-left: 1rem; }
+          .mo-cat-bar a:last-child { margin-right: 1rem; }
+        }
+
+        /* ── Mobile: article card — stack thumbnail above text ── */
+        @media (max-width: 520px) {
+          .mo-art-card { flex-direction: column !important; gap: 0 !important; }
+          .mo-art-thumb { width: 100% !important; height: 180px !important; border-radius: 8px 8px 0 0 !important; }
+          .mo-art-text { padding-top: 12px !important; }
+        }
+
+        /* ── Touch targets ── */
+        @media (max-width: 768px) {
+          .mo-cat-bar a { min-height: 40px; display: inline-flex; align-items: center; }
+        }
+
+        /* ── Prevent horizontal overflow globally ── */
+        .mo-hero-section, .mo-body-wrap { overflow-x: hidden; }
       `}</style>
     </div>
   );
