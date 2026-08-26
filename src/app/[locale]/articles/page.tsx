@@ -275,7 +275,7 @@ export default async function ArticlesPage({
   await getTranslations('articles');
 
   const dbArticles = await getArticles();
-  const allArticles = (dbArticles.length > 0 ? dbArticles : PLACEHOLDER_ARTICLES) as Record<string, unknown>[];
+  const allArticles = dbArticles as Record<string, unknown>[];
 
   const isFiltered = !!(category && category !== 'Бүх ангилал');
   const displayArticles = isFiltered
@@ -302,7 +302,7 @@ export default async function ArticlesPage({
       <section style={{ position: 'relative', width: '100%', height: '72vh', minHeight: '480px', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: featuredGrad }}>
           {featured?.cover_image_url ? (
-            <img src={String(featured.cover_image_url)} alt={featuredTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45 }} />
+            <img src={String(featured.cover_image_url)} alt={featuredTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.65 }} />
           ) : (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8%', opacity: 0.12, fontSize: 'min(40vw,320px)' }}>
               {String(featured?.emoji || '✨')}
@@ -315,11 +315,11 @@ export default async function ArticlesPage({
           <span style={{ display: 'inline-block', background: 'rgba(0,181,173,0.15)', border: '1px solid rgba(0,181,173,0.4)', color: '#00B5AD', padding: '3px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '14px' }}>
             {String(featured?.category || 'Нийтлэл')}
           </span>
-          <h1 style={{ fontSize: 'clamp(1.7rem,3vw,2.8rem)', fontWeight: 800, lineHeight: 1.15, color: '#fff', marginBottom: '12px', letterSpacing: '-0.5px', textShadow: '0 2px 20px rgba(0,0,0,0.6)' }}>
+          <h1 style={{ fontSize: 'clamp(1.5rem,2.5vw,2.2rem)', fontWeight: 800, lineHeight: 1.2, color: '#fff', marginBottom: '12px', letterSpacing: '-0.5px', textShadow: '0 2px 20px rgba(0,0,0,0.6)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {featuredTitle}
           </h1>
           {featuredExcerpt && (
-            <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.7, marginBottom: '20px', maxWidth: '440px' }}>
+            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, marginBottom: '20px', maxWidth: '440px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {featuredExcerpt}
             </p>
           )}

@@ -1,16 +1,17 @@
+export const dynamic = 'force-dynamic';
+
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 // ── Data fetchers ─────────────────────────────────────────────────────────────
 
 async function getArticle(slug: string) {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data, error } = await supabase
       .from('mo_articles')
-      .select('id, title_mn, title_en, body_mn, body_en, excerpt_mn, excerpt_en, cover_image_url, slug, category, published_at, author_name, emoji')
+      .select('id, title_mn, title_en, body_mn, body_en, excerpt_mn, excerpt_en, cover_image_url, slug, category, published_at, author_name')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
@@ -21,10 +22,10 @@ async function getArticle(slug: string) {
 
 async function getRelatedArticles(category: string, excludeSlug: string) {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_articles')
-      .select('id, title_mn, title_en, cover_image_url, slug, category, published_at, excerpt_mn, emoji')
+      .select('id, title_mn, title_en, cover_image_url, slug, category, published_at, excerpt_mn')
       .eq('is_published', true)
       .eq('category', category)
       .neq('slug', excludeSlug)
@@ -36,7 +37,7 @@ async function getRelatedArticles(category: string, excludeSlug: string) {
 
 async function getTrendingArticles(excludeSlug: string) {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_articles')
       .select('id, title_mn, title_en, slug, category, published_at')
@@ -50,7 +51,7 @@ async function getTrendingArticles(excludeSlug: string) {
 
 async function getRelatedCourses(category: string) {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_courses')
       .select('id, title_mn, title_en, slug, cover_image_url, price, category')

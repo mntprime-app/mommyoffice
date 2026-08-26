@@ -155,8 +155,8 @@ export default function NewArticlePage() {
 
         {/* Title */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <Field label="Гарчиг (МН) *">
-            <input value={form.title_mn} onChange={(e) => set('title_mn', e.target.value)} required style={inp} placeholder="Өглөөний эрүүл дэглэм" />
+          <Field label={`Гарчиг (МН) * — ${form.title_mn.length}/80`}>
+            <input value={form.title_mn} onChange={(e) => set('title_mn', e.target.value.slice(0, 80))} required style={inp} placeholder="Өглөөний эрүүл дэглэм" maxLength={80} />
           </Field>
           <Field label="Гарчиг (EN)">
             <input value={form.title_en} onChange={(e) => set('title_en', e.target.value)} style={inp} placeholder="Morning Wellness Routine" />
@@ -223,8 +223,8 @@ export default function NewArticlePage() {
 
         {/* Excerpt */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <Field label="Товч тайлбар (МН)">
-            <textarea value={form.excerpt_mn} onChange={(e) => set('excerpt_mn', e.target.value)} style={{ ...inp, height: '80px', resize: 'vertical' }} placeholder="Нийтлэлийн товч агуулга..." />
+          <Field label={`Товч тайлбар (МН) — ${form.excerpt_mn.length}/150`}>
+            <textarea value={form.excerpt_mn} onChange={(e) => set('excerpt_mn', e.target.value.slice(0, 150))} style={{ ...inp, height: '80px', resize: 'vertical' }} placeholder="Нийтлэлийн товч агуулга..." maxLength={150} />
           </Field>
           <Field label="Товч тайлбар (EN)">
             <textarea value={form.excerpt_en} onChange={(e) => set('excerpt_en', e.target.value)} style={{ ...inp, height: '80px', resize: 'vertical' }} />
