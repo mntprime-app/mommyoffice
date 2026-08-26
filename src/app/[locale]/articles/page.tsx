@@ -340,7 +340,7 @@ export default async function ArticlesPage({
       <div className="mo-body-wrap" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 2rem' }}>
 
         {/* ── CATEGORY FILTER TABS ── */}
-        <div className="mo-cat-bar" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '1.75rem 0 1.25rem', borderBottom: '1px solid #1f1f1f' }}>
+        <div className="mo-cat-bar" style={{ display: 'flex', gap: '8px', padding: '1.75rem 0 1.25rem', borderBottom: '1px solid #1f1f1f' }}>
           {CATEGORIES.map((cat) => {
             const isActive = category === cat || (!category && cat === 'Бүх ангилал');
             const catColor = CAT_COLORS[cat] || '#00B5AD';
@@ -458,10 +458,10 @@ export default async function ArticlesPage({
           top: 80px;
         }
 
-        /* ── TABLET (≤900px): collapse to single column, hide sidebar ── */
+        /* ── TABLET (≤900px): collapse to single column, sidebar stacks below ── */
         @media (max-width: 900px) {
-          .mo-main-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-          .mo-sidebar { display: none; }
+          .mo-main-grid { grid-template-columns: 1fr; gap: 2rem; }
+          .mo-sidebar { position: static; border-top: 1px solid #1f1f1f; padding-top: 2rem; }
         }
 
         /* ── MOBILE (≤768px): body padding ── */

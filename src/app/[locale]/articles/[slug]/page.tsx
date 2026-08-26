@@ -292,7 +292,6 @@ export default async function ArticleDetailPage({
                 <p style={{ fontSize: '10px', color: '#555', margin: 0 }}>Зохиолч</p>
               </div>
             </div>
-            <div style={{ width: '1px', height: '28px', background: '#2a2a2a' }} />
             {date && <div style={{ fontSize: '12px', color: '#666' }}>📅 {date}</div>}
             <div style={{ fontSize: '12px', color: '#666' }}>⏱ {mins} минут унших</div>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
