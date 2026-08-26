@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
 import { createArticle } from '../actions';
 import { uploadImage } from '@/app/actions/admin';
-import RichTextEditor from '@/components/admin/RichTextEditor';
+import dynamic from 'next/dynamic';
+const RichTextEditor = dynamic(() => import('@/components/admin/RichTextEditor'), { ssr: false });
 
 const CATEGORIES = [
   // Editorial series

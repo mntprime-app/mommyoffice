@@ -2,7 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import RichTextEditor from '@/components/admin/RichTextEditor';
+import dynamic from 'next/dynamic';
+const RichTextEditor = dynamic(() => import('@/components/admin/RichTextEditor'), { ssr: false });
 import { compressImage, fmtSize } from '@/lib/imageCompress';
 import { getArticleById, updateArticle, deleteArticleById } from '../../actions';
 import { uploadImage } from '@/app/actions/admin';
