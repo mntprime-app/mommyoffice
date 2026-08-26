@@ -37,6 +37,7 @@ export async function updateArticle(id: string, data: {
   body_mn: string | null;
   body_en: string | null;
   cover_image_url: string | null;
+  mobile_cover_image: string | null;
   category: string;
   author_name: string | null;
   slug: string;
@@ -60,6 +61,7 @@ export async function createArticle(data: {
   body_mn: string | null;
   body_en: string | null;
   cover_image_url: string | null;
+  mobile_cover_image: string | null;
   category: string;
   author_name: string | null;
   slug: string;

@@ -20,7 +20,7 @@ async function getArticles() {
     const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_articles')
-      .select('id, title_mn, title_en, cover_image_url, slug, category, published_at, excerpt_mn, excerpt_en, body_mn, body_en')
+      .select('id, title_mn, title_en, cover_image_url, mobile_cover_image, slug, category, published_at, excerpt_mn, excerpt_en, body_mn, body_en')
       .eq('is_published', true)
       .order('published_at', { ascending: false });
     return data || [];
@@ -302,8 +302,18 @@ export default async function ArticlesPage({
       {/* ── HERO ── */}
       <section className="mo-hero-section" style={{ position: 'relative', width: '100%', height: '72vh', minHeight: '480px', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: featuredGrad }}>
-          {featured?.cover_image_url ? (
-            <img src={String(featured.cover_image_url)} alt={featuredTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {(featured?.cover_image_url || featured?.mobile_cover_image) ? (
+            <>
+              {featured?.mobile_cover_image && (
+                <img src={String(featured.mobile_cover_image)} alt={featuredTitle} className="mo-hero-img-mob" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'none' }} />
+              )}
+              <img
+                src={String(featured?.cover_image_url || featured?.mobile_cover_image)}
+                alt={featuredTitle}
+                className={featured?.mobile_cover_image ? 'mo-hero-img-dsk' : 'mo-hero-img'}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </>
           ) : (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '6%', overflow: 'hidden' }}>
               <div style={{ fontSize: '13rem', fontWeight: 900, color: 'rgba(0,181,173,0.07)', lineHeight: 1, userSelect: 'none', letterSpacing: '-8px', fontFamily: 'Georgia,serif' }}>
@@ -473,8 +483,15 @@ export default async function ArticlesPage({
           .mo-body-wrap { padding: 0 1rem; }
         }
 
+        /* ── Hero image focal-point defaults (desktop) ── */
+        .mo-hero-img-mob { display: none; }
+        .mo-hero-img-dsk { display: block; width: 100%; height: 100%; object-fit: cover; }
+
         /* ── MOBILE: hero ── */
         @media (max-width: 768px) {
+          .mo-hero-img { object-position: center 20%; }
+          .mo-hero-img-mob { display: block !important; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+          .mo-hero-img-dsk { display: none !important; }
           .mo-hero-section { height: 56vh; min-height: 300px; }
           .mo-hero-overlay {
             background: linear-gradient(

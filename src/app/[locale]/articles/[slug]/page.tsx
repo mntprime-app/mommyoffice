@@ -12,7 +12,7 @@ async function getArticle(slug: string) {
     const supabase = await createAdminClient();
     const { data, error } = await supabase
       .from('mo_articles')
-      .select('id, title_mn, title_en, body_mn, body_en, excerpt_mn, excerpt_en, cover_image_url, slug, category, published_at, author_name')
+      .select('id, title_mn, title_en, body_mn, body_en, excerpt_mn, excerpt_en, cover_image_url, mobile_cover_image, slug, category, published_at, author_name')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
@@ -236,8 +236,18 @@ export default async function ArticleDetailPage({
 
       {/* ── HERO COVER ── */}
       <div style={{ position: 'relative', width: '100%', height: '480px', overflow: 'hidden' }}>
-        {article.cover_image_url ? (
-          <img src={String(article.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {(article.cover_image_url || article.mobile_cover_image) ? (
+          <>
+            {article.mobile_cover_image && (
+              <img src={String(article.mobile_cover_image)} alt={title} className="mo-detail-img-mob" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'none', position: 'absolute', inset: 0 }} />
+            )}
+            <img
+              src={String(article.cover_image_url || article.mobile_cover_image)}
+              alt={title}
+              className={article.mobile_cover_image ? 'mo-detail-img-dsk' : 'mo-detail-img'}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </>
         ) : (
           <div style={{ width: '100%', height: '100%', background: CAT_GRADIENTS[cat] || CAT_GRADIENTS.default }} />
         )}
@@ -394,6 +404,15 @@ export default async function ArticleDetailPage({
       </div>
 
       <style>{`
+        /* ── Hero image focal-point (desktop defaults) ── */
+        .mo-detail-img-mob { display: none; }
+        .mo-detail-img-dsk { display: block; width: 100%; height: 100%; object-fit: cover; }
+        @media (max-width: 768px) {
+          .mo-detail-img { object-position: center 20%; }
+          .mo-detail-img-mob { display: block !important; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+          .mo-detail-img-dsk { display: none !important; }
+        }
+
         /* ── Article body typography ── */
         .mo-article-body { font-size: 16px; line-height: 1.85; color: #c8c8c8; text-align: justify; }
         .mo-article-body h2 { font-size: 1.45rem; font-weight: 800; color: #e5e5e5; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1f1f1f; }

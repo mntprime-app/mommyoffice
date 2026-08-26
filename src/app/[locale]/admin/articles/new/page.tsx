@@ -24,17 +24,21 @@ export default function NewArticlePage() {
   const params = useParams();
   const locale = params.locale as string;
   const imgInputRef = useRef<HTMLInputElement>(null);
+  const mobImgInputRef = useRef<HTMLInputElement>(null);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState('');
+  const [mobPreview, setMobPreview] = useState('');
+  const [mobUploading, setMobUploading] = useState(false);
 
   const [form, setForm] = useState({
     title_mn: '', title_en: '',
     excerpt_mn: '', excerpt_en: '',
     body_mn: '', body_en: '',
     cover_image_url: '',
+    mobile_cover_image: '',
     category: 'Эрүүл мэнд',
     author_name: '', slug: '',
     is_published: false,
@@ -77,6 +81,24 @@ export default function NewArticlePage() {
     setUploading(false);
   }
 
+  async function handleMobImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.files?.[0];
+    if (!raw) return;
+    setMobPreview(URL.createObjectURL(raw));
+    setMobUploading(true);
+    try {
+      const file = await compressImage(raw, { preset: 'article' });
+      setMobPreview(URL.createObjectURL(file));
+      const fd = new FormData();
+      fd.append('file', file);
+      const { error: upErr, url } = await uploadImage(fd, 'articles');
+      if (upErr || !url) { setError(`Mobile upload алдаа: ${upErr ?? 'URL хоосон'}`); setMobUploading(false); return; }
+      setForm((f) => ({ ...f, mobile_cover_image: url }));
+      setMobPreview(url);
+    } catch { setError('Mobile зураг upload хийхэд алдаа гарлаа.'); }
+    setMobUploading(false);
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title_mn) { setError('Монгол нэр заавал бөглөнө үү.'); return; }
@@ -89,6 +111,7 @@ export default function NewArticlePage() {
       body_mn: form.body_mn || null,
       body_en: form.body_en || null,
       cover_image_url: form.cover_image_url || null,
+      mobile_cover_image: form.mobile_cover_image || null,
       category: form.category,
       author_name: form.author_name || null,
       slug: form.slug || slugify(form.title_mn),
@@ -151,6 +174,34 @@ export default function NewArticlePage() {
           <input value={form.cover_image_url}
             onChange={(e) => { set('cover_image_url', e.target.value); setPreview(e.target.value); }}
             style={inp} placeholder="https://... (URL-аар оруулах)" />
+        </div>
+
+        {/* Mobile cover image (optional) */}
+        <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.25rem' }}>
+          <label style={{ ...lbl, marginBottom: '0.5rem', display: 'block' }}>
+            📱 Гар утасны зураг <span style={{ fontWeight: 400, color: '#6b7280' }}>(Заавал биш)</span>
+          </label>
+          <p style={{ fontSize: '11px', color: '#6b7280', marginBottom: '0.75rem' }}>
+            Зөвлөмж хэмжээ: 800×1000px (4:5 эсвэл 1:1 босоо зураг) — Гар утсанд дүрийг бүрэн харуулна
+          </p>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <label style={{ background: '#2a2a2a', border: '1px solid #333', color: '#e5e5e5', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, flexShrink: 0 }}>
+              {mobUploading ? 'Upload хийж байна...' : '📁 Зураг сонгох'}
+              <input ref={mobImgInputRef} type="file" accept="image/*" onChange={handleMobImageUpload} style={{ display: 'none' }} />
+            </label>
+            <input value={form.mobile_cover_image}
+              onChange={(e) => { set('mobile_cover_image', e.target.value); setMobPreview(e.target.value); }}
+              style={{ ...inp, flex: 1, minWidth: '180px' }} placeholder="https://... (URL-аар оруулах)" />
+          </div>
+          {mobPreview && (
+            <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+              <img src={mobPreview} alt="mobile preview" style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #333' }} />
+              <button type="button" onClick={() => { setMobPreview(''); setForm((f) => ({ ...f, mobile_cover_image: '' })); }}
+                style={{ fontSize: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '4px' }}>
+                Зураг арилгах
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Title */}

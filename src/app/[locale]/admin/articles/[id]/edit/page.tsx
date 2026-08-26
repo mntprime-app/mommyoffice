@@ -27,18 +27,22 @@ export default function EditArticlePage() {
   const id = params.id as string;
   const imgInputRef = useRef<HTMLInputElement>(null);
 
+  const mobImgInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [mobUploading, setMobUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [preview, setPreview] = useState('');
+  const [mobPreview, setMobPreview] = useState('');
 
   const [form, setForm] = useState({
     title_mn: '', title_en: '',
     excerpt_mn: '', excerpt_en: '',
     body_mn: '', body_en: '',
-    cover_image_url: '', category: 'Эрүүл мэнд',
+    cover_image_url: '', mobile_cover_image: '',
+    category: 'Эрүүл мэнд',
     author_name: '', slug: '',
     is_published: false,
     placement: 'normal',
@@ -58,6 +62,7 @@ export default function EditArticlePage() {
           body_mn: data.body_mn || '',
           body_en: data.body_en || '',
           cover_image_url: data.cover_image_url || '',
+          mobile_cover_image: data.mobile_cover_image || '',
           category: data.category || 'Эрүүл мэнд',
           author_name: data.author_name || '',
           slug: data.slug || '',
@@ -68,6 +73,7 @@ export default function EditArticlePage() {
         };
         setForm(f);
         if (f.cover_image_url) setPreview(f.cover_image_url);
+        if (f.mobile_cover_image) setMobPreview(f.mobile_cover_image);
         setLoading(false);
       });
   }, [id]);
@@ -100,6 +106,26 @@ export default function EditArticlePage() {
     setUploading(false);
   }
 
+  async function handleMobImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.files?.[0];
+    if (!raw) return;
+    setMobPreview(URL.createObjectURL(raw));
+    setMobUploading(true); setError('');
+    try {
+      const file = await compressImage(raw, { preset: 'article' });
+      setSuccess(`✓ Mobile WebP шахагдсан: ${fmtSize(raw.size)} → ${fmtSize(file.size)}`);
+      setTimeout(() => setSuccess(''), 4000);
+      setMobPreview(URL.createObjectURL(file));
+      const fd = new FormData();
+      fd.append('file', file);
+      const { error: upErr, url } = await uploadImage(fd, 'articles');
+      if (upErr || !url) { setError(`Upload алдаа: ${upErr ?? 'URL хоосон'}`); setMobUploading(false); return; }
+      setForm((f) => ({ ...f, mobile_cover_image: url }));
+      setMobPreview(url);
+    } catch { setError('Mobile зураг upload хийхэд алдаа гарлаа.'); }
+    setMobUploading(false);
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true); setError(''); setSuccess('');
@@ -111,6 +137,7 @@ export default function EditArticlePage() {
       body_mn: form.body_mn || null,
       body_en: form.body_en || null,
       cover_image_url: form.cover_image_url || null,
+      mobile_cover_image: form.mobile_cover_image || null,
       category: form.category,
       author_name: form.author_name || null,
       slug: form.slug,
@@ -188,6 +215,41 @@ export default function EditArticlePage() {
           </p>
           <input value={form.cover_image_url}
             onChange={(e) => { set('cover_image_url', e.target.value); setPreview(e.target.value); }}
+            style={inp} placeholder="https://... (URL-аар оруулах)" />
+        </div>
+
+        {/* Mobile cover image (optional portrait) */}
+        <div>
+          <label style={lbl}>📱 Мобайл зураг <span style={{ fontWeight: 400, color: '#6b7280' }}>(заавал биш — босоо хэлбэр)</span></label>
+          <div
+            onClick={() => mobImgInputRef.current?.click()}
+            style={{
+              border: `2px dashed ${mobPreview ? '#00B5AD' : '#333'}`,
+              borderRadius: '12px', cursor: 'pointer', overflow: 'hidden',
+              minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: mobPreview ? 'transparent' : '#1e1e1e',
+            }}
+          >
+            {mobPreview
+              ? <img src={mobPreview} alt="mobile preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
+              : <div style={{ textAlign: 'center', padding: '1.5rem' }}>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📱</div>
+                  <p style={{ fontSize: '13px', color: '#6b7280' }}>{mobUploading ? 'Хадгалж байна...' : 'Мобайл зураг оруулах (заавал биш)'}</p>
+                </div>
+            }
+          </div>
+          <input ref={mobImgInputRef} type="file" accept="image/*" onChange={handleMobImageUpload} style={{ display: 'none' }} />
+          {mobPreview && (
+            <button type="button" onClick={() => { setMobPreview(''); set('mobile_cover_image', ''); }}
+              style={{ marginTop: '4px', fontSize: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              Зураг арилгах
+            </button>
+          )}
+          <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', marginBottom: '4px' }}>
+            💡 Зөвлөмж: 9:16 босоо зураг (мобайл дэлгэц). Байхгүй бол дээрх зураг object-position: center 20% ашиглана.
+          </p>
+          <input value={form.mobile_cover_image}
+            onChange={(e) => { set('mobile_cover_image', e.target.value); setMobPreview(e.target.value); }}
             style={inp} placeholder="https://... (URL-аар оруулах)" />
         </div>
 
