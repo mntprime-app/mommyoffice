@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
+import { getSiteSettings } from '@/app/actions/admin';
 
 // ── Data fetchers ─────────────────────────────────────────────────────────────
 
@@ -220,11 +221,15 @@ export default async function ArticleDetailPage({
   const mins    = readTime(body + ' ' + title);
   const shareUrl = `https://mommyoffice.com/${locale}/articles/${slug}`;
 
-  const [relatedArticles, trending, relatedCourses] = await Promise.all([
+  const [relatedArticles, trending, relatedCourses, siteSettings] = await Promise.all([
     getRelatedArticles(cat, slug),
     getTrendingArticles(slug),
     getRelatedCourses(cat),
+    getSiteSettings(),
   ]);
+
+  const artFontSize  = siteSettings.article_font_size  || '16';
+  const artTextAlign = siteSettings.article_text_align || 'justify';
 
   return (
     <div style={{ background: '#111', minHeight: '100vh' }}>
@@ -389,7 +394,7 @@ export default async function ArticleDetailPage({
 
       <style>{`
         /* ── Article body typography ── */
-        .mo-article-body { font-size: 16px; line-height: 1.85; color: #c8c8c8; text-align: justify; }
+        .mo-article-body { font-size: ${artFontSize}px; line-height: 1.85; color: #c8c8c8; text-align: ${artTextAlign}; }
         .mo-article-body h2 { font-size: 1.45rem; font-weight: 800; color: #e5e5e5; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1f1f1f; }
         .mo-article-body h3 { font-size: 1.15rem; font-weight: 700; color: #e5e5e5; margin: 2rem 0 0.75rem; }
         .mo-article-body p { margin: 0 0 1.4rem; }

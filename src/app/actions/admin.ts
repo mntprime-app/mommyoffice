@@ -1,6 +1,28 @@
 'use server';
 import { createAdminClient } from '@/lib/supabase/server';
 
+// ─── SITE SETTINGS ────────────────────────────────────────────────────────────
+
+export const SETTING_DEFAULTS: Record<string, string> = {
+  article_font_size:  '16',
+  article_text_align: 'justify',
+};
+
+export async function getSiteSettings(): Promise<Record<string, string>> {
+  try {
+    const supabase = await createAdminClient();
+    const { data } = await supabase.from('mo_site_settings').select('key, value');
+    const result = { ...SETTING_DEFAULTS };
+    if (data) data.forEach((row: { key: string; value: string }) => { result[row.key] = row.value; });
+    return result;
+  } catch { return { ...SETTING_DEFAULTS }; }
+}
+
+export async function updateSiteSetting(key: string, value: string): Promise<void> {
+  const supabase = await createAdminClient();
+  await supabase.from('mo_site_settings').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+}
+
 // ─── STORAGE UPLOAD (service role — bypasses bucket RLS) ──────────────────────
 
 const BUCKET = 'mommyoffice-media';
