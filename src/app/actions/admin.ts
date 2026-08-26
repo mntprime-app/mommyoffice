@@ -1,12 +1,8 @@
 'use server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { SETTING_DEFAULTS } from '@/lib/constants';
 
 // ─── SITE SETTINGS ────────────────────────────────────────────────────────────
-
-const SETTING_DEFAULTS: Record<string, string> = {
-  article_font_size:  '16',
-  article_text_align: 'justify',
-};
 
 export async function getSiteSettings(): Promise<Record<string, string>> {
   try {

@@ -323,6 +323,7 @@ export default async function ArticleDetailPage({
           {body ? (
             <div
               className="mo-article-body"
+              style={{ fontSize: `${artFontSize}px`, textAlign: artTextAlign as 'left' | 'justify' | 'right' | 'center' }}
               dangerouslySetInnerHTML={{ __html: body }}
             />
           ) : (
@@ -394,7 +395,7 @@ export default async function ArticleDetailPage({
 
       <style>{`
         /* ── Article body typography ── */
-        .mo-article-body { font-size: ${artFontSize}px; line-height: 1.85; color: #c8c8c8; text-align: ${artTextAlign}; }
+        .mo-article-body { font-size: 16px; line-height: 1.85; color: #c8c8c8; text-align: justify; }
         .mo-article-body h2 { font-size: 1.45rem; font-weight: 800; color: #e5e5e5; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1f1f1f; }
         .mo-article-body h3 { font-size: 1.15rem; font-weight: 700; color: #e5e5e5; margin: 2rem 0 0.75rem; }
         .mo-article-body p { margin: 0 0 1.4rem; }
