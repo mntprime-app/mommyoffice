@@ -2,9 +2,8 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
-import { createCourse } from '@/app/actions/admin';
+import { createCourse, uploadImage } from '@/app/actions/admin';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 
@@ -54,13 +53,12 @@ export default function NewCoursePage() {
       setError(`✓ WebP шахагдсан: ${fmtSize(raw.size)} → ${fmtSize(file.size)}`);
       setTimeout(() => setError(''), 4000);
       setImgPreview(URL.createObjectURL(file));
-      const supabase = createClient();
-      const path = `courses/${Date.now()}.webp`;
-      const { error: upErr } = await supabase.storage.from('mommyoffice-public').upload(path, file, { upsert: true, contentType: 'image/webp' });
-      if (upErr) { setError('Storage тохиргоо хийгдээгүй байна. URL-аар оруулна уу.'); return; }
-      const { data: { publicUrl } } = supabase.storage.from('mommyoffice-public').getPublicUrl(path);
-      setForm((f) => ({ ...f, cover_image_url: publicUrl }));
-      setImgPreview(publicUrl);
+      const fd = new FormData();
+      fd.append('file', file);
+      const { error: upErr, url } = await uploadImage(fd, 'courses');
+      if (upErr || !url) { setError(`Upload алдаа: ${upErr ?? 'URL хоосон'}`); return; }
+      setForm((f) => ({ ...f, cover_image_url: url }));
+      setImgPreview(url);
     } catch { setError('Зураг upload хийхэд алдаа гарлаа.'); }
   }
 

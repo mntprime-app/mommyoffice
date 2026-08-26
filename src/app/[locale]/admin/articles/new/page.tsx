@@ -2,9 +2,9 @@
 import { useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
 import { createArticle } from '../actions';
+import { uploadImage } from '@/app/actions/admin';
 
 const CATEGORIES = [
   // Editorial series
@@ -66,13 +66,12 @@ export default function NewArticlePage() {
       setError(`✓ Шахагдсан: ${fmtSize(raw.size)} → ${fmtSize(file.size)} (WebP)`);
       setTimeout(() => setError(''), 4000);
       setPreview(URL.createObjectURL(file));
-      const supabase = createClient();
-      const path = `articles/${Date.now()}.webp`;
-      const { error: upErr } = await supabase.storage.from('mommyoffice-public').upload(path, file, { upsert: true, contentType: 'image/webp' });
-      if (upErr) { setError('Storage тохиргоо хийгдээгүй байна. URL-аар оруулна уу.'); setUploading(false); return; }
-      const { data: { publicUrl } } = supabase.storage.from('mommyoffice-public').getPublicUrl(path);
-      setForm((f) => ({ ...f, cover_image_url: publicUrl }));
-      setPreview(publicUrl);
+      const fd = new FormData();
+      fd.append('file', file);
+      const { error: upErr, url } = await uploadImage(fd, 'articles');
+      if (upErr || !url) { setError(`Upload алдаа: ${upErr ?? 'URL хоосон'}`); setUploading(false); return; }
+      setForm((f) => ({ ...f, cover_image_url: url }));
+      setPreview(url);
     } catch { setError('Зураг upload хийхэд алдаа гарлаа.'); }
     setUploading(false);
   }
