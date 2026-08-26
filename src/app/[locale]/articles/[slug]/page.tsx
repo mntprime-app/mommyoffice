@@ -418,10 +418,10 @@ export default async function ArticleDetailPage({
           .mo-detail-grid { padding: 1.25rem 1rem 3rem; }
         }
 
-        /* ── MOBILE: meta bar stacks vertically ── */
+        /* ── MOBILE: meta bar — centered column layout ── */
         @media (max-width: 600px) {
-          .mo-meta-bar { flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 14px; }
-          .mo-meta-bar > div:last-child { width: 100%; justify-content: flex-start; }
+          .mo-meta-bar { flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 16px; }
+          .mo-meta-bar > div:last-child { width: 100%; justify-content: center; margin-left: 0 !important; }
         }
 
         /* ── MOBILE: article body font scaling ── */
