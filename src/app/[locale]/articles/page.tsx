@@ -83,26 +83,26 @@ function AdBanner({ type }: { type: 'leaderboard' | 'sidebar' | 'footer' }) {
   }
   if (type === 'footer') {
     return (
-      <div style={{ margin: '0 0 2rem', background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '20px 32px' }}>
-        <div style={{ width: '40px', height: '40px', background: 'rgba(0,181,173,0.08)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: '18px' }}>📢</span>
+      <div style={{ margin: '0 0 2rem', background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '16px', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ width: '36px', height: '36px', background: 'rgba(0,181,173,0.08)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ fontSize: '16px' }}>📢</span>
         </div>
         <div>
-          <p style={{ fontSize: '13px', fontWeight: 700, color: '#444', margin: '0 0 2px' }}>Сурталчилгааны зай — 970×90</p>
-          <p style={{ fontSize: '11px', color: '#333', margin: 0 }}>Захиалах: info.mommyoffice@gmail.com</p>
+          <p style={{ fontSize: '12px', fontWeight: 700, color: '#444', margin: '0 0 2px' }}>Сурталчилгааны зай</p>
+          <p style={{ fontSize: '10px', color: '#333', margin: 0 }}>info.mommyoffice@gmail.com</p>
         </div>
       </div>
     );
   }
   // leaderboard
   return (
-    <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '16px 24px', margin: '24px 0' }}>
-      <div style={{ width: '36px', height: '36px', background: 'rgba(0,181,173,0.08)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: '16px' }}>📢</span>
+    <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '16px', margin: '24px 0', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ width: '32px', height: '32px', background: 'rgba(0,181,173,0.08)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <span style={{ fontSize: '14px' }}>📢</span>
       </div>
       <div>
-        <p style={{ fontSize: '12px', fontWeight: 700, color: '#444', margin: '0 0 2px', letterSpacing: '0.5px' }}>СУРТАЛЧИЛГААНЫ ЗАЙ — 970×90</p>
-        <p style={{ fontSize: '10px', color: '#333', margin: 0 }}>Захиалах: info.mommyoffice@gmail.com</p>
+        <p style={{ fontSize: '11px', fontWeight: 700, color: '#444', margin: '0 0 2px' }}>Сурталчилгааны зай</p>
+        <p style={{ fontSize: '10px', color: '#333', margin: 0 }}>info.mommyoffice@gmail.com</p>
       </div>
     </div>
   );
@@ -360,7 +360,7 @@ export default async function ArticlesPage({
         </div>
 
         {/* ── MAIN 2-COL GRID ── */}
-        <div className="mo-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '3rem', paddingTop: '2rem', alignItems: 'flex-start' }}>
+        <div className="mo-main-grid">
 
           {/* ── LEFT: Article feed ── */}
           <div>
@@ -390,7 +390,7 @@ export default async function ArticlesPage({
           </div>
 
           {/* ── RIGHT: Sticky sidebar ── */}
-          <div style={{ position: 'sticky', top: '80px' }}>
+          <div className="mo-sidebar">
 
             {/* Trending */}
             <div>
@@ -443,80 +443,70 @@ export default async function ArticlesPage({
         .netflix-card:hover { transform: translateY(-3px); }
 
         /* ── Prevent horizontal overflow ── */
-        .mo-hero-section, .mo-body-wrap { overflow-x: hidden; }
+        .mo-hero-section, .mo-body-wrap { overflow-x: hidden; max-width: 100%; }
 
-        /* ── TABLET (≤900px): collapse sidebar ── */
+        /* ── 2-col grid: defined purely in CSS (no inline style conflict) ── */
+        .mo-main-grid {
+          display: grid;
+          grid-template-columns: 1fr 300px;
+          gap: 3rem;
+          padding-top: 2rem;
+          align-items: flex-start;
+        }
+        .mo-sidebar {
+          position: sticky;
+          top: 80px;
+        }
+
+        /* ── TABLET (≤900px): collapse to single column, hide sidebar ── */
         @media (max-width: 900px) {
-          .mo-main-grid { grid-template-columns: 1fr !important; }
-          .mo-main-grid > div:last-child { position: static !important; display: none; }
+          .mo-main-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+          .mo-sidebar { display: none; }
         }
 
         /* ── MOBILE (≤768px): body padding ── */
         @media (max-width: 768px) {
-          .mo-body-wrap { padding: 0 1rem !important; }
+          .mo-body-wrap { padding: 0 1rem; }
         }
 
-        /* ── MOBILE: hero — bottom-weighted overlay, full-width content ── */
+        /* ── MOBILE: hero ── */
         @media (max-width: 768px) {
-          .mo-hero-section { height: 56vh !important; min-height: 320px !important; }
+          .mo-hero-section { height: 56vh; min-height: 300px; }
           .mo-hero-overlay {
             background: linear-gradient(
               to bottom,
-              rgba(0,0,0,0.15) 0%,
-              rgba(0,0,0,0.5)  45%,
+              rgba(0,0,0,0.1) 0%,
+              rgba(0,0,0,0.5) 40%,
               rgba(0,0,0,0.95) 100%
-            ) !important;
+            );
           }
-          .mo-hero-content {
-            bottom: 8% !important;
-            left: 0 !important;
-            right: 0 !important;
-            max-width: 100% !important;
-            padding: 0 1.25rem !important;
-          }
-          .mo-hero-content h1 {
-            font-size: 1.35rem !important;
-            line-height: 1.3 !important;
-            -webkit-line-clamp: 3 !important;
-          }
-          .mo-hero-excerpt { display: none !important; }
+          .mo-hero-content { bottom: 8%; left: 0; right: 0; max-width: 100%; padding: 0 1.25rem; }
+          .mo-hero-content h1 { font-size: 1.35rem; line-height: 1.3; }
+          .mo-hero-excerpt { display: none; }
         }
 
-        /* ── MOBILE: category pill bar — horizontal scroll ── */
+        /* ── MOBILE: category pill bar ── */
         @media (max-width: 768px) {
           .mo-cat-bar {
-            flex-wrap: nowrap !important;
-            overflow-x: auto !important;
-            -webkit-overflow-scrolling: touch !important;
-            scrollbar-width: none !important;
-            margin: 0 -1rem !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            padding-top: 1rem !important;
-            padding-bottom: 1rem !important;
-            border-bottom: 1px solid #1f1f1f !important;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            margin: 0 -1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #1f1f1f;
           }
           .mo-cat-bar::-webkit-scrollbar { display: none; }
-          .mo-cat-bar a {
-            flex-shrink: 0 !important;
-            min-height: 40px !important;
-            display: inline-flex !important;
-            align-items: center !important;
-          }
+          .mo-cat-bar a { flex-shrink: 0; min-height: 40px; display: inline-flex; align-items: center; }
           .mo-cat-bar a:first-child { margin-left: 1rem; }
           .mo-cat-bar a:last-child  { margin-right: 1rem; }
         }
 
-        /* ── MOBILE (≤520px): article card — thumbnail stacks above text ── */
+        /* ── MOBILE (≤520px): article card stacks ── */
         @media (max-width: 520px) {
-          .mo-art-card { flex-direction: column !important; gap: 0 !important; }
-          .mo-art-thumb {
-            width: 100% !important;
-            height: 200px !important;
-            border-radius: 8px 8px 0 0 !important;
-            flex-shrink: unset !important;
-          }
-          .mo-art-text { padding-top: 12px !important; }
+          .mo-art-card { flex-direction: column; gap: 0; }
+          .mo-art-thumb { width: 100%; height: 200px; border-radius: 8px 8px 0 0; flex-shrink: unset; }
+          .mo-art-text { padding-top: 12px; }
         }
       `}</style>
     </div>

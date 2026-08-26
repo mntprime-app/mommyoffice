@@ -275,7 +275,7 @@ export default async function ArticleDetailPage({
       </div>
 
       {/* ── BODY ── */}
-      <div className="mo-detail-grid" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2.5rem 2rem 4rem', display: 'grid', gridTemplateColumns: '1fr 300px', gap: '3.5rem', alignItems: 'flex-start' }}>
+      <div className="mo-detail-grid" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2.5rem 2rem 4rem', alignItems: 'flex-start' }}>
 
         {/* ── LEFT: Article ── */}
         <article>
@@ -401,22 +401,28 @@ export default async function ArticleDetailPage({
         .mo-article-body a { color: #00B5AD; text-decoration: underline; }
         .mo-article-body strong { color: #e5e5e5; font-weight: 700; }
 
-        /* ── TABLET (≤900px): collapse sidebar ── */
-        @media (max-width: 900px) {
-          .mo-detail-grid { grid-template-columns: 1fr !important; padding: 1.5rem 1.5rem 3rem !important; gap: 2rem !important; }
-          .mo-detail-grid > aside { display: none !important; }
+        /* ── Detail grid: desktop (no inline style conflict) ── */
+        .mo-detail-grid {
+          display: grid;
+          grid-template-columns: 1fr 300px;
+          gap: 3.5rem;
         }
 
-        /* ── MOBILE (≤768px): hero ── */
+        /* ── TABLET (≤900px): collapse sidebar ── */
+        @media (max-width: 900px) {
+          .mo-detail-grid { grid-template-columns: 1fr; padding: 1.5rem 1.5rem 3rem; gap: 2rem; }
+          .mo-detail-grid > aside { display: none; }
+        }
+
+        /* ── MOBILE (≤768px) ── */
         @media (max-width: 768px) {
-          .mo-detail-grid { padding: 1.25rem 1rem 3rem !important; }
+          .mo-detail-grid { padding: 1.25rem 1rem 3rem; }
         }
 
         /* ── MOBILE: meta bar stacks vertically ── */
         @media (max-width: 600px) {
-          .mo-meta-bar { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; padding: 12px 14px !important; }
-          .mo-meta-bar > div:last-child { width: 100%; justify-content: flex-start !important; }
-          .mo-meta-bar > div[style*="width: 1px"] { display: none !important; }
+          .mo-meta-bar { flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 14px; }
+          .mo-meta-bar > div:last-child { width: 100%; justify-content: flex-start; }
         }
 
         /* ── MOBILE: article body font scaling ── */
