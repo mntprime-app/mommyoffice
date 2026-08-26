@@ -1,6 +1,28 @@
 'use server';
 import { createAdminClient } from '@/lib/supabase/server';
 
+export async function listArticles() {
+  const supabase = await createAdminClient();
+  const { data } = await supabase
+    .from('mo_articles')
+    .select('id, title_mn, title_en, category, is_published, published_at, slug, is_pinned_trending, pin_rank, placement')
+    .order('created_at', { ascending: false });
+  return data || [];
+}
+
+export async function toggleArticlePublish(id: string, current: boolean) {
+  const supabase = await createAdminClient();
+  await supabase.from('mo_articles').update({
+    is_published: !current,
+    published_at: !current ? new Date().toISOString() : null,
+  }).eq('id', id);
+}
+
+export async function deleteArticleById(id: string) {
+  const supabase = await createAdminClient();
+  await supabase.from('mo_articles').delete().eq('id', id);
+}
+
 export async function createArticle(data: {
   title_mn: string;
   title_en: string | null;

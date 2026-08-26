@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
+import { listArticles, toggleArticlePublish, deleteArticleById } from './actions';
 
 export default function AdminArticlesPage() {
   const params = useParams();
@@ -11,27 +11,17 @@ export default function AdminArticlesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase
-      .from('mo_articles')
-      .select('id, title_mn, title_en, category, is_published, published_at, slug, is_pinned_trending, pin_rank, placement')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => { setArticles(data || []); setLoading(false); });
+    listArticles().then((data) => { setArticles(data as Record<string, unknown>[]); setLoading(false); });
   }, []);
 
   async function togglePublish(id: string, current: boolean) {
-    const supabase = createClient();
-    await supabase
-      .from('mo_articles')
-      .update({ is_published: !current, published_at: !current ? new Date().toISOString() : null })
-      .eq('id', id);
+    await toggleArticlePublish(id, current);
     setArticles((prev) => prev.map((a) => a.id === id ? { ...a, is_published: !current } : a));
   }
 
   async function deleteArticle(id: string, title: string) {
     if (!confirm(`"${title}" нийтлэлийг устгах уу?`)) return;
-    const supabase = createClient();
-    await supabase.from('mo_articles').delete().eq('id', id);
+    await deleteArticleById(id);
     setArticles((prev) => prev.filter((a) => a.id !== id));
   }
 
