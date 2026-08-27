@@ -1,9 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 async function getFeaturedCourses() {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const SEL = 'id, title_mn, title_en, price, cover_image_url, slug, category';
   // Try placement-filtered first (requires migration); fallback to all published
   try {
@@ -26,7 +26,7 @@ const ARTICLE_FIELDS = 'id, title_mn, title_en, emoji, cover_image_url, slug, ca
 
 async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null; trending: Record<string, unknown>[]; more: Record<string, unknown>[] }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const [heroRes, trendingRes, recentRes] = await Promise.all([
       supabase.from('mo_articles').select(ARTICLE_FIELDS)
         .eq('is_published', true).eq('placement', 'hero')
@@ -43,7 +43,7 @@ async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null
     const heroId = hero?.id;
     const trendingFromDB: Record<string, unknown>[] = (trendingRes.data || []) as Record<string, unknown>[];
     const trending = trendingFromDB.length > 0
-      ? trendingFromDB
+      ? trendingFromDB.filter(a => a.id !== heroId)
       : recent.filter(a => a.id !== heroId).slice(0, 3);
     const usedIds = new Set([heroId, ...trending.map(a => a.id)].filter(Boolean));
     const more = recent.filter(a => !usedIds.has(a.id)).slice(0, 6);
