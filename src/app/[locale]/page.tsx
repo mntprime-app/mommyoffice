@@ -268,9 +268,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   }} />
                   <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px' }}>
                     <span style={{
-                      fontSize: '10px', fontWeight: 800, color: '#00B5AD',
-                      textTransform: 'uppercase', letterSpacing: '1.5px',
-                      display: 'block', marginBottom: '8px',
+                      display: 'inline-block', marginBottom: '10px',
+                      background: 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(15,15,15,0.95))',
+                      border: '1px solid rgba(0,181,173,0.35)',
+                      color: '#00B5AD', padding: '4px 12px', borderRadius: '4px',
+                      fontSize: '10px', fontWeight: 800,
+                      letterSpacing: '1.5px', textTransform: 'uppercase',
                     }}>
                       {String(featuredArticle?.category || 'Lifestyle')}
                     </span>
@@ -318,7 +321,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                           background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)',
                         }} />
                         <div style={{ position: 'absolute', bottom: '12px', left: '14px', right: '14px' }}>
-                          <span style={{ fontSize: '9px', fontWeight: 800, color: '#00B5AD', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '4px' }}>
+                          <span style={{
+                            display: 'inline-block', marginBottom: '5px',
+                            background: 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(15,15,15,0.95))',
+                            border: '1px solid rgba(0,181,173,0.35)',
+                            color: '#00B5AD', padding: '3px 9px', borderRadius: '4px',
+                            fontSize: '9px', fontWeight: 800,
+                            letterSpacing: '1px', textTransform: 'uppercase',
+                          }}>
                             {String(a.category || a.cat || 'Lifestyle')}
                           </span>
                           <p style={{
