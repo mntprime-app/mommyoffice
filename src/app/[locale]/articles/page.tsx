@@ -533,11 +533,12 @@ export default async function ArticlesPage({
           .mo-cat-bar a:last-child  { margin-right: 1rem; }
         }
 
-        /* ── MOBILE (≤520px): article card stacks ── */
-        @media (max-width: 520px) {
-          .mo-art-card { flex-direction: column; gap: 0; }
-          .mo-art-thumb { width: 100%; height: 200px; border-radius: 8px 8px 0 0; flex-shrink: unset; }
-          .mo-art-text { padding-top: 12px; }
+        /* ── MOBILE (≤768px): article card stacks full-width ── */
+        @media (max-width: 768px) {
+          .mo-art-card { flex-direction: column; gap: 0; padding: 16px 0; }
+          .mo-art-thumb { width: 100% !important; height: auto !important; aspect-ratio: 16 / 9; border-radius: 10px; flex-shrink: unset !important; }
+          .mo-art-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+          .mo-art-text { padding-top: 10px; }
         }
       `}</style>
     </div>
