@@ -17,6 +17,7 @@ const CATEGORIES = [
 const PLACEMENTS = [
   { value: 'hero', label: 'Онцлох Hero Banner', desc: 'Нүүр хуудасны дээд хэсэг' },
   { value: 'trending', label: 'Трэндинг Нийтлэл', desc: 'Баруун талын жагсаалт — Manual Pin' },
+  { value: 'editorial', label: 'Редакцын Сонголт', desc: 'Нийтлэлүүд хуудасны онцлох 3 нийтлэл' },
   { value: 'normal', label: 'Энгийн Нийтлэл', desc: 'Үндсэн сүлжээ' },
 ];
 

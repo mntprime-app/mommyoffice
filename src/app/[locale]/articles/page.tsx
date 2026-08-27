@@ -27,6 +27,21 @@ async function getArticles() {
   } catch { return []; }
 }
 
+async function getEditorialArticles() {
+  try {
+    const supabase = await createAdminClient();
+    const { data } = await supabase
+      .from('mo_articles')
+      .select('id, title_mn, title_en, cover_image_url, mobile_cover_image, slug, category, published_at, excerpt_mn, excerpt_en, emoji, pin_rank')
+      .eq('is_published', true)
+      .eq('placement', 'editorial')
+      .order('pin_rank', { ascending: true })
+      .order('published_at', { ascending: false })
+      .limit(3);
+    return (data || []) as Record<string, unknown>[];
+  } catch { return []; }
+}
+
 const CAT_GRADIENTS: Record<string, string> = {
   'Эрүүл мэнд':    'linear-gradient(135deg,#0d3720,#1a6b3a)',
   'Гоо сайхан':    'linear-gradient(135deg,#1a0d37,#4a1a6b)',
@@ -219,6 +234,37 @@ function EditorsPick({ a, locale }: { a: Record<string, unknown>; locale: string
   );
 }
 
+// ── Editorial Pick card (3-col section) ──
+function EditorialPickCard({ a, locale }: { a: Record<string, unknown>; locale: string }) {
+  const title   = locale === 'mn' ? String(a.title_mn || '') : String(a.title_en || a.title_mn || '');
+  const excerpt = locale === 'mn' ? String(a.excerpt_mn || '') : String(a.excerpt_en || a.excerpt_mn || '');
+  const cat     = String(a.category || '');
+  const catColor = CAT_COLORS[cat] || CAT_COLORS.default;
+  const grad    = CAT_GRADIENTS[cat] || CAT_GRADIENTS.default;
+  const href    = a.slug && a.slug !== '#' ? `/${locale}/articles/${String(a.slug)}` : '#';
+  return (
+    <Link href={href} style={{ textDecoration: 'none', display: 'block' }}>
+      <article style={{ borderRadius: '12px', overflow: 'hidden', background: '#1a1a1a', border: `1px solid #222`, transition: 'transform 0.18s, border-color 0.18s' }}
+        className="mo-ed-card">
+        <div style={{ aspectRatio: '16/9', background: grad, position: 'relative', overflow: 'hidden' }}>
+          {(a.cover_image_url || a.mobile_cover_image)
+            ? <img src={String(a.cover_image_url || a.mobile_cover_image)} alt={title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', opacity: 0.4 }}>{String(a.emoji || '✍️')}</div>
+          }
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)' }} />
+          <span style={{ position: 'absolute', bottom: '10px', left: '12px', fontSize: '9px', fontWeight: 800, color: catColor, background: 'rgba(0,0,0,0.7)', padding: '2px 8px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{cat}</span>
+        </div>
+        <div style={{ padding: '14px 16px 16px' }}>
+          <p style={{ fontSize: '14px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 8px', lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</p>
+          {excerpt && <p style={{ fontSize: '12px', color: '#666', margin: 0, lineHeight: 1.55, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{excerpt}</p>}
+          <span style={{ display: 'inline-block', marginTop: '10px', fontSize: '11px', color: catColor, fontWeight: 700 }}>Унших →</span>
+        </div>
+      </article>
+    </Link>
+  );
+}
+
 // ── Netflix horizontal row ──
 function ArticleScrollCard({ a, locale }: { a: Record<string, unknown>; locale: string }) {
   const title = locale === 'mn' ? String(a.title_mn || '') : String(a.title_en || a.title_mn || '');
@@ -275,7 +321,7 @@ export default async function ArticlesPage({
   const { category } = await searchParams;
   await getTranslations('articles');
 
-  const dbArticles = await getArticles();
+  const [dbArticles, editorialArticles] = await Promise.all([getArticles(), getEditorialArticles()]);
   const allArticles = dbArticles as Record<string, unknown>[];
 
   const isFiltered = !!(category && category !== 'Бүх ангилал');
@@ -294,7 +340,7 @@ export default async function ArticlesPage({
 
   const mainFeedArticles = isFiltered ? displayArticles : allArticles;
   const sidebarTrending  = allArticles.slice(0, 6);
-  const editorsPick      = allArticles[2] || allArticles[0];
+  const editorsPick      = editorialArticles[0] || allArticles[2] || allArticles[0];
 
   return (
     <div style={{ background: '#111', minHeight: '100vh' }}>
@@ -362,6 +408,21 @@ export default async function ArticlesPage({
             );
           })}
         </div>
+
+        {/* ── РЕДАКЦЫН СОНГОЛТ — 3-card section (only shown when articles exist) ── */}
+        {!isFiltered && editorialArticles.length > 0 && (
+          <section style={{ padding: '2rem 0 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem' }}>
+              <div style={{ width: '3px', height: '20px', background: '#00B5AD', borderRadius: '2px' }} />
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#666', letterSpacing: '1.5px', textTransform: 'uppercase' }}>✍️ Редакцын сонголт</span>
+            </div>
+            <div className="mo-editorial-grid">
+              {editorialArticles.map((a, i) => (
+                <EditorialPickCard key={String(a.id || i)} a={a} locale={locale} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── MAIN 2-COL GRID ── */}
         <div className="mo-main-grid">
@@ -441,6 +502,17 @@ export default async function ArticlesPage({
         /* ── Base interactions ── */
         .mo-art-card { transition: background 0.15s; border-radius: 8px; }
         .mo-art-card:hover { background: rgba(255,255,255,0.025); }
+        .mo-ed-card:hover { transform: translateY(-3px); border-color: rgba(0,181,173,0.3) !important; }
+
+        /* ── Editorial 3-col grid ── */
+        .mo-editorial-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.25rem;
+        }
+        @media (max-width: 768px) {
+          .mo-editorial-grid { grid-template-columns: 1fr; }
+        }
         .mo-sb-item { transition: opacity 0.15s; }
         .mo-sb-item:hover { opacity: 0.7; }
         .netflix-card { transition: transform 0.18s; }
