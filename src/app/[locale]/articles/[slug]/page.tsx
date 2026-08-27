@@ -234,90 +234,71 @@ export default async function ArticleDetailPage({
   return (
     <div style={{ background: '#111', minHeight: '100vh' }}>
 
-      {/* ── HERO COVER ── */}
-      <div className="mo-detail-hero" style={{ position: 'relative', width: '100%', height: '480px', overflow: 'hidden' }}>
-        {/* Image wrapper — becomes aspect-ratio box on mobile */}
-        <div className="mo-detail-hero-img-wrap" style={{ position: 'absolute', inset: 0 }}>
-          {(article.cover_image_url || article.mobile_cover_image) ? (
-            <img
-              src={String(article.cover_image_url || article.mobile_cover_image)}
-              alt={title}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}
-            />
-          ) : (
-            <div style={{ width: '100%', height: '100%', background: CAT_GRADIENTS[cat] || CAT_GRADIENTS.default }} />
-          )}
-        </div>
-        {/* Bottom-left scrim — only covers bottom 30%, face stays bright */}
-        <div className="mo-detail-lr-overlay" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top right, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.4) 30%, transparent 55%)' }} />
-        {/* Bottom fade into page background */}
-        <div className="mo-detail-bottom-fade" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '30%', background: 'linear-gradient(to bottom, transparent, #111)' }} />
+      {/* ── 1. PURE TEXT HEADER BLOCK ── */}
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 2rem 0' }}>
+
         {/* Breadcrumb */}
-        <div className="mo-detail-breadcrumb" style={{ position: 'absolute', top: '24px', left: '0', right: '0', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-            <Link href={`/${locale}`} style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Нүүр</Link>
-            <span style={{ color: '#555' }}>›</span>
-            <Link href={`/${locale}/articles`} style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Нийтлэл</Link>
-            <span style={{ color: '#555' }}>›</span>
-            <Link href={`/${locale}/articles?category=${encodeURIComponent(cat)}`} style={{ color: catColor, textDecoration: 'none', fontWeight: 600 }}>{cat}</Link>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', marginBottom: '1.25rem' }}>
+          <Link href={`/${locale}`} style={{ color: '#666', textDecoration: 'none' }}>Нүүр</Link>
+          <span style={{ color: '#444' }}>›</span>
+          <Link href={`/${locale}/articles`} style={{ color: '#666', textDecoration: 'none' }}>Нийтлэл</Link>
+          <span style={{ color: '#444' }}>›</span>
+          <Link href={`/${locale}/articles?category=${encodeURIComponent(cat)}`} style={{ color: catColor, textDecoration: 'none', fontWeight: 600 }}>{cat}</Link>
         </div>
-        {/* Hero title block */}
-        <div className="mo-detail-hero-text" style={{ position: 'absolute', bottom: '2.5rem', left: '0', right: '0', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-          <span style={{ display: 'inline-block', background: `${catColor}22`, border: `1px solid ${catColor}55`, color: catColor, padding: '3px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '12px' }}>
-            {cat}
-          </span>
-          <h1 style={{
-            fontSize: 'clamp(1.5rem, 2.5vw, 2.2rem)',
-            fontWeight: 800,
-            lineHeight: 1.25,
-            color: '#fff',
-            margin: 0,
-            letterSpacing: '-0.5px',
-            textShadow: '0 2px 20px rgba(0,0,0,0.6)',
-            maxWidth: '620px',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}>
-            {title}
-          </h1>
+
+        {/* Category pill */}
+        <span style={{ display: 'inline-block', background: `${catColor}22`, border: `1px solid ${catColor}55`, color: catColor, padding: '3px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '14px' }}>
+          {cat}
+        </span>
+
+        {/* H1 headline */}
+        <h1 style={{ fontSize: 'clamp(1.65rem, 3vw, 2.6rem)', fontWeight: 800, lineHeight: 1.25, color: '#fff', margin: '0 0 1.25rem', letterSpacing: '-0.5px' }}>
+          {title}
+        </h1>
+
+        {/* Meta bar */}
+        <div className="mo-meta-bar" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '1.75rem', paddingBottom: '1.5rem', borderBottom: '1px solid #1f1f1f' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: `${catColor}33`, border: `2px solid ${catColor}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 700, color: catColor, flexShrink: 0 }}>
+              {article.author_name ? String(article.author_name)[0].toUpperCase() : 'M'}
+            </div>
+            <div>
+              <p style={{ fontSize: '13px', fontWeight: 700, color: '#e5e5e5', margin: 0 }}>{String(article.author_name || 'Mommyoffice')}</p>
+              <p style={{ fontSize: '10px', color: '#555', margin: 0 }}>Зохиолч</p>
+            </div>
+          </div>
+          {date && <div style={{ fontSize: '12px', color: '#666' }}>📅 {date}</div>}
+          <div style={{ fontSize: '12px', color: '#666' }}>⏱ {mins} минут унших</div>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+            <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer"
+              style={{ padding: '6px 14px', borderRadius: '6px', background: '#1877f2', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
+              f Хуваалцах
+            </a>
+            <a href={shareUrl} style={{ padding: '6px 14px', borderRadius: '6px', background: '#1e1e1e', border: '1px solid #333', color: '#aaa', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
+              🔗 Холбоос
+            </a>
+          </div>
         </div>
       </div>
 
-      {/* ── BODY ── */}
-      <div className="mo-detail-grid" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2.5rem 2rem 4rem', alignItems: 'flex-start' }}>
+      {/* ── 2. HERO IMAGE — 100% pure, zero gradients ── */}
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 2rem 2rem' }}>
+        <div style={{ width: '100%', aspectRatio: '16/9', borderRadius: '14px', overflow: 'hidden', background: CAT_GRADIENTS[cat] || CAT_GRADIENTS.default }}>
+          {(article.cover_image_url || article.mobile_cover_image) && (
+            <img
+              src={String(article.cover_image_url || article.mobile_cover_image)}
+              alt={title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', display: 'block' }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* ── 3. BODY ── */}
+      <div className="mo-detail-grid" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem 4rem', alignItems: 'flex-start' }}>
 
         {/* ── LEFT: Article ── */}
         <article>
-
-          {/* Meta bar */}
-          <div className="mo-meta-bar" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '2rem', padding: '14px 20px', background: '#1a1a1a', borderRadius: '10px', border: '1px solid #222' }}>
-            {/* Author */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: `${catColor}33`, border: `2px solid ${catColor}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 700, color: catColor, flexShrink: 0 }}>
-                {article.author_name ? String(article.author_name)[0].toUpperCase() : 'M'}
-              </div>
-              <div>
-                <p style={{ fontSize: '13px', fontWeight: 700, color: '#e5e5e5', margin: 0 }}>{String(article.author_name || 'Mommyoffice')}</p>
-                <p style={{ fontSize: '10px', color: '#555', margin: 0 }}>Зохиолч</p>
-              </div>
-            </div>
-            {date && <div style={{ fontSize: '12px', color: '#666' }}>📅 {date}</div>}
-            <div style={{ fontSize: '12px', color: '#666' }}>⏱ {mins} минут унших</div>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-              {/* FB share */}
-              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer"
-                style={{ padding: '6px 14px', borderRadius: '6px', background: '#1877f2', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
-                f Хуваалцах
-              </a>
-              {/* Copy link */}
-              <a href={shareUrl} style={{ padding: '6px 14px', borderRadius: '6px', background: '#1a1a1a', border: '1px solid #333', color: '#aaa', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
-                🔗 Холбоос
-              </a>
-            </div>
-          </div>
 
           {/* Excerpt / lead */}
           {excerpt && (
@@ -401,43 +382,9 @@ export default async function ArticleDetailPage({
       </div>
 
       <style>{`
-        /* ── MOBILE: Stacked editorial hero layout ── */
+        /* ── MOBILE: header + image padding ── */
         @media (max-width: 768px) {
-          .mo-detail-hero {
-            height: auto !important;
-            min-height: 0 !important;
-            display: flex;
-            flex-direction: column;
-          }
-          .mo-detail-hero-img-wrap {
-            position: relative !important;
-            top: auto !important; right: auto !important; bottom: auto !important; left: auto !important;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            flex-shrink: 0;
-            overflow: hidden;
-          }
-          .mo-detail-lr-overlay,
-          .mo-detail-bottom-fade { display: none !important; }
-          .mo-detail-breadcrumb {
-            position: relative !important;
-            top: auto !important;
-            max-width: 100% !important;
-            padding: 1rem 1.25rem 0 !important;
-            background: #111;
-          }
-          .mo-detail-hero-text {
-            position: relative !important;
-            bottom: auto !important;
-            max-width: 100% !important;
-            padding: 0.75rem 1.25rem 1.5rem !important;
-            background: #111;
-          }
-          .mo-detail-hero-text h1 {
-            font-size: 1.4rem !important;
-            text-shadow: none !important;
-            max-width: 100% !important;
-          }
+          .mo-detail-header-wrap, .mo-detail-img-wrap { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
         }
 
         /* ── Article body typography ── */
