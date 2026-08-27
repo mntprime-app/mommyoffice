@@ -451,7 +451,7 @@ export default async function ArticleDetailPage({
         /* ── TABLET/MOBILE (≤1024px): collapse sidebar, show inline mobile elements ── */
         @media (max-width: 1024px) {
           .mo-detail-grid { grid-template-columns: 1fr; padding: 1.5rem 1.5rem 3rem; gap: 2rem; }
-          .mo-detail-grid > aside { display: none; }
+          .mo-detail-grid > aside { display: none !important; }
           .mo-mobile-ad { display: flex !important; }
           .mo-mobile-related { display: block !important; }
         }
