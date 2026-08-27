@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = await createAdminClient();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mommyoffice-smoky.vercel.app';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mommyoffice.com';
 
     // Fetch order
     const { data: order, error: orderErr } = await supabase

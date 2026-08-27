@@ -445,7 +445,7 @@ export default async function CourseDetailPage({
               </p>
 
               <ShareButton
-                url={`https://mommyoffice-smoky.vercel.app/${locale}/courses/${slug}`}
+                url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://mommyoffice.com'}/${locale}/courses/${slug}`}
                 title={title}
               />
             </div>
