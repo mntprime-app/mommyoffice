@@ -275,8 +275,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </div>
             </Link>
 
-            {/* RIGHT — flex column, space-between fills exact same height as left card (image + 80px) */}
-            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+            {/* RIGHT — each item gets flex:1 (equal 1/5 height), content centered → divider sits midway */}
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               {sideArticles.map((a: Record<string, unknown>, i: number) => {
                 const title = locale === 'mn'
                   ? String(a.title_mn || a.title || '')
@@ -285,9 +285,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 const thumbGrads = ['linear-gradient(135deg,#1a2e1a,#2e4a1a)', 'linear-gradient(135deg,#2e1a1a,#4a2e1a)', 'linear-gradient(135deg,#1a1a2e,#1a2e4a)'];
                 return (
                   <Link key={String(a.id || i)} href={href}
-                    style={{ textDecoration: 'none', display: 'flex', alignItems: 'center',
+                    style={{ textDecoration: 'none', flex: 1, display: 'flex', alignItems: 'center',
                       borderBottom: i < sideArticles.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
-                    <div className="netflix-card" style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%', padding: '6px 4px' }}>
+                    <div className="netflix-card" style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%' }}>
                       {/* Square thumbnail */}
                       <div style={{
                         width: '72px', height: '72px', flexShrink: 0,
