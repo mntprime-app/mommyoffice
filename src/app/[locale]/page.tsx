@@ -250,16 +250,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             {/* LEFT — 16:9 image + fixed 80px text box below */}
             <Link href={featuredArticle?.slug ? `/${locale}/articles/${featuredArticle.slug}` : '#'}
               style={{ textDecoration: 'none', display: 'block' }}>
-              <div className="netflix-card" style={{ borderRadius: '12px', overflow: 'hidden', background: '#1a1a1a' }}>
-                {/* Image — pure 16:9 */}
-                <div style={{ aspectRatio: '16/9', overflow: 'hidden', background: '#111' }}>
+              <div className="netflix-card" style={{ borderRadius: '12px', background: '#1a1a1a' }}>
+                {/* Image — pure 16:9, overflow hidden here only (not on card) so text box never gets clipped */}
+                <div style={{ aspectRatio: '16/9', overflow: 'hidden', borderRadius: '12px 12px 0 0', background: '#111' }}>
                   {featuredArticle?.cover_image_url
                     ? <img src={String(featuredArticle.cover_image_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     : <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#1a1a2e,#2d1b4e)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '5rem' }}>✨</div>
                   }
                 </div>
-                {/* Text box — fixed 80px height, sits below image on dark background */}
-                <div style={{ height: '80px', padding: '10px 14px', background: '#1a1a1a', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '5px' }}>
+                {/* Text box — min-height not fixed, grows naturally on mobile */}
+                <div style={{ minHeight: '72px', padding: '10px 14px', background: '#1a1a1a', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '5px' }}>
                   <span style={{
                     display: 'inline-block', alignSelf: 'flex-start',
                     border: '1px solid rgba(0,181,173,0.5)',
