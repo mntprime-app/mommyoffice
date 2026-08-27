@@ -264,7 +264,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 {/* Text block — flex:1 fills whatever remains so card = exact right-col height */}
                 <div style={{ flex: 1, padding: '10px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <span style={{
-                    display: 'inline-block', marginBottom: '5px',
+                    alignSelf: 'flex-start', display: 'inline-block', marginBottom: '5px',
                     background: 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(15,15,15,0.95))',
                     border: '1px solid rgba(0,181,173,0.35)',
                     color: '#00B5AD', padding: '2px 8px', borderRadius: '4px',
@@ -291,8 +291,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </div>
             </Link>
 
-            {/* RIGHT — each item gets flex:1 so all 5 slots are perfectly equal height */}
-            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* RIGHT — CSS grid repeat(5,1fr) guarantees pixel-perfect equal rows */}
+            <div style={{ display: 'grid', gridTemplateRows: 'repeat(5, 1fr)', height: '100%' }}>
               {sideArticles.map((a: Record<string, unknown>, i: number) => {
                 const title = locale === 'mn'
                   ? String(a.title_mn || a.title || '')
@@ -301,7 +301,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 const thumbGrads = ['linear-gradient(135deg,#1a2e1a,#2e4a1a)', 'linear-gradient(135deg,#2e1a1a,#4a2e1a)', 'linear-gradient(135deg,#1a1a2e,#1a2e4a)'];
                 return (
                   <Link key={String(a.id || i)} href={href}
-                    style={{ textDecoration: 'none', flex: 1, display: 'flex', alignItems: 'center',
+                    style={{ textDecoration: 'none', display: 'flex', alignItems: 'center',
                       borderBottom: i < sideArticles.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
                     <div className="netflix-card" style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%', padding: '6px 4px' }}>
                       {/* Square thumbnail */}
