@@ -35,7 +35,7 @@ async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null
         .order('published_at', { ascending: false }).limit(1),
       supabase.from('mo_articles').select(ARTICLE_FIELDS)
         .eq('is_published', true).eq('placement', 'trending')
-        .order('pin_rank', { ascending: true }).order('published_at', { ascending: false }).limit(3),
+        .order('pin_rank', { ascending: true }).order('published_at', { ascending: false }).limit(5),
       supabase.from('mo_articles').select(ARTICLE_FIELDS)
         .eq('is_published', true)
         .order('published_at', { ascending: false }).limit(10),
@@ -48,7 +48,7 @@ async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null
     const trendingFromDB: Record<string, unknown>[] = (trendingRes.data || []) as Record<string, unknown>[];
     const trending = trendingFromDB.length > 0
       ? trendingFromDB.filter(a => a.id !== realHeroId)
-      : recent.filter(a => a.id !== realHeroId).slice(0, 3);
+      : recent.filter(a => a.id !== realHeroId).slice(0, 5);
     const usedIds = new Set([realHeroId, ...trending.map(a => a.id)].filter(Boolean));
     const more = recent.filter(a => !usedIds.has(a.id)).slice(0, 6);
     return { hero, trending, more };
@@ -245,7 +245,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <RowHeader title="Трэндинг нийтлэлүүд" href={`/${locale}/articles`} badge="TRENDING" />
 
           {/* Featured editorial layout: 65% big card + 35% thumbnail list */}
-          <div className="mo-editorial-grid">
+          <div className="mo-editorial-grid" style={{ alignItems: 'stretch' }}>
 
             {/* LEFT — 16:9 image + text BELOW (no dark mask) */}
             <Link href={featuredArticle?.slug ? `/${locale}/articles/${featuredArticle.slug}` : '#'} style={{ textDecoration: 'none' }}>
@@ -287,8 +287,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </div>
             </Link>
 
-            {/* RIGHT — 3 thumbnail + text list items (no squishing) */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {/* RIGHT — up to 5 thumbnail + text list items, evenly spaced */}
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               {sideArticles.map((a: Record<string, unknown>, i: number) => {
                 const title = locale === 'mn'
                   ? String(a.title_mn || a.title || '')
