@@ -40,6 +40,9 @@ async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null
         .eq('is_published', true)
         .order('published_at', { ascending: false }).limit(10),
     ]);
+    if (recentRes.error) console.error('[getHomeArticles] recentRes error:', recentRes.error.message);
+    if (heroRes.error) console.error('[getHomeArticles] heroRes error:', heroRes.error.message);
+    if (trendingRes.error) console.error('[getHomeArticles] trendingRes error:', trendingRes.error.message);
     const recent: Record<string, unknown>[] = recentRes.data || [];
     const heroFromDB = heroRes.data?.[0] as Record<string, unknown> | undefined;
     const hero: Record<string, unknown> | null = heroFromDB ?? recent[0] ?? null;
