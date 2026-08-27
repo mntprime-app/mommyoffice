@@ -248,10 +248,10 @@ export default async function ArticleDetailPage({
             <div style={{ width: '100%', height: '100%', background: CAT_GRADIENTS[cat] || CAT_GRADIENTS.default }} />
           )}
         </div>
-        {/* Left-to-right gradient — desktop only */}
-        <div className="mo-detail-lr-overlay" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(17,17,17,0.95) 0%, rgba(17,17,17,0.6) 48%, rgba(17,17,17,0.15) 75%, transparent 100%)' }} />
-        {/* Bottom fade — desktop only */}
-        <div className="mo-detail-bottom-fade" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to bottom, transparent, #111)' }} />
+        {/* Bottom-left scrim — only covers bottom 30%, face stays bright */}
+        <div className="mo-detail-lr-overlay" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top right, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.4) 30%, transparent 55%)' }} />
+        {/* Bottom fade into page background */}
+        <div className="mo-detail-bottom-fade" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '30%', background: 'linear-gradient(to bottom, transparent, #111)' }} />
         {/* Breadcrumb */}
         <div className="mo-detail-breadcrumb" style={{ position: 'absolute', top: '24px', left: '0', right: '0', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
