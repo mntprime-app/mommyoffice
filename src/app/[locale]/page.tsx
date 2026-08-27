@@ -52,7 +52,8 @@ async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null
     const usedIds = new Set([realHeroId, ...trending.map(a => a.id)].filter(Boolean));
     const more = recent.filter(a => !usedIds.has(a.id)).slice(0, 6);
     return { hero, trending, more };
-  } catch {
+  } catch (err) {
+    console.error('[getHomeArticles] threw:', err);
     return { hero: null, trending: [], more: [] };
   }
 }
