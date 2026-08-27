@@ -39,13 +39,15 @@ async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null
         .order('published_at', { ascending: false }).limit(10),
     ]);
     const recent: Record<string, unknown>[] = recentRes.data || [];
-    const hero: Record<string, unknown> | null = (heroRes.data?.[0] as Record<string, unknown>) ?? recent[0] ?? null;
-    const heroId = hero?.id;
+    const heroFromDB = heroRes.data?.[0] as Record<string, unknown> | undefined;
+    const hero: Record<string, unknown> | null = heroFromDB ?? recent[0] ?? null;
+    // Only deduplicate if there's a real placement='hero' article — not a fallback
+    const realHeroId = heroFromDB?.id;
     const trendingFromDB: Record<string, unknown>[] = (trendingRes.data || []) as Record<string, unknown>[];
     const trending = trendingFromDB.length > 0
-      ? trendingFromDB.filter(a => a.id !== heroId)
-      : recent.filter(a => a.id !== heroId).slice(0, 3);
-    const usedIds = new Set([heroId, ...trending.map(a => a.id)].filter(Boolean));
+      ? trendingFromDB.filter(a => a.id !== realHeroId)
+      : recent.filter(a => a.id !== realHeroId).slice(0, 3);
+    const usedIds = new Set([realHeroId, ...trending.map(a => a.id)].filter(Boolean));
     const more = recent.filter(a => !usedIds.has(a.id)).slice(0, 6);
     return { hero, trending, more };
   } catch {
