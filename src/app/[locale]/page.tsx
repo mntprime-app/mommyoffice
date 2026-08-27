@@ -24,7 +24,7 @@ async function getFeaturedCourses() {
   } catch { return []; }
 }
 
-const ARTICLE_FIELDS = 'id, title_mn, title_en, emoji, cover_image_url, slug, category, published_at, placement, pin_rank';
+const ARTICLE_FIELDS = 'id, title_mn, title_en, cover_image_url, slug, category, published_at, placement, pin_rank';
 
 async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null; trending: Record<string, unknown>[]; more: Record<string, unknown>[] }> {
   try {
@@ -40,9 +40,6 @@ async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null
         .eq('is_published', true)
         .order('published_at', { ascending: false }).limit(10),
     ]);
-    if (recentRes.error) console.error('[getHomeArticles] recentRes error:', recentRes.error.message);
-    if (heroRes.error) console.error('[getHomeArticles] heroRes error:', heroRes.error.message);
-    if (trendingRes.error) console.error('[getHomeArticles] trendingRes error:', trendingRes.error.message);
     const recent: Record<string, unknown>[] = recentRes.data || [];
     const heroFromDB = heroRes.data?.[0] as Record<string, unknown> | undefined;
     const hero: Record<string, unknown> | null = heroFromDB ?? recent[0] ?? null;
@@ -55,8 +52,7 @@ async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null
     const usedIds = new Set([realHeroId, ...trending.map(a => a.id)].filter(Boolean));
     const more = recent.filter(a => !usedIds.has(a.id)).slice(0, 6);
     return { hero, trending, more };
-  } catch (err) {
-    console.error('[getHomeArticles] threw:', err);
+  } catch {
     return { hero: null, trending: [], more: [] };
   }
 }
