@@ -234,80 +234,74 @@ export default async function ArticleDetailPage({
   return (
     <div style={{ background: '#111', minHeight: '100vh' }}>
 
-      {/* ── 1. PURE TEXT HEADER BLOCK ── */}
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 2rem 0' }}>
+      {/* ── UNIFIED 2-COLUMN GRID — everything aligned ── */}
+      <div className="mo-detail-grid" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 2rem 4rem', alignItems: 'flex-start' }}>
 
-        {/* Breadcrumb */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', marginBottom: '1.25rem' }}>
-          <Link href={`/${locale}`} style={{ color: '#666', textDecoration: 'none' }}>Нүүр</Link>
-          <span style={{ color: '#444' }}>›</span>
-          <Link href={`/${locale}/articles`} style={{ color: '#666', textDecoration: 'none' }}>Нийтлэл</Link>
-          <span style={{ color: '#444' }}>›</span>
-          <Link href={`/${locale}/articles?category=${encodeURIComponent(cat)}`} style={{ color: catColor, textDecoration: 'none', fontWeight: 600 }}>{cat}</Link>
-        </div>
-
-        {/* Category pill */}
-        <span style={{ display: 'inline-block', background: `${catColor}22`, border: `1px solid ${catColor}55`, color: catColor, padding: '3px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '14px' }}>
-          {cat}
-        </span>
-
-        {/* H1 headline */}
-        <h1 style={{ fontSize: 'clamp(1.65rem, 3vw, 2.6rem)', fontWeight: 800, lineHeight: 1.25, color: '#fff', margin: '0 0 1.25rem', letterSpacing: '-0.5px' }}>
-          {title}
-        </h1>
-
-        {/* Meta bar */}
-        <div className="mo-meta-bar" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '1.75rem', paddingBottom: '1.5rem', borderBottom: '1px solid #1f1f1f' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: `${catColor}33`, border: `2px solid ${catColor}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 700, color: catColor, flexShrink: 0 }}>
-              {article.author_name ? String(article.author_name)[0].toUpperCase() : 'M'}
-            </div>
-            <div>
-              <p style={{ fontSize: '13px', fontWeight: 700, color: '#e5e5e5', margin: 0 }}>{String(article.author_name || 'Mommyoffice')}</p>
-              <p style={{ fontSize: '10px', color: '#555', margin: 0 }}>Зохиолч</p>
-            </div>
-          </div>
-          {date && <div style={{ fontSize: '12px', color: '#666' }}>📅 {date}</div>}
-          <div style={{ fontSize: '12px', color: '#666' }}>⏱ {mins} минут унших</div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-            <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer"
-              style={{ padding: '6px 14px', borderRadius: '6px', background: '#1877f2', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
-              f Хуваалцах
-            </a>
-            <a href={shareUrl} style={{ padding: '6px 14px', borderRadius: '6px', background: '#1e1e1e', border: '1px solid #333', color: '#aaa', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
-              🔗 Холбоос
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 2. HERO IMAGE — 100% pure, zero gradients ── */}
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 2rem 2rem' }}>
-        <div style={{ width: '100%', aspectRatio: '16/9', borderRadius: '14px', overflow: 'hidden', background: CAT_GRADIENTS[cat] || CAT_GRADIENTS.default }}>
-          {(article.cover_image_url || article.mobile_cover_image) && (
-            <img
-              src={String(article.cover_image_url || article.mobile_cover_image)}
-              alt={title}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', display: 'block' }}
-            />
-          )}
-        </div>
-      </div>
-
-      {/* ── 3. BODY ── */}
-      <div className="mo-detail-grid" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem 4rem', alignItems: 'flex-start' }}>
-
-        {/* ── LEFT: Article ── */}
+        {/* ══ LEFT: full article column ══ */}
         <article>
 
-          {/* Excerpt / lead */}
+          {/* 1. Breadcrumb */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', marginBottom: '1.25rem' }}>
+            <Link href={`/${locale}`} style={{ color: '#666', textDecoration: 'none' }}>Нүүр</Link>
+            <span style={{ color: '#444' }}>›</span>
+            <Link href={`/${locale}/articles`} style={{ color: '#666', textDecoration: 'none' }}>Нийтлэл</Link>
+            <span style={{ color: '#444' }}>›</span>
+            <Link href={`/${locale}/articles?category=${encodeURIComponent(cat)}`} style={{ color: catColor, textDecoration: 'none', fontWeight: 600 }}>{cat}</Link>
+          </div>
+
+          {/* 2. Category pill */}
+          <span style={{ display: 'inline-block', background: `${catColor}22`, border: `1px solid ${catColor}55`, color: catColor, padding: '3px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '14px' }}>
+            {cat}
+          </span>
+
+          {/* 3. H1 headline */}
+          <h1 style={{ fontSize: 'clamp(1.65rem, 3vw, 2.6rem)', fontWeight: 800, lineHeight: 1.25, color: '#fff', margin: '0 0 1.25rem', letterSpacing: '-0.5px' }}>
+            {title}
+          </h1>
+
+          {/* 4. Meta bar */}
+          <div className="mo-meta-bar" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '1.5rem', paddingBottom: '1.25rem', borderBottom: '1px solid #1f1f1f' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: `${catColor}33`, border: `2px solid ${catColor}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 700, color: catColor, flexShrink: 0 }}>
+                {article.author_name ? String(article.author_name)[0].toUpperCase() : 'M'}
+              </div>
+              <div>
+                <p style={{ fontSize: '13px', fontWeight: 700, color: '#e5e5e5', margin: 0 }}>{String(article.author_name || 'Mommyoffice')}</p>
+                <p style={{ fontSize: '10px', color: '#555', margin: 0 }}>Зохиолч</p>
+              </div>
+            </div>
+            {date && <div style={{ fontSize: '12px', color: '#666' }}>📅 {date}</div>}
+            <div style={{ fontSize: '12px', color: '#666' }}>⏱ {mins} минут унших</div>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer"
+                style={{ padding: '6px 14px', borderRadius: '6px', background: '#1877f2', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
+                f Хуваалцах
+              </a>
+              <a href={shareUrl} style={{ padding: '6px 14px', borderRadius: '6px', background: '#1e1e1e', border: '1px solid #333', color: '#aaa', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
+                🔗 Холбоос
+              </a>
+            </div>
+          </div>
+
+          {/* 5. Cover photo — 16:9, zero gradients */}
+          <div style={{ width: '100%', aspectRatio: '16/9', borderRadius: '12px', overflow: 'hidden', background: CAT_GRADIENTS[cat] || CAT_GRADIENTS.default, marginBottom: '2rem' }}>
+            {(article.cover_image_url || article.mobile_cover_image) && (
+              <img
+                src={String(article.cover_image_url || article.mobile_cover_image)}
+                alt={title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', display: 'block' }}
+              />
+            )}
+          </div>
+
+          {/* 6. Excerpt / lead */}
           {excerpt && (
             <p style={{ fontSize: '18px', lineHeight: 1.7, color: '#aaa', fontWeight: 400, marginBottom: '2rem', paddingBottom: '2rem', borderBottom: '1px solid #1f1f1f', fontStyle: 'italic' }}>
               {excerpt}
             </p>
           )}
 
-          {/* Body HTML */}
+          {/* 7. Body HTML */}
           {body ? (
             <div
               className="mo-article-body"
@@ -321,7 +315,7 @@ export default async function ArticleDetailPage({
             </div>
           )}
 
-          {/* Tags row */}
+          {/* Tags */}
           <div style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #1f1f1f', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '12px', color: '#555', fontWeight: 600 }}>Ангилал:</span>
             <Link href={`/${locale}/articles?category=${encodeURIComponent(cat)}`}
@@ -330,7 +324,7 @@ export default async function ArticleDetailPage({
             </Link>
           </div>
 
-          {/* ── Related Articles row ── */}
+          {/* Related articles */}
           {relatedArticles.length > 0 && (
             <section style={{ marginTop: '3rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
@@ -348,7 +342,7 @@ export default async function ArticleDetailPage({
             </section>
           )}
 
-          {/* ── Newsletter subscribe ── */}
+          {/* Newsletter */}
           <div style={{ marginTop: '3rem', padding: '2rem', background: 'linear-gradient(135deg, #0d2537, #1a4a6b)', borderRadius: '14px', border: '1px solid rgba(0,181,173,0.2)', textAlign: 'center' }}>
             <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>📬 Шинэ нийтлэлийг хамгийн түрүүнд аваарай</p>
             <p style={{ fontSize: '13px', color: '#aaa', margin: '0 0 20px' }}>7 хоног бүр эрүүл мэнд, амьдралын хэв маяг, гэр бүлийн мэдээлэл — шууд цахим шуудан руу чинь</p>
@@ -363,16 +357,10 @@ export default async function ArticleDetailPage({
           </div>
         </article>
 
-        {/* ── RIGHT: Sticky sidebar ── */}
+        {/* ══ RIGHT: Sticky sidebar ══ */}
         <aside style={{ position: 'sticky', top: '80px', display: 'flex', flexDirection: 'column', gap: '0' }}>
-
-          {/* Related courses */}
           <SidebarCourses courses={relatedCourses as Record<string, unknown>[]} locale={locale} />
-
-          {/* Trending */}
           <SidebarTrending articles={trending as Record<string, unknown>[]} locale={locale} />
-
-          {/* 300×250 ad */}
           <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '250px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '20px' }}>
             <span style={{ fontSize: '10px', color: '#333', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Сурталчилгааны зай</span>
             <span style={{ fontSize: '11px', color: '#2a2a2a' }}>300×250</span>
