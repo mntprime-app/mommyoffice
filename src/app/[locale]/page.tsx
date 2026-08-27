@@ -247,52 +247,36 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           {/* Featured editorial layout: 65% big card + 35% thumbnail list */}
           <div className="mo-editorial-grid" style={{ alignItems: 'stretch' }}>
 
-            {/* LEFT — hero card fills full grid-cell height */}
+            {/* LEFT — 16:9 image + fixed 80px text box below */}
             <Link href={featuredArticle?.slug ? `/${locale}/articles/${featuredArticle.slug}` : '#'}
-              style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <div className="netflix-card" style={{
-                borderRadius: '12px', overflow: 'hidden', background: '#1e1e1e',
-                display: 'flex', flexDirection: 'column', height: '100%',
-              }}>
-                {/* 16:9 image — fixed ratio, does not flex-grow */}
-                <div style={{ aspectRatio: '16/9', overflow: 'hidden', flexShrink: 0, background: '#111', borderRadius: '12px 12px 0 0' }}>
+              style={{ textDecoration: 'none', display: 'block' }}>
+              <div className="netflix-card" style={{ borderRadius: '12px', overflow: 'hidden', background: '#1a1a1a' }}>
+                {/* Image — pure 16:9 */}
+                <div style={{ aspectRatio: '16/9', overflow: 'hidden', background: '#111' }}>
                   {featuredArticle?.cover_image_url
                     ? <img src={String(featuredArticle.cover_image_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     : <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#1a1a2e,#2d1b4e)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '5rem' }}>✨</div>
                   }
                 </div>
-                {/* Text block — flex:1 fills whatever remains so card = exact right-col height */}
-                <div style={{ flex: 1, padding: '10px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                {/* Text box — fixed 80px height, sits below image on dark background */}
+                <div style={{ height: '80px', padding: '10px 14px', background: '#1a1a1a', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '5px' }}>
                   <span style={{
-                    alignSelf: 'flex-start', display: 'inline-block', marginBottom: '5px',
-                    background: 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(15,15,15,0.95))',
-                    border: '1px solid rgba(0,181,173,0.35)',
+                    display: 'inline-block', alignSelf: 'flex-start',
+                    border: '1px solid rgba(0,181,173,0.5)',
                     color: '#00B5AD', padding: '2px 8px', borderRadius: '4px',
                     fontSize: '9px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase',
                   }}>
                     {String(featuredArticle?.category || 'Lifestyle')}
                   </span>
-                  <p style={{
-                    fontWeight: 800, fontSize: '15px', color: '#f0f0f0',
-                    lineHeight: 1.35, margin: '0 0 4px',
-                    display: '-webkit-box', WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                  }}>
-                    {locale === 'mn'
-                      ? String(featuredArticle?.title_mn || '')
-                      : String(featuredArticle?.title_en || featuredArticle?.title_mn || '')}
+                  <p style={{ fontWeight: 800, fontSize: '15px', color: '#e5e5e5', lineHeight: 1.3, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {locale === 'mn' ? String(featuredArticle?.title_mn || '') : String(featuredArticle?.title_en || featuredArticle?.title_mn || '')}
                   </p>
-                  {featuredArticle?.published_at && (
-                    <span style={{ fontSize: '10px', color: '#666' }}>
-                      {new Date(String(featuredArticle.published_at)).toLocaleDateString('mn-MN', { month: 'short', day: 'numeric' })}
-                    </span>
-                  )}
                 </div>
               </div>
             </Link>
 
-            {/* RIGHT — CSS grid repeat(5,1fr) guarantees pixel-perfect equal rows */}
-            <div style={{ display: 'grid', gridTemplateRows: 'repeat(5, 1fr)', height: '100%' }}>
+            {/* RIGHT — flex column, space-between fills exact same height as left card (image + 80px) */}
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               {sideArticles.map((a: Record<string, unknown>, i: number) => {
                 const title = locale === 'mn'
                   ? String(a.title_mn || a.title || '')
