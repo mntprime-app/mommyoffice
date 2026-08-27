@@ -285,8 +285,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 const thumbGrads = ['linear-gradient(135deg,#1a2e1a,#2e4a1a)', 'linear-gradient(135deg,#2e1a1a,#4a2e1a)', 'linear-gradient(135deg,#1a1a2e,#1a2e4a)'];
                 return (
                   <Link key={String(a.id || i)} href={href}
-                    style={{ textDecoration: 'none', flex: 1, display: 'flex', alignItems: 'center',
-                      borderBottom: i < sideArticles.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
+                    style={{
+                      textDecoration: 'none', flex: 1, display: 'flex', alignItems: 'center',
+                      paddingTop: i === 0 ? 0 : '10px',
+                      paddingBottom: i === sideArticles.length - 1 ? 0 : '10px',
+                      borderBottom: i < sideArticles.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none',
+                    }}>
                     <div className="netflix-card" style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%' }}>
                       {/* Square thumbnail */}
                       <div style={{
