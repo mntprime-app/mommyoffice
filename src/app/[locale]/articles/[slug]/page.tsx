@@ -292,25 +292,27 @@ export default async function ArticleDetailPage({
             {title}
           </h1>
 
-          {/* 4. Meta bar */}
-          <div className="mo-meta-bar" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '1.5rem', paddingBottom: '1.25rem', borderBottom: '1px solid #1f1f1f' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: `${catColor}33`, border: `2px solid ${catColor}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 700, color: catColor, flexShrink: 0 }}>
+          {/* 4. Meta bar — compact 2-line on mobile */}
+          <div className="mo-meta-bar" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '1.5rem', paddingBottom: '1.25rem', borderBottom: '1px solid #1f1f1f' }}>
+            {/* Author + date + read time inline */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: `${catColor}33`, border: `2px solid ${catColor}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: catColor, flexShrink: 0 }}>
                 {article.author_name ? String(article.author_name)[0].toUpperCase() : 'M'}
               </div>
-              <div>
-                <p style={{ fontSize: '13px', fontWeight: 700, color: '#e5e5e5', margin: 0 }}>{String(article.author_name || 'Mommyoffice')}</p>
-                <p style={{ fontSize: '10px', color: '#555', margin: 0 }}>Зохиолч</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap', fontSize: '12px', color: '#888' }}>
+                <span style={{ fontWeight: 700, color: '#ccc' }}>{String(article.author_name || 'Mommyoffice')}</span>
+                {date && <><span style={{ color: '#444' }}>•</span><span>{date}</span></>}
+                <span style={{ color: '#444' }}>•</span>
+                <span>{mins} мин</span>
               </div>
             </div>
-            {date && <div style={{ fontSize: '12px', color: '#666' }}>📅 {date}</div>}
-            <div style={{ fontSize: '12px', color: '#666' }}>⏱ {mins} минут унших</div>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+            {/* Share buttons */}
+            <div className="mo-meta-share" style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
               <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer"
-                style={{ padding: '6px 14px', borderRadius: '6px', background: '#1877f2', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
+                style={{ padding: '6px 12px', borderRadius: '6px', background: '#1877f2', color: '#fff', fontSize: '11px', fontWeight: 700, textDecoration: 'none' }}>
                 f Хуваалцах
               </a>
-              <a href={shareUrl} style={{ padding: '6px 14px', borderRadius: '6px', background: '#1e1e1e', border: '1px solid #333', color: '#aaa', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
+              <a href={shareUrl} style={{ padding: '6px 12px', borderRadius: '6px', background: '#1e1e1e', border: '1px solid #333', color: '#aaa', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}>
                 🔗 Холбоос
               </a>
             </div>
@@ -446,23 +448,23 @@ export default async function ArticleDetailPage({
         /* ── Mobile-only elements: hidden on desktop ── */
         .mo-mobile-ad, .mo-mobile-related { display: none; }
 
-        /* ── TABLET (≤900px): collapse sidebar, show mobile elements ── */
-        @media (max-width: 900px) {
+        /* ── TABLET/MOBILE (≤1024px): collapse sidebar, show inline mobile elements ── */
+        @media (max-width: 1024px) {
           .mo-detail-grid { grid-template-columns: 1fr; padding: 1.5rem 1.5rem 3rem; gap: 2rem; }
           .mo-detail-grid > aside { display: none; }
           .mo-mobile-ad { display: flex !important; }
           .mo-mobile-related { display: block !important; }
         }
 
-        /* ── MOBILE (≤768px) ── */
+        /* ── MOBILE (≤768px): tighter padding ── */
         @media (max-width: 768px) {
           .mo-detail-grid { padding: 1.25rem 1rem 3rem; }
         }
 
-        /* ── MOBILE: meta bar — centered column layout ── */
-        @media (max-width: 600px) {
-          .mo-meta-bar { flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 16px; }
-          .mo-meta-bar > div:last-child { width: 100%; justify-content: center; margin-left: 0 !important; }
+        /* ── MOBILE: meta bar — compact 2-row stack ── */
+        @media (max-width: 1024px) {
+          .mo-meta-bar { flex-direction: column; align-items: flex-start; gap: 10px; }
+          .mo-meta-share { align-self: flex-start; }
         }
 
         /* ── MOBILE: newsletter form stacks ── */
