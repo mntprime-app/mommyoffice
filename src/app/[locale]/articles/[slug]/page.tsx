@@ -170,6 +170,39 @@ function SidebarCourses({ courses, locale }: { courses: Record<string, unknown>[
   );
 }
 
+function SidebarRelated({ articles, locale, accentColor }: { articles: Record<string, unknown>[]; locale: string; accentColor: string }) {
+  if (articles.length === 0) return null;
+  const shown = articles.slice(0, 3);
+  return (
+    <div style={{ marginBottom: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+        <div style={{ width: '3px', height: '16px', background: accentColor, borderRadius: '2px' }} />
+        <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#666', margin: 0, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Төстэй нийтлэлүүд</h3>
+      </div>
+      {shown.map((a, i) => {
+        const title = locale === 'mn' ? String(a.title_mn || '') : String(a.title_en || a.title_mn || '');
+        const cat = String(a.category || '');
+        const cc = CAT_COLORS[cat] || CAT_COLORS.default;
+        const grad = CAT_GRADIENTS[cat] || CAT_GRADIENTS.default;
+        const href = `/${locale}/articles/${String(a.slug)}`;
+        return (
+          <Link key={String(a.id || i)} href={href} style={{ textDecoration: 'none', display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '10px 0', borderBottom: i < shown.length - 1 ? '1px solid #1a1a1a' : 'none' }}>
+            <div style={{ width: '62px', height: '62px', borderRadius: '7px', overflow: 'hidden', background: grad, flexShrink: 0 }}>
+              {a.cover_image_url
+                ? <img src={String(a.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>✨</div>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: '9px', fontWeight: 800, color: cc, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '3px' }}>{cat}</span>
+              <p style={{ fontSize: '12px', fontWeight: 600, color: '#ccc', margin: 0, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</p>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 function RelatedCard({ a, locale }: { a: Record<string, unknown>; locale: string }) {
   const title = locale === 'mn' ? String(a.title_mn || '') : String(a.title_en || a.title_mn || '');
   const excerpt = locale === 'mn' ? String(a.excerpt_mn || '') : String(a.excerpt_mn || '');
@@ -324,13 +357,20 @@ export default async function ArticleDetailPage({
             </Link>
           </div>
 
-          {/* Related articles */}
+          {/* Mobile-only: Ad Banner (hidden on desktop — sidebar shows it) */}
+          <div className="mo-mobile-ad" style={{ marginTop: '2.5rem', background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+            <span style={{ fontSize: '10px', color: '#333', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Сурталчилгааны зай</span>
+            <span style={{ fontSize: '11px', color: '#2a2a2a' }}>320×100</span>
+            <span style={{ fontSize: '10px', color: '#222' }}>info.mommyoffice@gmail.com</span>
+          </div>
+
+          {/* Mobile-only: Related articles (hidden on desktop — sidebar shows it) */}
           {relatedArticles.length > 0 && (
-            <section style={{ marginTop: '3rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+            <section className="mo-mobile-related" style={{ marginTop: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '3px', height: '18px', background: catColor, borderRadius: '2px' }} />
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#e5e5e5', margin: 0 }}>Төстэй нийтлэлүүд</h2>
+                  <div style={{ width: '3px', height: '16px', background: catColor, borderRadius: '2px' }} />
+                  <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#e5e5e5', margin: 0 }}>Төстэй нийтлэлүүд</h2>
                 </div>
                 <Link href={`/${locale}/articles?category=${encodeURIComponent(cat)}`} style={{ fontSize: '12px', color: '#555', fontWeight: 600, textDecoration: 'none' }}>Бүгдийг харах →</Link>
               </div>
@@ -359,13 +399,18 @@ export default async function ArticleDetailPage({
 
         {/* ══ RIGHT: Sticky sidebar ══ */}
         <aside style={{ position: 'sticky', top: '80px', display: 'flex', flexDirection: 'column', gap: '0' }}>
-          <SidebarCourses courses={relatedCourses as Record<string, unknown>[]} locale={locale} />
-          <SidebarTrending articles={trending as Record<string, unknown>[]} locale={locale} />
-          <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '250px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '20px' }}>
+          {/* 1. Ad Banner — top slot */}
+          <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '250px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '24px' }}>
             <span style={{ fontSize: '10px', color: '#333', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Сурталчилгааны зай</span>
             <span style={{ fontSize: '11px', color: '#2a2a2a' }}>300×250</span>
             <span style={{ fontSize: '10px', color: '#222', marginTop: '4px' }}>info.mommyoffice@gmail.com</span>
           </div>
+          {/* 2. ИХ УНШИГДСАН — trending list */}
+          <SidebarTrending articles={trending as Record<string, unknown>[]} locale={locale} />
+          {/* 3. ТӨСТЭЙ НИЙТЛЭЛҮҮД — related articles */}
+          <SidebarRelated articles={relatedArticles as Record<string, unknown>[]} locale={locale} accentColor={catColor} />
+          {/* 4. Related courses */}
+          <SidebarCourses courses={relatedCourses as Record<string, unknown>[]} locale={locale} />
         </aside>
       </div>
 
@@ -398,10 +443,15 @@ export default async function ArticleDetailPage({
         .mo-detail-grid > article { min-width: 0; overflow-x: hidden; }
         .mo-detail-grid > aside  { min-width: 0; }
 
-        /* ── TABLET (≤900px): collapse sidebar ── */
+        /* ── Mobile-only elements: hidden on desktop ── */
+        .mo-mobile-ad, .mo-mobile-related { display: none; }
+
+        /* ── TABLET (≤900px): collapse sidebar, show mobile elements ── */
         @media (max-width: 900px) {
           .mo-detail-grid { grid-template-columns: 1fr; padding: 1.5rem 1.5rem 3rem; gap: 2rem; }
           .mo-detail-grid > aside { display: none; }
+          .mo-mobile-ad { display: flex !important; }
+          .mo-mobile-related { display: block !important; }
         }
 
         /* ── MOBILE (≤768px) ── */
