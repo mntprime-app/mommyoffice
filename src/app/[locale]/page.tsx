@@ -336,6 +336,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </div>
           </div>
 
+          {/* DEBUG — remove after diagnosis */}
+          <p style={{ fontSize: '10px', color: '#333', marginTop: '8px' }}>
+            hero_id={String(featuredArticle?.id||'null')} cat={String(featuredArticle?.category||'null')} img={String(featuredArticle?.cover_image_url||'null').slice(0,40)} trending={sideArticles.length}
+          </p>
+
           {/* More articles — horizontal scroll row */}
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
             {moreArticles.map((a: Record<string, unknown>, i: number) => {
