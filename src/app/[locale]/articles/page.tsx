@@ -301,19 +301,13 @@ export default async function ArticlesPage({
 
       {/* ── HERO ── */}
       <section className="mo-hero-section" style={{ position: 'relative', width: '100%', height: '72vh', minHeight: '480px', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: featuredGrad }}>
+        <div className="mo-hero-bg" style={{ position: 'absolute', inset: 0, background: featuredGrad }}>
           {(featured?.cover_image_url || featured?.mobile_cover_image) ? (
-            <>
-              {featured?.mobile_cover_image && (
-                <img src={String(featured.mobile_cover_image)} alt={featuredTitle} className="mo-hero-img-mob" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'none' }} />
-              )}
-              <img
-                src={String(featured?.cover_image_url || featured?.mobile_cover_image)}
-                alt={featuredTitle}
-                className={featured?.mobile_cover_image ? 'mo-hero-img-dsk' : 'mo-hero-img'}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </>
+            <img
+              src={String(featured?.cover_image_url || featured?.mobile_cover_image)}
+              alt={featuredTitle}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}
+            />
           ) : (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '6%', overflow: 'hidden' }}>
               <div style={{ fontSize: '13rem', fontWeight: 900, color: 'rgba(0,181,173,0.07)', lineHeight: 1, userSelect: 'none', letterSpacing: '-8px', fontFamily: 'Georgia,serif' }}>
@@ -322,9 +316,9 @@ export default async function ArticlesPage({
             </div>
           )}
         </div>
-        {/* Desktop: left-to-right. Mobile: overridden to bottom-heavy via CSS */}
+        {/* Desktop: left-to-right. Mobile: hidden */}
         <div className="mo-hero-overlay" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.15) 70%, transparent 100%)' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to bottom,transparent,#111)' }} />
+        <div className="mo-hero-bottom-fade" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to bottom,transparent,#111)' }} />
         <div className="mo-hero-content" style={{ position: 'absolute', bottom: '20%', left: '4%', maxWidth: '560px', zIndex: 2 }}>
           <span style={{ display: 'inline-block', background: 'rgba(0,181,173,0.15)', border: '1px solid rgba(0,181,173,0.4)', color: '#00B5AD', padding: '3px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '14px' }}>
             {String(featured?.category || 'Нийтлэл')}
@@ -483,27 +477,43 @@ export default async function ArticlesPage({
           .mo-body-wrap { padding: 0 1rem; }
         }
 
-        /* ── Hero image focal-point defaults (desktop) ── */
-        .mo-hero-img-mob { display: none; }
-        .mo-hero-img-dsk { display: block; width: 100%; height: 100%; object-fit: cover; }
-
-        /* ── MOBILE: hero ── */
+        /* ── MOBILE: Stacked editorial hero layout ── */
         @media (max-width: 768px) {
-          .mo-hero-img { object-position: center 20%; }
-          .mo-hero-img-mob { display: block !important; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-          .mo-hero-img-dsk { display: none !important; }
-          .mo-hero-section { height: 56vh; min-height: 300px; }
-          .mo-hero-overlay {
-            background: linear-gradient(
-              to bottom,
-              rgba(0,0,0,0.1) 0%,
-              rgba(0,0,0,0.5) 40%,
-              rgba(0,0,0,0.95) 100%
-            );
+          .mo-hero-section {
+            height: auto !important;
+            min-height: 0 !important;
+            display: flex;
+            flex-direction: column;
           }
-          .mo-hero-content { bottom: 8%; left: 0; right: 0; max-width: 100%; padding: 0 1.25rem; }
-          .mo-hero-content h1 { font-size: 1.35rem; line-height: 1.3; }
-          .mo-hero-excerpt { display: none; }
+          .mo-hero-bg {
+            position: relative !important;
+            inset: auto !important;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            flex-shrink: 0;
+            overflow: hidden;
+          }
+          .mo-hero-bg img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+          }
+          .mo-hero-overlay,
+          .mo-hero-bottom-fade { display: none !important; }
+          .mo-hero-content {
+            position: relative !important;
+            bottom: auto !important;
+            left: auto !important;
+            max-width: 100% !important;
+            padding: 1.25rem 1.25rem 2rem !important;
+            background: #111;
+            z-index: 1;
+          }
+          .mo-hero-content h1 { font-size: 1.4rem; line-height: 1.3; text-shadow: none; }
+          .mo-hero-excerpt { display: block !important; color: #aaa !important; }
         }
 
         /* ── MOBILE: category pill bar ── */

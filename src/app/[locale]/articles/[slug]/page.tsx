@@ -235,28 +235,25 @@ export default async function ArticleDetailPage({
     <div style={{ background: '#111', minHeight: '100vh' }}>
 
       {/* ── HERO COVER ── */}
-      <div style={{ position: 'relative', width: '100%', height: '480px', overflow: 'hidden' }}>
-        {(article.cover_image_url || article.mobile_cover_image) ? (
-          <>
-            {article.mobile_cover_image && (
-              <img src={String(article.mobile_cover_image)} alt={title} className="mo-detail-img-mob" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'none', position: 'absolute', inset: 0 }} />
-            )}
+      <div className="mo-detail-hero" style={{ position: 'relative', width: '100%', height: '480px', overflow: 'hidden' }}>
+        {/* Image wrapper — becomes aspect-ratio box on mobile */}
+        <div className="mo-detail-hero-img-wrap" style={{ position: 'absolute', inset: 0 }}>
+          {(article.cover_image_url || article.mobile_cover_image) ? (
             <img
               src={String(article.cover_image_url || article.mobile_cover_image)}
               alt={title}
-              className={article.mobile_cover_image ? 'mo-detail-img-dsk' : 'mo-detail-img'}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}
             />
-          </>
-        ) : (
-          <div style={{ width: '100%', height: '100%', background: CAT_GRADIENTS[cat] || CAT_GRADIENTS.default }} />
-        )}
-        {/* Left-to-right gradient — keeps right 50% of image at full clarity */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(17,17,17,0.95) 0%, rgba(17,17,17,0.6) 48%, rgba(17,17,17,0.15) 75%, transparent 100%)' }} />
-        {/* Bottom fade to body background */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to bottom, transparent, #111)' }} />
+          ) : (
+            <div style={{ width: '100%', height: '100%', background: CAT_GRADIENTS[cat] || CAT_GRADIENTS.default }} />
+          )}
+        </div>
+        {/* Left-to-right gradient — desktop only */}
+        <div className="mo-detail-lr-overlay" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(17,17,17,0.95) 0%, rgba(17,17,17,0.6) 48%, rgba(17,17,17,0.15) 75%, transparent 100%)' }} />
+        {/* Bottom fade — desktop only */}
+        <div className="mo-detail-bottom-fade" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to bottom, transparent, #111)' }} />
         {/* Breadcrumb */}
-        <div style={{ position: 'absolute', top: '24px', left: '0', right: '0', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+        <div className="mo-detail-breadcrumb" style={{ position: 'absolute', top: '24px', left: '0', right: '0', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
             <Link href={`/${locale}`} style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Нүүр</Link>
             <span style={{ color: '#555' }}>›</span>
@@ -266,7 +263,7 @@ export default async function ArticleDetailPage({
           </div>
         </div>
         {/* Hero title block */}
-        <div style={{ position: 'absolute', bottom: '2.5rem', left: '0', right: '0', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+        <div className="mo-detail-hero-text" style={{ position: 'absolute', bottom: '2.5rem', left: '0', right: '0', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
           <span style={{ display: 'inline-block', background: `${catColor}22`, border: `1px solid ${catColor}55`, color: catColor, padding: '3px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '12px' }}>
             {cat}
           </span>
@@ -404,13 +401,43 @@ export default async function ArticleDetailPage({
       </div>
 
       <style>{`
-        /* ── Hero image focal-point (desktop defaults) ── */
-        .mo-detail-img-mob { display: none; }
-        .mo-detail-img-dsk { display: block; width: 100%; height: 100%; object-fit: cover; }
+        /* ── MOBILE: Stacked editorial hero layout ── */
         @media (max-width: 768px) {
-          .mo-detail-img { object-position: center 20%; }
-          .mo-detail-img-mob { display: block !important; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-          .mo-detail-img-dsk { display: none !important; }
+          .mo-detail-hero {
+            height: auto !important;
+            min-height: 0 !important;
+            display: flex;
+            flex-direction: column;
+          }
+          .mo-detail-hero-img-wrap {
+            position: relative !important;
+            top: auto !important; right: auto !important; bottom: auto !important; left: auto !important;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            flex-shrink: 0;
+            overflow: hidden;
+          }
+          .mo-detail-lr-overlay,
+          .mo-detail-bottom-fade { display: none !important; }
+          .mo-detail-breadcrumb {
+            position: relative !important;
+            top: auto !important;
+            max-width: 100% !important;
+            padding: 1rem 1.25rem 0 !important;
+            background: #111;
+          }
+          .mo-detail-hero-text {
+            position: relative !important;
+            bottom: auto !important;
+            max-width: 100% !important;
+            padding: 0.75rem 1.25rem 1.5rem !important;
+            background: #111;
+          }
+          .mo-detail-hero-text h1 {
+            font-size: 1.4rem !important;
+            text-shadow: none !important;
+            max-width: 100% !important;
+          }
         }
 
         /* ── Article body typography ── */

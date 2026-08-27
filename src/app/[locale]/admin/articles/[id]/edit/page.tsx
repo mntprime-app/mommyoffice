@@ -211,7 +211,7 @@ export default function EditArticlePage() {
             </button>
           )}
           <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', marginBottom: '4px' }}>
-            💡 Зөвлөмж хэмжээ: 1200×630px (16:9 харьцаатай, макс 2MB)
+            💡 Зөвлөмж хэмжээ: 1280×720px (16:9 landscape) — Desktop болон thumbnail
           </p>
           <input value={form.cover_image_url}
             onChange={(e) => { set('cover_image_url', e.target.value); setPreview(e.target.value); }}
@@ -246,7 +246,7 @@ export default function EditArticlePage() {
             </button>
           )}
           <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', marginBottom: '4px' }}>
-            💡 Зөвлөмж: 9:16 босоо зураг (мобайл дэлгэц). Байхгүй бол дээрх зураг object-position: center 20% ашиглана.
+            💡 Зөвлөмж: 800×450px (16:9) эсвэл 800×800px (1:1 square) — Мобайл дэлгэцэнд субъектийг бүрэн харуулна. Байхгүй бол дээрх зураг ашиглана.
           </p>
           <input value={form.mobile_cover_image}
             onChange={(e) => { set('mobile_cover_image', e.target.value); setMobPreview(e.target.value); }}

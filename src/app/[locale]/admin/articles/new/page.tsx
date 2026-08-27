@@ -169,7 +169,7 @@ export default function NewArticlePage() {
             </button>
           )}
           <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', marginBottom: '4px' }}>
-            💡 Зөвлөмж хэмжээ: 1200×630px (16:9 харьцаатай, макс 2MB)
+            💡 Зөвлөмж хэмжээ: 1280×720px (16:9 landscape) — Desktop болон thumbnail
           </p>
           <input value={form.cover_image_url}
             onChange={(e) => { set('cover_image_url', e.target.value); setPreview(e.target.value); }}
@@ -182,7 +182,7 @@ export default function NewArticlePage() {
             📱 Гар утасны зураг <span style={{ fontWeight: 400, color: '#6b7280' }}>(Заавал биш)</span>
           </label>
           <p style={{ fontSize: '11px', color: '#6b7280', marginBottom: '0.75rem' }}>
-            Зөвлөмж хэмжээ: 800×1000px (4:5 эсвэл 1:1 босоо зураг) — Гар утсанд дүрийг бүрэн харуулна
+            Зөвлөмж хэмжээ: 800×450px (16:9) эсвэл 800×800px (1:1 square) — Мобайл дэлгэцэнд субъектийг бүрэн харуулна
           </p>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <label style={{ background: '#2a2a2a', border: '1px solid #333', color: '#e5e5e5', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, flexShrink: 0 }}>
