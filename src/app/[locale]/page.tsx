@@ -257,21 +257,21 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     : <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#1a1a2e,#2d1b4e)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '5rem' }}>✨</div>
                   }
                 </div>
-                {/* Text block below image */}
-                <div style={{ padding: '16px 18px 20px' }}>
+                {/* Text block below image — compact to avoid stretching past right column */}
+                <div style={{ padding: '10px 14px 12px' }}>
                   <span style={{
-                    display: 'inline-block', marginBottom: '8px',
+                    display: 'inline-block', marginBottom: '5px',
                     background: 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(15,15,15,0.95))',
                     border: '1px solid rgba(0,181,173,0.35)',
-                    color: '#00B5AD', padding: '3px 10px', borderRadius: '4px',
+                    color: '#00B5AD', padding: '2px 8px', borderRadius: '4px',
                     fontSize: '9px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase',
                   }}>
                     {String(featuredArticle?.category || 'Lifestyle')}
                   </span>
                   <p style={{
-                    fontWeight: 800, fontSize: '17px', color: '#f0f0f0',
-                    lineHeight: 1.4, margin: '0 0 8px',
-                    display: '-webkit-box', WebkitLineClamp: 3,
+                    fontWeight: 800, fontSize: '15px', color: '#f0f0f0',
+                    lineHeight: 1.35, margin: '0 0 5px',
+                    display: '-webkit-box', WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical', overflow: 'hidden',
                   }}>
                     {locale === 'mn'
@@ -279,8 +279,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                       : String(featuredArticle?.title_en || featuredArticle?.title_mn || '')}
                   </p>
                   {featuredArticle?.published_at && (
-                    <span style={{ fontSize: '11px', color: '#666' }}>
-                      {new Date(String(featuredArticle.published_at)).toLocaleDateString('mn-MN', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    <span style={{ fontSize: '10px', color: '#666' }}>
+                      {new Date(String(featuredArticle.published_at)).toLocaleDateString('mn-MN', { month: 'short', day: 'numeric' })}
                     </span>
                   )}
                 </div>
@@ -346,7 +346,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
 
           {/* More articles — horizontal scroll row */}
-          <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
+          <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px', marginTop: '2rem' }}>
             {moreArticles.map((a: Record<string, unknown>, i: number) => {
               const title = locale === 'mn'
                 ? String(a.title_mn || a.title || '')
