@@ -115,6 +115,7 @@ export default function Navbar() {
     { href: lp('/articles'), label: 'Нийтлэл', soon: false },
     { href: lp('/videos'), label: 'Кино & Видео', soon: true },
     { href: lp('/shop'), label: 'Дэлгүүр', soon: true },
+    { href: lp('/become-instructor'), label: 'Багш болох', soon: false },
   ];
 
   const iconBtn: React.CSSProperties = {

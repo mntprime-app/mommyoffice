@@ -67,6 +67,36 @@ export async function getInstructors() {
   return data || [];
 }
 
+export async function createInstructorApplication(data: {
+  name_mn: string;
+  name_en: string | null;
+  title_mn: string | null;
+  title_en: string | null;
+  bio_mn: string | null;
+  bio_en: string | null;
+  profile_image_url: string | null;
+  email: string;
+  social_url: string | null;
+}) {
+  const supabase = await createAdminClient();
+  // Check for duplicate email application
+  const { data: existing } = await supabase
+    .from('mo_instructors')
+    .select('id')
+    .eq('email', data.email)
+    .maybeSingle();
+  if (existing) return { error: 'Энэ имэйл хаягаар өргөдөл илгээгдсэн байна.' };
+
+  const { error } = await supabase.from('mo_instructors').insert({
+    ...data,
+    is_approved: false,
+    subscription_status: 'trial',
+    onboarding_completed: false,
+  });
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
 export async function listInstructors() {
   const supabase = await createAdminClient();
   const { data } = await supabase
