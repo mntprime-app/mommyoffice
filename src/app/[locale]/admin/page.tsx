@@ -41,6 +41,7 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
     { label: 'Нийтлэлүүд', href: `/${locale}/admin/articles`, bg: '#2a2a2a', color: '#e5e5e5' },
     { label: '🎬 Видеонууд', href: `/${locale}/admin/videos`, bg: '#2a2a2a', color: '#e5e5e5' },
     { label: 'Захиалгууд', href: `/${locale}/admin/orders`, bg: '#2a2a2a', color: '#e5e5e5' },
+    { label: '👩‍🏫 Багш нар', href: `/${locale}/admin/instructors`, bg: '#1a1a2e', color: '#a78bfa' },
     { label: '⚙️ Тохиргоо', href: `/${locale}/admin/settings`, bg: '#1a1a2e', color: '#a78bfa' },
   ];
 

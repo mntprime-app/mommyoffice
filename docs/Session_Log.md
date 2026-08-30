@@ -128,6 +128,48 @@ Multi-iteration alignment fix between left hero card and right 5-item column.
 
 ---
 
+## Session 2026-08-30 Part 2 (Alex) — Admin UI 2-Column Refactor
+
+### Completed Work
+
+#### 14. Admin Course Forms — 2-Column Layout Redesign
+
+Both `/admin/courses/new` and `/admin/courses/[id]/edit` fully rewritten with:
+
+- **Outer container:** max-width 1180px, padding 2rem
+- **Left column (flex: 1):** `Card` components — Нэр ба URL, Ангилал ба Түвшин, Тайлбар, Сургалтын тухай, Юу сурах вэ?, Шаардлага, Хичээлийн тоо баримт, Багш, Curriculum builder
+- **Right sticky sidebar (300px):** `SideCard` components — Нийтлэх тохиргоо, Байршил, Үнэ, Cover Image, Видео; `position: sticky, top: 2rem`
+- **Grid system:** `grid2` (1fr 1fr), `grid3` (1fr 1fr 1fr), `grid4` (1fr 1fr 1fr 1fr) for inline field alignment
+- **Shared sub-components:** `Card`, `SideCard`, `Field`, `Toggle` — defined at bottom of each file
+- **Edit page extras:** header row with breadcrumb + "↗ Хуудас харах" link + red delete button; success toast with 3-second auto-dismiss
+
+### Files Modified This Session (Part 2)
+
+| File | Change |
+|---|---|
+| `src/app/[locale]/admin/courses/new/page.tsx` | Full 2-column rewrite |
+| `src/app/[locale]/admin/courses/[id]/edit/page.tsx` | Full 2-column rewrite |
+
+### Pending (carry to next session)
+
+- [ ] **DEPLOY**: `git add -A && git commit -m "feat: 2-column admin course UI for new + edit pages" && git push`
+- [ ] Test end-to-end: create course in admin, verify all fields render on public `/mn/courses/[slug]`
+- [ ] Enter 5 remaining launch articles: Money Talk, Mom Hacks, Ээжүүдийн хобби, Шинэхэн ээжүүд, Дотно харилцаа
+- [ ] Fix BUG-007: `/mn/access` returns 404
+- [ ] Fix BUG-008: Brevo SPF/DKIM for noreply@mommyoffice.com
+- [ ] Connect `mommyoffice.com` domain in Vercel (after content complete)
+- [ ] Set `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` in Vercel Production
+- [ ] Course player with Cloudflare Stream
+- [ ] Mobile audit: `/mn/courses`, `/mn/videos`, `/mn` home
+- [x] Marketplace Phase 1 DB migration — `mo_instructors` extended (qpay_password, qpay_invoice_code, subscription_status, subscription_expires_at, commission_rate, is_approved, approved_at, onboarding_completed) + user_id UUID FK to auth.users — all confirmed in Supabase
+- [x] `/admin/instructors` approval panel built — filter tabs (pending/active/suspended), one-click approve/suspend/restore, detail sidebar with QPay status
+- [x] Admin home page — "Багш нар" quick action link added
+- [x] `admin.ts` — added listInstructors, approveInstructor, suspendInstructor, deleteInstructorById, getInstructorCourseCount server actions
+- [x] Architecture decision: open self-registration model (like Udemy) with manual approval gate — teacher registers → MO reviews → approves with one click (qpay_password, qpay_invoice_code, subscription_status, subscription_expires_at, commission_rate, is_approved, approved_at, onboarding_completed) — "Success. No rows returned" confirmed in Supabase
+- [x] Marketplace Phase 1 DB migration — `mo_user_roles` table created with unique index on (user_id, role, resource_id) — "Success. No rows returned" confirmed
+
+---
+
 ## Session 2026-08-30 (Alex) — Course Admin/Public Gap Audit + Full Fix
 
 ### Completed Work

@@ -67,6 +67,54 @@ export async function getInstructors() {
   return data || [];
 }
 
+export async function listInstructors() {
+  const supabase = await createAdminClient();
+  const { data } = await supabase
+    .from('mo_instructors')
+    .select('id, name_mn, name_en, title_mn, title_en, bio_mn, bio_en, profile_image_url, subscription_status, is_approved, approved_at, onboarding_completed, created_at, user_id')
+    .order('created_at', { ascending: false });
+  return data || [];
+}
+
+export async function approveInstructor(id: string) {
+  const supabase = await createAdminClient();
+  const { error } = await supabase
+    .from('mo_instructors')
+    .update({
+      is_approved: true,
+      subscription_status: 'active',
+      approved_at: new Date().toISOString(),
+    })
+    .eq('id', id);
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+export async function suspendInstructor(id: string) {
+  const supabase = await createAdminClient();
+  const { error } = await supabase
+    .from('mo_instructors')
+    .update({ is_approved: false, subscription_status: 'suspended' })
+    .eq('id', id);
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+export async function deleteInstructorById(id: string) {
+  const supabase = await createAdminClient();
+  await supabase.from('mo_instructors').delete().eq('id', id);
+}
+
+export async function getInstructorCourseCount(instructorId: string): Promise<number> {
+  const supabase = await createAdminClient();
+  const { count } = await supabase
+    .from('mo_courses')
+    .select('id', { count: 'exact', head: true })
+    .eq('mo_instructor_id', instructorId)
+    .eq('is_published', true);
+  return count || 0;
+}
+
 export async function createCourse(data: {
   title_mn: string;
   title_en: string | null;
