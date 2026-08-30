@@ -150,23 +150,127 @@ Both `/admin/courses/new` and `/admin/courses/[id]/edit` fully rewritten with:
 | `src/app/[locale]/admin/courses/new/page.tsx` | Full 2-column rewrite |
 | `src/app/[locale]/admin/courses/[id]/edit/page.tsx` | Full 2-column rewrite |
 
+---
+
+## Session 2026-08-30 Part 3 (Alex) — Marketplace Phase 1 Launch
+
+### Completed Work
+
+#### 15. Marketplace Phase 1 — Full DB Schema
+
+All `mo_instructors` marketplace columns confirmed in Supabase:
+- `qpay_password TEXT, qpay_invoice_code TEXT` — encrypted QPay credentials
+- `subscription_status TEXT DEFAULT 'trial'` — trial/active/suspended
+- `subscription_expires_at TIMESTAMPTZ, commission_rate NUMERIC(5,2)`
+- `is_approved BOOLEAN DEFAULT FALSE, approved_at TIMESTAMPTZ`
+- `onboarding_completed BOOLEAN DEFAULT FALSE`
+- `user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL`
+- `email TEXT, social_url TEXT`
+
+`mo_user_roles` table created with unique index on `(user_id, role, resource_id)`.
+
+> Note: `qpay_username` was not visible in the first migration screenshot (lines 2-3 cut off). Verify this column exists in Supabase before implementing QPay per-instructor routing.
+
+#### 16. BUG-007 Fixed — `/mn/access` 404
+
+Created `/src/app/[locale]/access/page.tsx` — unified two-tab hub:
+
+- **Сурагч tab** (teal): token entry form → `/access/{token}` + ActionCard grid (Сургалтууд, Видео) + support email
+- **Багш tab** (indigo #6366f1): "Нэвтрэх →" → `/instructor/login` (for approved teachers) + divider + "Багш болох →" CTA → `/become-instructor` with 4-step process preview
+
+Architecture matches Udemy's "My Learning + Teach on Udemy" pattern — everything centered at one Нэвтрэх section.
+
+#### 17. `/become-instructor` — 4-Step Self-Registration Wizard
+
+`/src/app/[locale]/become-instructor/page.tsx` — NEW FILE:
+
+- **Step 0 (Intro):** 4 value prop cards (income, audience, tools, partnership) + time estimate
+- **Step 1 (Profile):** name_mn, name_en, email, title_mn, title_en, profile_image_url (live preview), social_url
+- **Step 2 (Bio):** bio_mn (50-char min with live counter), bio_en (optional)
+- **Step 3 (Submit):** summary card, 4-step process list, agreement checkbox, calls `createInstructorApplication()`
+- `SuccessScreen` component after submission; per-step validation before advancing
+
+#### 18. `/admin/instructors` — Approval Panel
+
+`/src/app/[locale]/admin/instructors/page.tsx` — NEW FILE:
+
+- Filter tabs: all/pending/active/suspended with live counts
+- List: avatar, name, email, status badge, Approve/Suspend/Restore buttons
+- Sticky right sidebar (320px): photo, bio, QPay status, login status, approval date, delete
+- Admin home page: "👩‍🏫 Багш нар" quick action added
+
+#### 19. `admin.ts` — 6 New Server Actions
+
+`createInstructorApplication`, `listInstructors`, `approveInstructor`, `suspendInstructor`, `deleteInstructorById`, `getInstructorCourseCount` — all confirmed working.
+
+#### 20. Navbar — "Багш болох" Link Added
+
+`Navbar.tsx`: `{ href: lp('/become-instructor'), label: 'Багш болох', soon: false }` added to `navLinks`.
+
+### Files Modified This Session (Part 3)
+
+| File | Change |
+|---|---|
+| `src/app/[locale]/access/page.tsx` | NEW — unified two-tab hub (198 lines) |
+| `src/app/[locale]/become-instructor/page.tsx` | NEW — 4-step wizard (372 lines) |
+| `src/app/[locale]/admin/instructors/page.tsx` | NEW — instructor approval panel |
+| `src/app/[locale]/admin/page.tsx` | Added "Багш нар" quick action |
+| `src/app/actions/admin.ts` | 6 new instructor server actions |
+| `src/components/ui/Navbar.tsx` | "Багш болох" nav link added |
+
 ### Pending (carry to next session)
 
-- [ ] **DEPLOY**: `git add -A && git commit -m "feat: 2-column admin course UI for new + edit pages" && git push`
+- [ ] **⚠️ NEXT: `/mn/instructor/login` page** — linked from /access Багш tab but not yet built (would 404)
+- [ ] **DB CHECK: `qpay_username` column** — was not visible in first migration screenshot; verify in Supabase
+- [ ] Instructor dashboard `/mn/instructor/*` — Phase 2 (QPay connect, course management)
 - [ ] Test end-to-end: create course in admin, verify all fields render on public `/mn/courses/[slug]`
-- [ ] Enter 5 remaining launch articles: Money Talk, Mom Hacks, Ээжүүдийн хобби, Шинэхэн ээжүүд, Дотно харилцаа
-- [ ] Fix BUG-007: `/mn/access` returns 404
+- [x] Launch articles — 5+ already entered ✅
 - [ ] Fix BUG-008: Brevo SPF/DKIM for noreply@mommyoffice.com
 - [ ] Connect `mommyoffice.com` domain in Vercel (after content complete)
 - [ ] Set `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` in Vercel Production
 - [ ] Course player with Cloudflare Stream
 - [ ] Mobile audit: `/mn/courses`, `/mn/videos`, `/mn` home
-- [x] Marketplace Phase 1 DB migration — `mo_instructors` extended (qpay_password, qpay_invoice_code, subscription_status, subscription_expires_at, commission_rate, is_approved, approved_at, onboarding_completed) + user_id UUID FK to auth.users — all confirmed in Supabase
-- [x] `/admin/instructors` approval panel built — filter tabs (pending/active/suspended), one-click approve/suspend/restore, detail sidebar with QPay status
-- [x] Admin home page — "Багш нар" quick action link added
-- [x] `admin.ts` — added listInstructors, approveInstructor, suspendInstructor, deleteInstructorById, getInstructorCourseCount server actions
-- [x] Architecture decision: open self-registration model (like Udemy) with manual approval gate — teacher registers → MO reviews → approves with one click (qpay_password, qpay_invoice_code, subscription_status, subscription_expires_at, commission_rate, is_approved, approved_at, onboarding_completed) — "Success. No rows returned" confirmed in Supabase
-- [x] Marketplace Phase 1 DB migration — `mo_user_roles` table created with unique index on (user_id, role, resource_id) — "Success. No rows returned" confirmed
+
+---
+
+## Session 2026-08-30 Part 4 (Alex) — Platform Research + Video Infrastructure Decision
+
+### Summary
+Research and architecture planning session. No code changes.
+
+### Decisions Made
+
+#### Video Hosting — Confirmed: Cloudflare Stream (stay)
+Benchmarked 5 providers: Cloudflare Stream, Bunny.net, Mux, VdoCipher, Wistia.
+
+**Key findings:**
+- Wistia (what Kajabi uses) has zero DRM, weak download protection, poor Asia CDN. Wrong product for a course platform.
+- Cloudflare Stream: best CDN for Mongolia (300+ PoPs), DRM built in, already integrated. Charges per minute delivered — cost-efficient at small scale.
+- Bunny.net: 12× cheaper at high volume (charges per GB not per minute). Better for 1,000+ daily viewers.
+- VdoCipher: only platform with dynamic viewer watermark. Purpose-built for e-learning DRM.
+- Mux: best analytics + auto-captions, most expensive at scale.
+
+**Decision:** Keep Cloudflare Stream for now. When monthly costs exceed ~$500 (roughly 500+ daily active viewers), evaluate migrating to Bunny.net for storage/delivery while keeping Cloudflare as DNS/proxy/WAF.
+
+#### Cost Scenarios Calculated
+| Scenario | Cloudflare Stream | Bunny.net |
+|---|---|---|
+| Early stage (~100 users) | $10–50/month | $5–20/month |
+| 5,000 viewers × 2hr × 20 days (200TB) | ~$12,018/month | ~$1,002/month |
+
+#### Upload UX (like Kajabi/Wistia)
+Wistia/Kajabi's upload ease comes from supporting Google Drive + Dropbox + direct file. Cloudflare Stream supports URL-based upload via API — we can add Drive/Dropbox upload to the MO admin panel using their public file URL. Added to backlog.
+
+### Pending (carry to next session)
+
+- [ ] Upload 3 test videos from MommyOffice admin — check UX end-to-end
+- [ ] Connect Cloudflare DNS for mommyoffice.com (IP protection + CDN)
+- [ ] Add Google Drive upload option to admin video/course forms (backlog)
+- [ ] **⚠️ KNOWN-004:** Build `/mn/instructor/login` page (Phase 2)
+- [ ] **⚠️ KNOWN-005:** Verify `qpay_username` column in Supabase mo_instructors
+- [ ] Fix BUG-008: Brevo SPF/DKIM
+- [ ] Domain cutover: mommyoffice.com in Vercel
+- [ ] Mobile audit: /courses, /videos, /home
 
 ---
 

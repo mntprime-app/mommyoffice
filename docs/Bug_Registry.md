@@ -66,10 +66,9 @@ Then commit and push normally. Occurs intermittently; always check if a commit f
 ## OPEN Bugs
 
 ### BUG-007 — `/mn/access` returns 404
-**Status:** OPEN
+**Status:** FIXED (2026-08-30)
 **Symptom:** Navigating to `/mn/access` returns a 404 page
-**Priority:** Medium — blocks access page flow
-**Next step:** Check if route file exists at `src/app/[locale]/access/page.tsx`
+**Fix:** Created `src/app/[locale]/access/page.tsx` — redesigned as a unified two-tab hub (Сурагч + Багш tabs). Student tab handles token entry + course/video browse. Instructor tab links to `/instructor/login` and `/become-instructor`.
 
 ---
 
@@ -112,3 +111,11 @@ Then commit and push normally. Occurs intermittently; always check if a commit f
 ### KNOWN-003 — Mobile audit pending for `/mn/courses`, `/mn/videos`, `/mn`
 **Status:** DEFERRED
 **Note:** Desktop layout confirmed working. Mobile pass needed before launch.
+
+### KNOWN-004 — `/mn/instructor/login` page not yet built
+**Status:** DEFERRED — Phase 2
+**Note:** `/access` Багш tab links to this page. Page doesn't exist yet (404). Instructor login + dashboard is Phase 2 work, after launch prep is complete.
+
+### KNOWN-005 — `qpay_username` column may be missing from `mo_instructors`
+**Status:** NEEDS VERIFICATION
+**Note:** First Supabase migration screenshot had lines 2–3 cut off. `qpay_username` TEXT column may not have been added. Verify in Supabase table editor before implementing per-instructor QPay routing.
