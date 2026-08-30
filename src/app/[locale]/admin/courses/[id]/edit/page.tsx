@@ -1,9 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getCourseById, updateCourse, deleteCourseById } from '@/app/actions/admin';
+import { getCourseById, updateCourse, deleteCourseById, getInstructors } from '@/app/actions/admin';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
+const LEVELS = ['', 'Анхан шат', 'Дунд шат', 'Ахисан шат'];
 const COURSE_PLACEMENTS = [
   { value: 'home_featured', label: '🏠 Нүүр хуудас — Онцлох', desc: '/mn нүүрийн "Онцлох сургалт" мөрт харагдана' },
   { value: 'standard', label: '📚 Стандарт каталог', desc: 'Зөвхөн /mn/courses-д харагдана' },
@@ -11,6 +12,7 @@ const COURSE_PLACEMENTS = [
 
 type OutlineLesson = { title: string; stream_id?: string };
 type OutlineModule = { title: string; lessons: OutlineLesson[] };
+type Instructor = { id: string; name_mn: string; name_en: string | null; title_mn: string | null };
 
 export default function EditCoursePage() {
   const router = useRouter();
@@ -22,26 +24,38 @@ export default function EditCoursePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
 
   const [form, setForm] = useState({
     title_mn: '', title_en: '',
     description_mn: '', description_en: '',
     about_course_mn: '', about_course_en: '',
+    what_you_learn_mn: '', what_you_learn_en: '',
+    requirements_mn: '', requirements_en: '',
     price: '0', original_price: '0',
     category: 'Хоол', slug: '',
+    level_mn: '',
     cover_image_url: '', trailer_url: '',
     cloudflare_stream_id: '',
     access_duration_days: '0',
-    is_published: false, show_outline: true,
+    duration_minutes: '0',
+    lecture_count: '0',
+    download_count: '0',
+    exercise_count: '0',
+    has_certificate: false,
+    is_bestseller: false,
+    is_published: false,
+    show_outline: true,
     placement: 'standard',
+    mo_instructor_id: '',
   });
 
-  // Outline stored as array of modules
   const [outline, setOutline] = useState<OutlineModule[]>([
     { title: '', lessons: [{ title: '', stream_id: '' }] },
   ]);
 
   useEffect(() => {
+    getInstructors().then((list) => setInstructors(list as Instructor[]));
     getCourseById(id).then((data) => {
       if (!data) { setError('Хичээл олдсонгүй'); setLoading(false); return; }
       setForm({
@@ -51,20 +65,34 @@ export default function EditCoursePage() {
         description_en: data.description_en || '',
         about_course_mn: data.about_course_mn || '',
         about_course_en: data.about_course_en || '',
+        what_you_learn_mn: data.what_you_learn_mn || '',
+        what_you_learn_en: data.what_you_learn_en || '',
+        requirements_mn: data.requirements_mn || '',
+        requirements_en: data.requirements_en || '',
         price: String(data.price ?? 0),
         original_price: String(data.original_price ?? 0),
         category: data.category || 'Хоол',
         slug: data.slug || '',
+        level_mn: data.level_mn || '',
         cover_image_url: data.cover_image_url || '',
         trailer_url: data.trailer_url || '',
         cloudflare_stream_id: data.cloudflare_stream_id || '',
         access_duration_days: String(data.access_duration_days ?? 0),
+        duration_minutes: String(data.duration_minutes ?? 0),
+        lecture_count: String(data.lecture_count ?? 0),
+        download_count: String(data.download_count ?? 0),
+        exercise_count: String(data.exercise_count ?? 0),
+        has_certificate: Boolean(data.has_certificate),
+        is_bestseller: Boolean(data.is_bestseller),
         is_published: Boolean(data.is_published),
         show_outline: data.show_outline !== false,
         placement: data.placement || 'standard',
+        mo_instructor_id: data.mo_instructor_id || '',
       });
-      if (Array.isArray(data.outline) && data.outline.length > 0) {
-        const normalized: OutlineModule[] = data.outline.map((m: OutlineModule) => ({
+      // Load curriculum from course_outline_mn (canonical column the public page reads)
+      const rawOutline = data.course_outline_mn || data.outline;
+      if (Array.isArray(rawOutline) && rawOutline.length > 0) {
+        const normalized: OutlineModule[] = rawOutline.map((m: OutlineModule) => ({
           title: m.title,
           lessons: (m.lessons || []).map((l: OutlineLesson | string) =>
             typeof l === 'string' ? { title: l, stream_id: '' } : { title: l.title || '', stream_id: l.stream_id || '' }
@@ -117,11 +145,36 @@ export default function EditCoursePage() {
           .map((l) => ({ title: l.title.trim(), stream_id: l.stream_id?.trim() || undefined })),
       }));
     const { error: err } = await updateCourse(id, {
-      ...form,
+      title_mn: form.title_mn,
+      title_en: form.title_en,
+      description_mn: form.description_mn,
+      description_en: form.description_en,
+      about_course_mn: form.about_course_mn,
+      about_course_en: form.about_course_en,
+      what_you_learn_mn: form.what_you_learn_mn || null,
+      what_you_learn_en: form.what_you_learn_en || null,
+      requirements_mn: form.requirements_mn || null,
+      requirements_en: form.requirements_en || null,
       price: Number(form.price),
       original_price: Number(form.original_price),
       access_duration_days: Number(form.access_duration_days),
-      outline: cleanOutline.length > 0 ? cleanOutline : null,
+      duration_minutes: Number(form.duration_minutes) || null,
+      lecture_count: Number(form.lecture_count) || null,
+      download_count: Number(form.download_count) || null,
+      exercise_count: Number(form.exercise_count) || null,
+      has_certificate: form.has_certificate,
+      is_bestseller: form.is_bestseller,
+      category: form.category,
+      level_mn: form.level_mn || null,
+      slug: form.slug,
+      cover_image_url: form.cover_image_url,
+      trailer_url: form.trailer_url,
+      cloudflare_stream_id: form.cloudflare_stream_id,
+      is_published: form.is_published,
+      show_outline: form.show_outline,
+      placement: form.placement,
+      course_outline_mn: cleanOutline.length > 0 ? cleanOutline : null,
+      mo_instructor_id: form.mo_instructor_id || null,
     });
     if (err) {
       setError(err);
@@ -183,30 +236,89 @@ export default function EditCoursePage() {
                 {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
               </select>
             </Field>
-            <Field label="Үнэ (₮)" hint="Борлуулах үнэ">
-              <input type="number" value={form.price} onChange={(e) => set('price', e.target.value)} style={inp} min="0" />
+            <Field label="Түвшин" hint="Бэйж болж харагдана">
+              <select value={form.level_mn} onChange={(e) => set('level_mn', e.target.value)} style={inp}>
+                {LEVELS.map((l) => <option key={l} value={l}>{l || '— Сонгох —'}</option>)}
+              </select>
             </Field>
-            <Field label="Эх үнэ (₮)" hint="Хөнгөлөлтийн өмнөх үнэ (заавал биш)">
-              <input type="number" value={form.original_price} onChange={(e) => set('original_price', e.target.value)} style={inp} min="0" />
+            <Field label="Bestseller бэйж">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '6px', cursor: 'pointer' }}>
+                <input type="checkbox" checked={form.is_bestseller} onChange={(e) => set('is_bestseller', e.target.checked)}
+                  style={{ width: '15px', height: '15px', accentColor: '#f59e0b' }} />
+                <span style={{ fontSize: '13px', color: '#e5e5e5' }}>🏆 Bestseller</span>
+              </label>
             </Field>
           </div>
-          <Field label="Хандалтын хугацаа (өдөр)" hint="0 = насан туршийн хандалт">
-            <input type="number" value={form.access_duration_days} onChange={(e) => set('access_duration_days', e.target.value)} style={{ ...inp, maxWidth: '160px' }} min="0" />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <Field label="Үнэ (₮)">
+              <input type="number" value={form.price} onChange={(e) => set('price', e.target.value)} style={inp} min="0" />
+            </Field>
+            <Field label="Эх үнэ (₮)" hint="Strike-through үнэ">
+              <input type="number" value={form.original_price} onChange={(e) => set('original_price', e.target.value)} style={inp} min="0" />
+            </Field>
+            <Field label="Хандалтын хугацаа (өдөр)" hint="0 = насан туршийн">
+              <input type="number" value={form.access_duration_days} onChange={(e) => set('access_duration_days', e.target.value)} style={inp} min="0" />
+            </Field>
+          </div>
+        </Section>
+
+        {/* ── Course Stats ── */}
+        <Section title="Хичээлийн тоо баримт">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem' }}>
+            <Field label="Нийт минут" hint="Хичээлийн үргэлжлэх хугацаа">
+              <input type="number" value={form.duration_minutes} onChange={(e) => set('duration_minutes', e.target.value)} style={inp} min="0" />
+            </Field>
+            <Field label="Хичээлийн тоо">
+              <input type="number" value={form.lecture_count} onChange={(e) => set('lecture_count', e.target.value)} style={inp} min="0" />
+            </Field>
+            <Field label="Татаж авах материал">
+              <input type="number" value={form.download_count} onChange={(e) => set('download_count', e.target.value)} style={inp} min="0" />
+            </Field>
+            <Field label="Дасгалын тоо">
+              <input type="number" value={form.exercise_count} onChange={(e) => set('exercise_count', e.target.value)} style={inp} min="0" />
+            </Field>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', padding: '10px 14px', background: form.has_certificate ? 'rgba(16,185,129,0.1)' : '#222', borderRadius: '8px', border: `1px solid ${form.has_certificate ? 'rgba(16,185,129,0.3)' : '#333'}` }}>
+            <input type="checkbox" checked={form.has_certificate} onChange={(e) => set('has_certificate', e.target.checked)}
+              style={{ width: '15px', height: '15px', accentColor: '#10b981' }} />
+            <div>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: '#e5e5e5' }}>🎓 Гэрчилгээ олгоно</span>
+              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Хичээл дуусгасан сурагчдад гэрчилгээ өгнө</div>
+            </div>
+          </label>
+        </Section>
+
+        {/* ── Instructor ── */}
+        <Section title="Багш">
+          <Field label="Багш сонгох" hint="mo_instructors хүснэгтэд нэмсэн багш нарын жагсаалт">
+            <select value={form.mo_instructor_id} onChange={(e) => set('mo_instructor_id', e.target.value)} style={inp}>
+              <option value="">— Багш сонгоогүй —</option>
+              {instructors.map((inst) => (
+                <option key={inst.id} value={inst.id}>
+                  {inst.name_mn}{inst.title_mn ? ` — ${inst.title_mn}` : ''}
+                </option>
+              ))}
+            </select>
           </Field>
+          {!instructors.length && (
+            <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
+              ⚠️ Багш олдсонгүй — эхлээд <a href={`/${locale}/admin/instructors`} style={{ color: '#00B5AD' }}>Багш нэмэх</a> хэсэгт багш үүсгэнэ үү.
+            </p>
+          )}
         </Section>
 
         {/* ── Media ── */}
         <Section title="Медиа">
-          <Field label="Cover Image URL" hint="💡 Зөвлөмж хэмжээ: 1280×720px (HD Video Poster, 16:9)">
+          <Field label="Cover Image URL" hint="💡 1280×720px (16:9)">
             <input value={form.cover_image_url} onChange={(e) => set('cover_image_url', e.target.value)} style={inp} placeholder="https://..." />
           </Field>
           {form.cover_image_url && (
             <img src={form.cover_image_url} alt="cover" style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px', marginTop: '4px' }} />
           )}
-          <Field label="YouTube Trailer ID" hint="Зөвхөн ID хэсгийг буулгана уу — жишээ нь: dQw4w9WgXcQ">
+          <Field label="YouTube Trailer ID" hint="Зөвхөн ID — жишээ нь: dQw4w9WgXcQ">
             <input value={form.trailer_url} onChange={(e) => set('trailer_url', e.target.value)} style={inp} placeholder="dQw4w9WgXcQ" />
           </Field>
-          <Field label="Cloudflare Stream Video ID" hint="CF Stream dashboard → Video ID. Signed playback token автоматаар үүснэ.">
+          <Field label="Cloudflare Stream Video ID" hint="CF Stream dashboard → Video ID">
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <input
                 value={form.cloudflare_stream_id}
@@ -229,11 +341,41 @@ export default function EditCoursePage() {
           <Field label="Богино тайлбар (EN)">
             <textarea value={form.description_en} onChange={(e) => set('description_en', e.target.value)} style={{ ...inp, height: '70px', resize: 'vertical' }} />
           </Field>
-          <Field label="Сургалтын тухай (МН)" hint='Курсийн онцлогийг эмоджитойгоор бичнэ үү — "What&apos;s inside?" хэсэг'>
+          <Field label="Сургалтын тухай (МН)" hint="Курсийн онцлогийг эмоджитойгоор — «What&apos;s inside?» хэсэг">
             <textarea value={form.about_course_mn} onChange={(e) => set('about_course_mn', e.target.value)} style={{ ...inp, height: '160px', resize: 'vertical', lineHeight: 1.7 }} />
           </Field>
           <Field label="Сургалтын тухай (EN)">
             <textarea value={form.about_course_en} onChange={(e) => set('about_course_en', e.target.value)} style={{ ...inp, height: '100px', resize: 'vertical', lineHeight: 1.7 }} />
+          </Field>
+        </Section>
+
+        {/* ── What you'll learn ── */}
+        <Section title="Юу сурах вэ? (What You'll Learn)">
+          <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 0.75rem' }}>Мөр бүрд нэг зүйл бичнэ — жагсаалт болж харагдана</p>
+          <Field label="МН">
+            <textarea value={form.what_you_learn_mn} onChange={(e) => set('what_you_learn_mn', e.target.value)}
+              style={{ ...inp, height: '140px', resize: 'vertical', lineHeight: 1.7 }}
+              placeholder={`Хоол хийх үндсэн техникүүд\nЦаг хэмнэх арга барил\nОлон улсын жорууд`} />
+          </Field>
+          <Field label="EN (заавал биш)">
+            <textarea value={form.what_you_learn_en} onChange={(e) => set('what_you_learn_en', e.target.value)}
+              style={{ ...inp, height: '100px', resize: 'vertical', lineHeight: 1.7 }}
+              placeholder={`Core cooking techniques\nTime-saving meal prep\nInternational recipes`} />
+          </Field>
+        </Section>
+
+        {/* ── Requirements ── */}
+        <Section title="Шаардлага (Requirements)">
+          <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 0.75rem' }}>Мөр бүрд нэг шаардлага — жагсаалт болж харагдана</p>
+          <Field label="МН">
+            <textarea value={form.requirements_mn} onChange={(e) => set('requirements_mn', e.target.value)}
+              style={{ ...inp, height: '110px', resize: 'vertical', lineHeight: 1.7 }}
+              placeholder={`Хоол хийх ур чадварын шаардлагагүй\nЛаваш, тогоо байхад хангалттай`} />
+          </Field>
+          <Field label="EN (заавал биш)">
+            <textarea value={form.requirements_en} onChange={(e) => set('requirements_en', e.target.value)}
+              style={{ ...inp, height: '80px', resize: 'vertical', lineHeight: 1.7 }}
+              placeholder={`No prior cooking experience needed\nBasic kitchen tools required`} />
           </Field>
         </Section>
 

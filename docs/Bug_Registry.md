@@ -80,6 +80,25 @@ Then commit and push normally. Occurs intermittently; always check if a commit f
 
 ---
 
+### BUG-009 — Trending section alignment (4-iteration failure loop)
+**Status:** FIXED (2026-08-27, 4th attempt)
+**Symptom:** Right column of 5 articles not aligning top/bottom edges with left hero card
+**Root cause chain:**
+- Attempt 1: Text block below image made left card taller than pure image → right column misaligned to full card height
+- Attempt 2: Overlay text on image (user rejected — text illegible on image)
+- Attempt 3: `repeat(5, 1fr)` grid rows + uniform padding → outer boundaries broke (card 1 pushed down, card 5 pushed out)
+- Attempt 4 (FIXED): `flex: 1` per item + `paddingTop: 0` on first, `paddingBottom: 0` on last, `10px` symmetric on middle
+**Fix applied:**
+- Left card: `aspectRatio: 16/9` image + fixed `height: 80px` text box below on dark bg
+- Right column: `display: flex, flexDirection: column, height: 100%`
+- Each item: `flex: 1, display: flex, alignItems: center, paddingTop: isFirst ? 0 : 10px, paddingBottom: isLast ? 0 : 10px`
+**Lessons:**
+- Never add uniform padding to bordered list — first needs pt-0, last needs pb-0
+- Always reason from slot height math before coding, not after seeing a bug
+- Do not switch layout approach (overlay vs. below) without user request
+
+---
+
 ## KNOWN Issues (by design / deferred)
 
 ### KNOWN-001 — `NEXT_PUBLIC_SITE_URL` not yet set in Vercel Production

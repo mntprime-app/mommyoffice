@@ -58,6 +58,15 @@ export async function getCourseById(id: string) {
   return data || null;
 }
 
+export async function getInstructors() {
+  const supabase = await createAdminClient();
+  const { data } = await supabase
+    .from('mo_instructors')
+    .select('id, name_mn, name_en, title_mn')
+    .order('name_mn');
+  return data || [];
+}
+
 export async function createCourse(data: {
   title_mn: string;
   title_en: string | null;
@@ -65,10 +74,21 @@ export async function createCourse(data: {
   description_en: string | null;
   about_course_mn: string | null;
   about_course_en: string | null;
+  what_you_learn_mn: string | null;
+  what_you_learn_en: string | null;
+  requirements_mn: string | null;
+  requirements_en: string | null;
   price: number;
   original_price: number | null;
   access_duration_days: number;
+  duration_minutes: number | null;
+  lecture_count: number | null;
+  download_count: number | null;
+  exercise_count: number | null;
+  has_certificate: boolean;
+  is_bestseller: boolean;
   category: string;
+  level_mn: string | null;
   cover_image_url: string | null;
   trailer_url: string | null;
   cloudflare_stream_id: string | null;
@@ -76,6 +96,8 @@ export async function createCourse(data: {
   is_published: boolean;
   show_outline: boolean;
   placement: string;
+  course_outline_mn: unknown[] | null;
+  mo_instructor_id: string | null;
 }) {
   const supabase = await createAdminClient();
   const { error } = await supabase.from('mo_courses').insert(data);
@@ -90,10 +112,21 @@ export async function updateCourse(id: string, data: {
   description_en: string;
   about_course_mn: string;
   about_course_en: string;
+  what_you_learn_mn: string | null;
+  what_you_learn_en: string | null;
+  requirements_mn: string | null;
+  requirements_en: string | null;
   price: number;
   original_price: number;
   access_duration_days: number;
+  duration_minutes: number | null;
+  lecture_count: number | null;
+  download_count: number | null;
+  exercise_count: number | null;
+  has_certificate: boolean;
+  is_bestseller: boolean;
   category: string;
+  level_mn: string | null;
   slug: string;
   cover_image_url: string;
   trailer_url: string;
@@ -101,7 +134,8 @@ export async function updateCourse(id: string, data: {
   is_published: boolean;
   show_outline: boolean;
   placement: string;
-  outline: unknown[] | null;
+  course_outline_mn: unknown[] | null;
+  mo_instructor_id: string | null;
 }) {
   const supabase = await createAdminClient();
   const { error } = await supabase

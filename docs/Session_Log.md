@@ -89,6 +89,110 @@ Added `!important` to `display: none` on aside to override inline `display: flex
 
 ---
 
+## Session 2026-08-27 Part 2 (Alex) — Trending Alignment + Limit Fix
+
+### Completed Work
+
+#### 10. Home Page Trending — Increased Limit 3 → 5
+- Supabase query `.limit(3)` changed to `.limit(5)`
+- Fallback `.slice(0, 3)` changed to `.slice(0, 5)`
+- All 5 trending articles now show when set in admin
+
+#### 11. Home Page Trending — Editorial Grid Alignment (BUG-009, 4 iterations)
+Multi-iteration alignment fix between left hero card and right 5-item column.
+
+**Root cause:** Text block below the image made the left card taller than the pure image, causing right column misalignment.
+
+**Final structure (SHIPPED):**
+- Left card: `aspectRatio: 16/9` image div + fixed `height: 80px` text box below on `#1a1a1a` dark background. Badge has `alignSelf: flex-start` to prevent stretching.
+- Right column parent: `display: flex, flexDirection: column, height: 100%`
+- Each of the 5 items: `flex: 1, display: flex, alignItems: center`
+  - First item: `paddingTop: 0` — thumbnail flush with top of image
+  - Last item: `paddingBottom: 0` — last item flush with bottom of text box
+  - Middle items: `paddingTop: 10px, paddingBottom: 10px` — dividers visually centered
+- Result: outer top/bottom edges pixel-aligned, divider lines centered between cards
+
+**Lessons logged in BUG-009:**
+- Never use uniform `py` on all items in a bordered list — first needs `pt-0`, last needs `pb-0`
+- Always reason from slot height math before coding
+- Do not switch layout approach without user request
+
+### Files Modified This Session (Part 2)
+
+| File | Change |
+|---|---|
+| `src/app/[locale]/page.tsx` | Trending limit 3→5, full alignment fix (4 iterations) |
+| `docs/Bug_Registry.md` | BUG-009 added with failure chain and fix |
+
+---
+
+---
+
+## Session 2026-08-30 (Alex) — Course Admin/Public Gap Audit + Full Fix
+
+### Completed Work
+
+#### 12. Data Schema & UX Gap Audit — Course Admin vs Public Page
+
+Audited 3 files: `admin/courses/new/page.tsx`, `admin/courses/[id]/edit/page.tsx`, `courses/[slug]/page.tsx`, and `actions/admin.ts`.
+
+**Critical gap found:** Admin saved curriculum to `outline` column, but public page reads `course_outline_mn` / `course_outline_en`. Curriculum entered in admin was never visible on the public course page.
+
+**Fields missing from admin (now added):**
+- `level_mn` — dropdown: Анхан шат / Дунд шат / Ахисан шат (shows as badge on public page)
+- `what_you_learn_mn` / `what_you_learn_en` — newline-separated textarea (public "Юу сурах вэ?" section)
+- `requirements_mn` / `requirements_en` — newline-separated textarea (public "Шаардлага" section)
+- `duration_minutes` — number (public sidebar shows "X цаг Y мин")
+- `lecture_count` — number (public sidebar + "Сургалтад багтсан зүйлс")
+- `download_count` — number (public "Сургалтад багтсан зүйлс")
+- `exercise_count` — number (public "Сургалтад багтсан зүйлс")
+- `has_certificate` — toggle (public "Сургалтад багтсан зүйлс")
+- `is_bestseller` — toggle (public header badge)
+- `mo_instructor_id` — instructor selector dropdown (public "Багшийн тухай" section)
+- Curriculum builder added to `new/page.tsx` (previously only in edit)
+
+#### 13. Fixes Applied
+
+**`src/app/actions/admin.ts`:**
+- Added `getInstructors()` server action (returns id, name_mn, name_en, title_mn)
+- `createCourse`: added all 13 missing fields, renamed `outline` → `course_outline_mn`
+- `updateCourse`: added all 13 missing fields, renamed `outline` → `course_outline_mn`
+
+**`src/app/[locale]/admin/courses/[id]/edit/page.tsx`:**
+- Added all missing form fields with proper UI (selectors, toggles, number inputs, textareas)
+- Instructor dropdown loads from `getInstructors()` server action
+- Curriculum now loads from `course_outline_mn` (with fallback to old `outline` for existing data)
+- Curriculum saves to `course_outline_mn` (fixes the public page display bug)
+- New sections added: Course Stats, Instructor, What You'll Learn, Requirements
+
+**`src/app/[locale]/admin/courses/new/page.tsx`:**
+- Curriculum builder ported from edit page (was completely missing)
+- All missing fields added (same as edit page)
+- `useEffect` added to load instructor list on mount
+
+### Files Modified This Session
+
+| File | Change |
+|---|---|
+| `src/app/actions/admin.ts` | Added getInstructors(), expanded createCourse + updateCourse with 13 missing fields, outline→course_outline_mn |
+| `src/app/[locale]/admin/courses/[id]/edit/page.tsx` | All missing fields, instructor selector, outline column fix |
+| `src/app/[locale]/admin/courses/new/page.tsx` | All missing fields, curriculum builder, instructor selector |
+
+### Pending (carry to next session)
+
+- [ ] **DEPLOY**: `git add -A && git commit -m "feat: complete course admin gap audit — add 13 missing fields, fix outline column, curriculum in new form" && git push`
+- [ ] **DB CHECK**: Verify `mo_courses` table has all new columns (`what_you_learn_mn/en`, `requirements_mn/en`, `duration_minutes`, `lecture_count`, `download_count`, `exercise_count`, `has_certificate`, `is_bestseller`, `level_mn`, `course_outline_mn`, `mo_instructor_id`). Run Supabase migration if any are missing.
+- [ ] Test: Create a demo course end-to-end in admin and verify all fields show on public `/mn/courses/[slug]`
+- [ ] Enter 5 remaining launch articles: Money Talk, Mom Hacks, Ээжүүдийн хобби, Шинэхэн ээжүүд, Дотно харилцаа
+- [ ] Fix BUG-007: `/mn/access` returns 404
+- [ ] Fix BUG-008: Brevo SPF/DKIM for noreply@mommyoffice.com
+- [ ] Connect `mommyoffice.com` domain in Vercel (after content complete)
+- [ ] Set `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` in Vercel Production
+- [ ] Course player with Cloudflare Stream
+- [ ] Mobile audit: `/mn/courses`, `/mn/videos`, `/mn` home
+
+---
+
 ## Session 2026-08-26 (Alex) — Prior Session Summary
 
 - Initial Next.js + Supabase setup confirmed live on Vercel
