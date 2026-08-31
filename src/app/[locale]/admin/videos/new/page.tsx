@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createVideo } from '@/app/actions/admin';
+import VideoUploader from '@/components/ui/VideoUploader';
 
 const CATEGORIES = [
   'Бизнес & Санхүү',
@@ -164,16 +165,22 @@ export default function NewVideoPage() {
           </Field>
         )}
 
-        {/* CF Stream source */}
+        {/* CF Stream source — VideoUploader (white-labeled) */}
         {form.video_type === 'paid' && (
-          <Field label="Cloudflare Stream Video ID *" hint="CF dashboard → Stream → Videos → Video ID">
-            <input
-              value={form.cloudflare_stream_id}
-              onChange={(e) => set('cloudflare_stream_id', e.target.value)}
-              style={{ ...inp, fontFamily: 'monospace', fontSize: '13px' }}
-              placeholder="a8765f2b3c4d5e6f..."
+          <div>
+            <VideoUploader
+              title={form.title_mn || 'MommyOffice Video'}
+              onSuccess={(uid) => {
+                set('cloudflare_stream_id', uid);
+              }}
+              onError={(msg) => setError(msg)}
             />
-          </Field>
+            {form.cloudflare_stream_id && (
+              <div style={{ marginTop: '8px', fontSize: '12px', color: '#10b981' }}>
+                ✓ Видео байршуулагдлаа · CF UID: <code style={{ color: '#00B5AD', fontSize: '11px' }}>{form.cloudflare_stream_id}</code>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Title */}
