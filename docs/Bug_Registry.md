@@ -119,3 +119,10 @@ Then commit and push normally. Occurs intermittently; always check if a commit f
 ### KNOWN-005 — `qpay_username` column may be missing from `mo_instructors`
 **Status:** NEEDS VERIFICATION
 **Note:** First Supabase migration screenshot had lines 2–3 cut off. `qpay_username` TEXT column may not have been added. Verify in Supabase table editor before implementing per-instructor QPay routing.
+
+### KNOWN-006 — Cloudflare Stream Webhooks UI not visible in free plan sidebar
+**Status:** KNOWN / WORKAROUND IN PLACE
+**Symptom:** Cloudflare dashboard → Stream → Webhooks page shows blank content; no Webhooks nav item in sidebar under free "Images & Stream" plan
+**Root cause:** Webhooks UI tab only appears after a paid Stream plan is active. Free plan only shows Videos, Live inputs, Transformations, Analytics in sidebar.
+**Workaround:** Webhook registered successfully via REST API (PUT /accounts/{id}/stream/webhook). Secret retrieved from API response and saved to env vars. Webhook is active and functional — only the UI tab is hidden.
+**Note:** Not a blocker. Webhook fires correctly on video encoding completion.

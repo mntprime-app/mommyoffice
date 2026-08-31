@@ -2,6 +2,91 @@
 
 ---
 
+## Session 2026-08-31 (Alex) — Video Upload Pipeline Launch + Cloudflare Setup
+
+### Completed Work
+
+#### 1. White-Labeled Video Upload Pipeline — 4 Files Shipped
+
+Built complete video upload infrastructure. Teachers upload to MommyOffice; Cloudflare is invisible in the UI.
+
+**`src/app/api/video/request-upload/route.ts`** (NEW)
+- POST endpoint: calls Cloudflare Direct Creator Upload API
+- Returns one-time TUS upload URL + video UID to frontend
+- `requireSignedURLs: true` — all videos are DRM-protected
+- `allowedOrigins`: mommyoffice.com, www.mommyoffice.com, mommyoffice-smoky.vercel.app
+- Uses `CF_ACCOUNT_ID` + `CF_STREAM_API_TOKEN` env vars
+
+**`src/app/api/video/webhook/route.ts`** (NEW)
+- Receives Cloudflare Stream webhook when encoding completes
+- Verifies HMAC signature with `CF_WEBHOOK_SECRET`
+- Quality gate: MIN 720p resolution + MIN 3 minutes duration
+- PASS → `mo_video_uploads.status = 'ready'`
+- FAIL → auto-deletes video from CF Stream (zero storage cost) + records Mongolian rejection message
+
+**`src/components/ui/VideoUploader.tsx`** (NEW)
+- Branded drag-and-drop component — zero Cloudflare branding
+- Client-side pre-check before upload (resolution, duration, format, size)
+- Native TUS chunked upload (50MB chunks) — no external npm package
+- Status states: idle / checking / uploading / processing / done / error
+- All UI text in Mongolian
+
+**`src/app/[locale]/admin/videos/new/page.tsx`** (MODIFIED)
+- Replaced plain CF Stream ID text input with `<VideoUploader>` component
+- Commit: `36ba11e` — pushed to GitHub
+
+#### 2. `mo_video_uploads` Table Created in Supabase
+
+```sql
+CREATE TABLE mo_video_uploads (
+  id UUID, cloudflare_uid TEXT, status TEXT DEFAULT 'pending',
+  rejection_reason TEXT, rejection_message TEXT,
+  duration_seconds INTEGER, resolution_height INTEGER,
+  processed_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_mo_video_uploads_cloudflare_uid ON mo_video_uploads (cloudflare_uid);
+```
+
+### Cloudflare Account Setup — Completed
+
+- **Account ID:** `642ba259ca6ae24cd02dc58ef37bf84e` (Mntprime.marketing account)
+- **Customer subdomain:** `customer-ivpigj2fofxpnwyw.cloudflarestream.com`
+- **API Token:** Created via "Read and write to Cloudflare Stream and Images" template
+- **Stream plan:** Activated free Images & Stream plan ($0/month base, pay-as-you-go)
+- **Webhook:** Registered via API (PUT /stream/webhook) — URL: `https://mommyoffice-smoky.vercel.app/api/video/webhook`
+- **Webhook secret:** Retrieved from API response and saved to `.env.local`
+
+All 4 CF env vars saved to `.env.local` AND Vercel (Production). Deployment `36ba11e` redeployed and confirmed **Ready** (33s build).
+
+### End State — Fully Live ✅
+
+The complete video upload pipeline is deployed and accessible at `/mn/admin/videos/new`. The VideoUploader component renders correctly with drag-drop zone and "Файл сонгох" button. Ready for end-to-end video upload testing.
+
+### Files Modified This Session
+
+| File | Change |
+|---|---|
+| `src/app/api/video/request-upload/route.ts` | NEW — CF Direct Creator Upload endpoint |
+| `src/app/api/video/webhook/route.ts` | NEW — Quality gate webhook handler |
+| `src/components/ui/VideoUploader.tsx` | NEW — Branded drag-drop TUS uploader |
+| `src/app/[locale]/admin/videos/new/page.tsx` | MODIFIED — VideoUploader replaces text input |
+
+### Pending (carry to next session)
+
+- [x] Cloudflare account setup — Account ID, API token, webhook, all env vars ✅
+- [ ] Upload 3 test videos from `/mn/admin/videos/new` — end-to-end UX test (NEXT)
+- [ ] Connect Cloudflare DNS for mommyoffice.com (IP protection + CDN proxy)
+- [ ] KNOWN-004: Build `/mn/instructor/login` page (Phase 2)
+- [ ] KNOWN-005: Verify `qpay_username` column in mo_instructors
+- [ ] Fix BUG-008: Brevo SPF/DKIM for noreply@mommyoffice.com
+- [ ] Domain cutover: connect mommyoffice.com in Vercel
+- [ ] Set `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` in Vercel Production
+- [ ] Mobile audit: /courses, /videos, /home
+- [ ] Course player with Cloudflare Stream
+- [ ] Google Drive upload option (backlog)
+
+---
+
 ## Session 2026-08-27 (Alex)
 
 ### Completed Work
