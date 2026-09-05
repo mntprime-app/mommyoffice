@@ -298,7 +298,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       {/* ══ HERO — Floating Netflix Card ══════════════════════════════════════ */}
       <div style={{ background:'#141414' }}>
         <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'12px 2rem 0' }}>
-        <section style={{ position:'relative', width:'100%', height:'72vh', minHeight:'500px', overflow:'hidden', background:'#000', borderRadius:'24px' }}>
+        <section style={{ position:'relative', width:'100%', aspectRatio:'16/9', maxHeight:'68vh', overflow:'hidden', background:'#000', borderRadius:'24px' }}>
 
           {/* ── Background: crisp thumbnail ── */}
           {hero && getThumbHQ(hero) && !heroVideoActive && (
@@ -314,7 +314,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               <iframe
                 key={`hero-${hero.id}`}
                 src={`https://www.youtube.com/embed/${hero.youtube_id}?autoplay=1&mute=${heroMuted?1:0}&controls=0&showinfo=0&rel=0&loop=1&playlist=${hero.youtube_id}&modestbranding=1&iv_load_policy=3&enablejsapi=1`}
-                style={{ position:'absolute', top:'50%', left:'50%', width:'177.78vh', minWidth:'100%', height:'100%', minHeight:'56.25vw', transform:'translate(-50%,-50%)', border:'none' }}
+                style={{ position:'absolute', inset:0, width:'100%', height:'100%', border:'none' }}
                 allow="autoplay; fullscreen"
               />
             </>
@@ -385,10 +385,12 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       </div>
 
       {/* ══ GENRE PILLS ═══════════════════════════════════════════════════════ */}
-      <div style={{ display:'flex', gap:'8px', padding:'1.25rem 2rem', maxWidth:'1400px', margin:'0 auto', overflowX:'auto', borderBottom:'1px solid #1f1f1f', scrollbarWidth:'none', marginTop:'0', position:'relative', zIndex:3 }}>
-        {GENRE_LABELS.map(g => (
-          <button key={g} onClick={() => setGenre(g)} style={{ flexShrink:0, padding:'7px 18px', borderRadius:'20px', fontSize:'13px', fontWeight:500, cursor:'pointer', border:'1px solid', transition:'all 0.15s', background: genre===g ? 'rgba(0,181,173,0.15)' : '#1a1a1a', color: genre===g ? '#00B5AD' : '#9ca3af', borderColor: genre===g ? 'rgba(0,181,173,0.4)' : '#2a2a2a' }}>{g}</button>
-        ))}
+      <div style={{ borderBottom:'1px solid #1f1f1f', position:'relative', zIndex:3 }}>
+        <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'1.25rem 2rem', display:'flex', gap:'8px', overflowX:'auto', scrollbarWidth:'none' }}>
+          {GENRE_LABELS.map(g => (
+            <button key={g} onClick={() => setGenre(g)} style={{ flexShrink:0, padding:'7px 18px', borderRadius:'20px', fontSize:'13px', fontWeight:500, cursor:'pointer', border:'1px solid', transition:'all 0.15s', background: genre===g ? 'rgba(0,181,173,0.15)' : '#1a1a1a', color: genre===g ? '#00B5AD' : '#9ca3af', borderColor: genre===g ? 'rgba(0,181,173,0.4)' : '#2a2a2a' }}>{g}</button>
+          ))}
+        </div>
       </div>
 
       {/* ══ VIDEO ROWS ════════════════════════════════════════════════════════ */}
