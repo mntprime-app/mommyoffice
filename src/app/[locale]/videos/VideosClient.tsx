@@ -321,8 +321,8 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
         <p style={{ fontSize:'10px', fontWeight:700, color:'#00B5AD', letterSpacing:'2px', textTransform:'uppercase', margin:'0 0 8px' }}>
           🎬 КИНО & ВИДЕО
         </p>
-        {/* Hero card — 260px fixed height, static poster, title + buttons overlay inside */}
-        <div style={{ position:'relative', width:'100%', height:'260px', borderRadius:'14px', overflow:'hidden', background:'#0a0a0a' }}>
+        {/* Hero card — 300px fixed height, static poster, Netflix-style stacked pills overlay */}
+        <div style={{ position:'relative', width:'100%', height:'300px', borderRadius:'14px', overflow:'hidden', background:'#0a0a0a' }}>
           {hero && getThumbHQ(hero) ? (
             <img src={getThumbHQ(hero)} alt={hero.title_mn}
               style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
@@ -337,29 +337,36 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               🆕 Шинэ
             </div>
           )}
-          {/* Strong bottom vignette */}
-          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'70%', background:'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.92) 100%)' }} />
-          {/* Overlay: title + CTA buttons inside card */}
-          <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'12px 14px', zIndex:5 }}>
-            <h1 style={{ fontSize:'15px', fontWeight:800, lineHeight:1.25, color:'#fff', margin:'0 0 10px', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+          {/* Deep bottom vignette — 80% to accommodate stacked buttons + description */}
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'80%', background:'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)' }} />
+          {/* Overlay: title + description + stacked full-width pill buttons (Netflix standard) */}
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'14px 14px', zIndex:5 }}>
+            <h1 style={{ fontSize:'15px', fontWeight:800, lineHeight:1.25, color:'#fff', margin:'0 0 4px', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
               {hero?.title_mn ?? 'Кино & Видео'}
             </h1>
-            <div style={{ display:'flex', gap:'8px' }}>
-              <button onClick={() => hero && openPlayer(hero)} style={{ flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'5px', background:'#fff', color:'#000', padding:'8px 12px', borderRadius:'8px', fontWeight:700, fontSize:'13px', border:'none', cursor:'pointer' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ҮЗЭХ
+            {/* Meta line */}
+            <p style={{ fontSize:'11px', color:'rgba(255,255,255,0.65)', margin:'0 0 8px', display:'flex', gap:'6px', flexWrap:'wrap' as const }}>
+              <span>{hero?.category ?? ''}</span>
+              {hero?.duration_text && <><span>·</span><span>{hero.duration_text}</span></>}
+              <span>·</span>
+              <span>{hero?.video_type === 'paid' ? '🔒 Гишүүнчлэл' : '✓ Үнэгүй'}</span>
+            </p>
+            {/* Description — 2-line clamp */}
+            {hero?.description_mn && (
+              <p style={{ fontSize:'11px', color:'rgba(255,255,255,0.75)', margin:'0 0 10px', lineHeight:1.4, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+                {hero.description_mn}
+              </p>
+            )}
+            {/* Stacked full-width pill buttons — Netflix standard */}
+            <div style={{ display:'flex', flexDirection:'column', gap:'8px', width:'100%' }}>
+              <button onClick={() => hero && openPlayer(hero)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', background:'#fff', color:'#000', padding:'10px 16px', borderRadius:'24px', fontWeight:700, fontSize:'13px', border:'none', cursor:'pointer' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ҮЗЭХ
               </button>
-              <button onClick={() => hero && openInfo(hero)} style={{ flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'5px', background:'rgba(0,0,0,0.5)', color:'#e5e5e5', padding:'8px 12px', borderRadius:'8px', fontWeight:700, fontSize:'13px', border:'1px solid rgba(255,255,255,0.3)', cursor:'pointer' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> ДЭЛГЭРЭНГҮЙ
+              <button onClick={() => hero && openInfo(hero)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', background:'rgba(45,45,45,0.92)', color:'#fff', padding:'10px 16px', borderRadius:'24px', fontWeight:700, fontSize:'13px', border:'1px solid rgba(255,255,255,0.2)', cursor:'pointer' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> ДЭЛГЭРЭНГҮЙ
               </button>
             </div>
           </div>
-        </div>
-        {/* One-line meta below card */}
-        <div style={{ display:'flex', alignItems:'center', gap:'6px', margin:'8px 0 0', fontSize:'11px', color:'#666' }}>
-          <span>{hero?.category ?? 'Платформ'}</span>
-          {hero?.duration_text && <><span>•</span><span>{hero.duration_text}</span></>}
-          <span>•</span>
-          <span>{hero?.video_type === 'paid' ? '🔒 Гишүүнчлэл' : '✓ Үнэгүй'}</span>
         </div>
       </div>
 

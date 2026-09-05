@@ -172,7 +172,7 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 7. One-line meta:   below card, 11px #666 — category + duration + free/paid
 ```
 
-**NEVER USE aspect-ratio on mobile hero.** 4:5 = 468px at 375px viewport. Use `height: '260px'` always.
+**NEVER USE aspect-ratio on mobile hero.** 4:5 = 468px at 375px viewport. Use `height: '300px'` always (upgraded from 260px in Session 12 for Netflix-standard stacked buttons + description).
 
 **CSS classes used (add to any new hero component):**
 ```tsx

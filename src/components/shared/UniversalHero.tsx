@@ -117,10 +117,10 @@ export default function UniversalHero({
           </p>
         )}
 
-        {/* Hero card — 260px fixed height, static poster, overlay at bottom */}
+        {/* Hero card — 300px fixed height, static poster, Netflix-style stacked pills */}
         <div style={{
           position: 'relative', width: '100%',
-          height: '260px',
+          height: '300px',
           borderRadius: '14px', overflow: 'hidden',
           background: '#0a0a0a',
         }}>
@@ -157,39 +157,50 @@ export default function UniversalHero({
             </div>
           )}
 
-          {/* Strong bottom vignette — 70% height, deep dark for text legibility */}
+          {/* Deep bottom vignette — 80% to accommodate stacked buttons + description */}
           <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0, height: '70%',
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.92) 100%)',
+            position: 'absolute', bottom: 0, left: 0, right: 0, height: '80%',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
           }} />
 
-          {/* Overlay: title + CTA buttons inside card at bottom */}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 14px', zIndex: 5 }}>
+          {/* Overlay: title + description + stacked full-width pill buttons (Netflix standard) */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 14px', zIndex: 5 }}>
             <h1 style={{
               fontSize: '15px', fontWeight: 800, lineHeight: 1.25,
-              color: '#fff', margin: '0 0 10px',
+              color: '#fff', margin: '0 0 4px',
               display: '-webkit-box', WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical', overflow: 'hidden',
             }}>
               {title}
             </h1>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            {description && (
+              <p style={{
+                fontSize: '11px', color: 'rgba(255,255,255,0.75)',
+                margin: '0 0 10px', lineHeight: 1.4,
+                display: '-webkit-box', WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical', overflow: 'hidden',
+              }}>
+                {description}
+              </p>
+            )}
+            {/* Stacked full-width pill buttons — Netflix standard */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
               {primaryHref ? (
                 <Link href={primaryHref} style={{
-                  flex: 1, display: 'inline-flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '5px',
+                  width: '100%', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '6px',
                   background: '#fff', color: '#000',
-                  padding: '8px 12px', borderRadius: '8px',
+                  padding: '10px 16px', borderRadius: '24px',
                   fontWeight: 700, fontSize: '13px', textDecoration: 'none',
                 }}>
                   <PlayIcon /> {primaryActionText}
                 </Link>
               ) : onPrimaryClick ? (
                 <button onClick={onPrimaryClick} style={{
-                  flex: 1, display: 'inline-flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '5px',
+                  width: '100%', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '6px',
                   background: '#fff', color: '#000',
-                  padding: '8px 12px', borderRadius: '8px',
+                  padding: '10px 16px', borderRadius: '24px',
                   fontWeight: 700, fontSize: '13px', border: 'none', cursor: 'pointer',
                 }}>
                   <PlayIcon /> {primaryActionText}
@@ -198,23 +209,23 @@ export default function UniversalHero({
 
               {secondaryHref ? (
                 <Link href={secondaryHref} style={{
-                  flex: 1, display: 'inline-flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '5px',
-                  background: 'rgba(0,0,0,0.5)', color: '#e5e5e5',
-                  padding: '8px 12px', borderRadius: '8px',
+                  width: '100%', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '6px',
+                  background: 'rgba(45,45,45,0.92)', color: '#fff',
+                  padding: '10px 16px', borderRadius: '24px',
                   fontWeight: 700, fontSize: '13px',
-                  textDecoration: 'none', border: '1px solid rgba(255,255,255,0.3)',
+                  textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)',
                 }}>
                   <InfoIcon /> {secondaryActionText}
                 </Link>
               ) : onSecondaryClick ? (
                 <button onClick={onSecondaryClick} style={{
-                  flex: 1, display: 'inline-flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '5px',
-                  background: 'rgba(0,0,0,0.5)', color: '#e5e5e5',
-                  padding: '8px 12px', borderRadius: '8px',
+                  width: '100%', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '6px',
+                  background: 'rgba(45,45,45,0.92)', color: '#fff',
+                  padding: '10px 16px', borderRadius: '24px',
                   fontWeight: 700, fontSize: '13px',
-                  border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer',
+                  border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer',
                 }}>
                   <InfoIcon /> {secondaryActionText}
                 </button>
