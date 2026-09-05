@@ -8,15 +8,15 @@
  *  Layer 3: Asymmetric vignette
  *  Layer 4: Badge + title + description + CTA buttons (bottom-left overlay)
  *
- * Mobile architecture (<768px) — Netflix Mobile Native Layout Standard:
- *  - Category badge as text ABOVE the card (no floating chips over image)
- *  - Title ABOVE the card — fully readable, no face collision
- *  - Hero card: static portrait poster ONLY (4:5 aspect) — no autoplay, no iframe
- *  - Corner badge anchored to top-right INSIDE card — never overlaps buttons
- *  - CTA buttons in isolated row BELOW the card — z-20, no badge collision possible
+ * Mobile architecture (<768px) — Option A overlay (260px landscape card):
+ *  - Category badge as text ABOVE the card
+ *  - Hero card: 260px fixed height, static poster ONLY — no autoplay, no iframe
+ *  - Corner badge anchored to top-right INSIDE card
+ *  - Strong vignette (rgba 0→0.92, 70% height) at bottom of card
+ *  - Title (15px, w800, 2-line clamp) + CTA buttons overlaid inside card at bottom
  *
  * Height standard (desktop):  clamp(580px, 68vh, 780px)
- * Mobile card aspect:          4 / 5
+ * Mobile card height:          260px fixed
  * Grid standard:               maxWidth 1400px · margin 0 auto · padding 12px 2rem 0
  */
 
@@ -100,37 +100,28 @@ export default function UniversalHero({
   return (
     <>
       {/* ══════════════════════════════════════════════════════════════════════
-          MOBILE LAYOUT  (<768px) — Netflix Mobile Native Layout Standard
-          Title + badge ABOVE card, static portrait poster, buttons BELOW.
+          MOBILE LAYOUT  (<768px) — Option A overlay (260px landscape card)
+          Category badge ABOVE card. Title + CTA buttons overlaid INSIDE card.
           CSS class mo-hero-mobile: display:none on desktop, block on mobile.
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="mo-hero-mobile" style={{ background: '#141414', padding: '12px 1rem 8px' }}>
 
-        {/* Category label — above card, never floating over image */}
+        {/* Category label — above card */}
         {badgeText && (
           <p style={{
             fontSize: '10px', fontWeight: 700, color: '#00B5AD',
             letterSpacing: '2px', textTransform: 'uppercase',
-            margin: '0 0 6px',
+            margin: '0 0 8px',
           }}>
             {badgeText}
           </p>
         )}
 
-        {/* Title — above card, full-width, no face collision */}
-        <h1 style={{
-          fontSize: '1.55rem', fontWeight: 800, lineHeight: 1.2,
-          color: '#fff', margin: '0 0 12px',
-          letterSpacing: '-0.3px',
-        }}>
-          {title}
-        </h1>
-
-        {/* Hero card — portrait 4:5, static poster, clean image */}
+        {/* Hero card — 260px fixed height, static poster, overlay at bottom */}
         <div style={{
           position: 'relative', width: '100%',
-          aspectRatio: '4 / 5',
-          borderRadius: '16px', overflow: 'hidden',
+          height: '260px',
+          borderRadius: '14px', overflow: 'hidden',
           background: '#0a0a0a',
         }}>
           {/* Cover image */}
@@ -153,7 +144,7 @@ export default function UniversalHero({
             </div>
           )}
 
-          {/* Corner badge — top-right INSIDE card, never near buttons */}
+          {/* Corner badge — top-right inside card */}
           {cornerBadge && (
             <div style={{
               position: 'absolute', top: '12px', right: '12px', zIndex: 10,
@@ -166,77 +157,70 @@ export default function UniversalHero({
             </div>
           )}
 
-          {/* Subtle bottom vignette for depth */}
+          {/* Strong bottom vignette — 70% height, deep dark for text legibility */}
           <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0, height: '25%',
-            background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.25) 100%)',
+            position: 'absolute', bottom: 0, left: 0, right: 0, height: '70%',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.92) 100%)',
           }} />
-        </div>
 
-        {/* Description — below card, readable on dark background */}
-        {description && (
-          <p style={{
-            fontSize: '13px', color: '#aaa', lineHeight: 1.55,
-            margin: '10px 0 0',
-            display: '-webkit-box', WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical', overflow: 'hidden',
-          }}>
-            {description}
-          </p>
-        )}
+          {/* Overlay: title + CTA buttons inside card at bottom */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 14px', zIndex: 5 }}>
+            <h1 style={{
+              fontSize: '15px', fontWeight: 800, lineHeight: 1.25,
+              color: '#fff', margin: '0 0 10px',
+              display: '-webkit-box', WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical', overflow: 'hidden',
+            }}>
+              {title}
+            </h1>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {primaryHref ? (
+                <Link href={primaryHref} style={{
+                  flex: 1, display: 'inline-flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '5px',
+                  background: '#fff', color: '#000',
+                  padding: '8px 12px', borderRadius: '8px',
+                  fontWeight: 700, fontSize: '13px', textDecoration: 'none',
+                }}>
+                  <PlayIcon /> {primaryActionText}
+                </Link>
+              ) : onPrimaryClick ? (
+                <button onClick={onPrimaryClick} style={{
+                  flex: 1, display: 'inline-flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '5px',
+                  background: '#fff', color: '#000',
+                  padding: '8px 12px', borderRadius: '8px',
+                  fontWeight: 700, fontSize: '13px', border: 'none', cursor: 'pointer',
+                }}>
+                  <PlayIcon /> {primaryActionText}
+                </button>
+              ) : null}
 
-        {/* CTA buttons — isolated row below card, z-20, badge collision impossible */}
-        <div style={{
-          display: 'flex', gap: '10px', marginTop: '14px',
-          position: 'relative', zIndex: 20,
-        }}>
-          {/* Primary */}
-          {primaryHref ? (
-            <Link href={primaryHref} style={{
-              flex: 1, display: 'inline-flex', alignItems: 'center',
-              justifyContent: 'center', gap: '6px',
-              background: '#fff', color: '#000',
-              padding: '12px 8px', borderRadius: '10px',
-              fontWeight: 700, fontSize: '14px', textDecoration: 'none',
-            }}>
-              <PlayIcon /> {primaryActionText}
-            </Link>
-          ) : onPrimaryClick ? (
-            <button onClick={onPrimaryClick} style={{
-              flex: 1, display: 'inline-flex', alignItems: 'center',
-              justifyContent: 'center', gap: '6px',
-              background: '#fff', color: '#000',
-              padding: '12px 8px', borderRadius: '10px',
-              fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer',
-            }}>
-              <PlayIcon /> {primaryActionText}
-            </button>
-          ) : null}
-
-          {/* Secondary */}
-          {secondaryHref ? (
-            <Link href={secondaryHref} style={{
-              flex: 1, display: 'inline-flex', alignItems: 'center',
-              justifyContent: 'center', gap: '6px',
-              background: '#2a2a2a', color: '#e5e5e5',
-              padding: '12px 8px', borderRadius: '10px',
-              fontWeight: 700, fontSize: '14px',
-              textDecoration: 'none', border: '1px solid #444',
-            }}>
-              <InfoIcon /> {secondaryActionText}
-            </Link>
-          ) : onSecondaryClick ? (
-            <button onClick={onSecondaryClick} style={{
-              flex: 1, display: 'inline-flex', alignItems: 'center',
-              justifyContent: 'center', gap: '6px',
-              background: '#2a2a2a', color: '#e5e5e5',
-              padding: '12px 8px', borderRadius: '10px',
-              fontWeight: 700, fontSize: '14px',
-              border: '1px solid #444', cursor: 'pointer',
-            }}>
-              <InfoIcon /> {secondaryActionText}
-            </button>
-          ) : null}
+              {secondaryHref ? (
+                <Link href={secondaryHref} style={{
+                  flex: 1, display: 'inline-flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '5px',
+                  background: 'rgba(0,0,0,0.5)', color: '#e5e5e5',
+                  padding: '8px 12px', borderRadius: '8px',
+                  fontWeight: 700, fontSize: '13px',
+                  textDecoration: 'none', border: '1px solid rgba(255,255,255,0.3)',
+                }}>
+                  <InfoIcon /> {secondaryActionText}
+                </Link>
+              ) : onSecondaryClick ? (
+                <button onClick={onSecondaryClick} style={{
+                  flex: 1, display: 'inline-flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '5px',
+                  background: 'rgba(0,0,0,0.5)', color: '#e5e5e5',
+                  padding: '8px 12px', borderRadius: '8px',
+                  fontWeight: 700, fontSize: '13px',
+                  border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer',
+                }}>
+                  <InfoIcon /> {secondaryActionText}
+                </button>
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
 

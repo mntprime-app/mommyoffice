@@ -92,6 +92,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section className="mo-section-gap mo-courses-row" style={{ padding: '2rem 0 3rem', marginTop: '0', position: 'relative', zIndex: 2 }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title={t('featured_courses')} href={`/${locale}/courses`} />
+          <div className="mo-row-wrap" style={{ position: 'relative' }}>
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '8px' }}>
             {displayCourses.map((c: Record<string, unknown>, i: number) => {
               const title = locale === 'mn'
@@ -108,12 +109,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               ];
               return (
                 <Link key={String(c.id || i)} href={slug} style={{ textDecoration: 'none', flexShrink: 0 }}>
-                  <div className="netflix-card" style={{
+                  <div className="netflix-card mo-home-course-card" style={{
                     width: '280px', borderRadius: '10px', overflow: 'hidden',
                     background: '#1a1a1a', position: 'relative',
                   }}>
                     {/* Thumbnail — 16:9 */}
-                    <div style={{
+                    <div className="mo-home-course-thumb" style={{
                       width: '280px', height: '157px',
                       background: gradients[i % gradients.length],
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -158,6 +159,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               );
             })}
           </div>
+          </div>{/* end mo-row-wrap */}
         </div>
       </section>
 
@@ -259,7 +261,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
 
           {/* More articles — horizontal scroll row */}
-          <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px', marginTop: '2rem' }}>
+          <div className="mo-row-wrap" style={{ marginTop: '2rem' }}>
+          <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
             {moreArticles.map((a: Record<string, unknown>, i: number) => {
               const title = locale === 'mn'
                 ? String(a.title_mn || a.title || '')
@@ -305,6 +308,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               );
             })}
           </div>
+          </div>{/* end mo-row-wrap */}
         </div>
       </section>
 
@@ -398,6 +402,38 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
         </div>
       </section>
+
+      <style>{`
+        /* ── Right-fade scroll hint — mobile carousel rows ── */
+        .mo-row-wrap { position: relative; overflow: hidden; }
+        .mo-row-wrap::after {
+          content: '';
+          position: absolute;
+          top: 0; right: 0; bottom: 0;
+          width: 56px;
+          background: linear-gradient(to right, transparent, #141414);
+          pointer-events: none;
+          z-index: 2;
+        }
+        @media (min-width: 768px) {
+          .mo-row-wrap::after { display: none; }
+        }
+        /* ── Home page course cards — 45vw on mobile ── */
+        @media (max-width: 767px) {
+          .mo-home-course-card { width: calc(45vw) !important; min-width: 140px !important; }
+          .mo-home-course-thumb { width: 100% !important; height: auto !important; aspect-ratio: 16/9; }
+        }
+        .netflix-card { transition: transform 0.18s; }
+        .netflix-card:hover { transform: translateY(-3px); }
+        .mo-editorial-grid {
+          display: grid;
+          grid-template-columns: 65% 35%;
+          gap: 1.5rem;
+        }
+        @media (max-width: 767px) {
+          .mo-editorial-grid { grid-template-columns: 1fr; gap: 1rem; }
+        }
+      `}</style>
     </div>
   );
 }

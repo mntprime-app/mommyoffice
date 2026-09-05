@@ -104,11 +104,11 @@ export default async function CoursesPage({
       </div>
 
       {/* ── COURSE GRID ── */}
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 2rem' }}>
-        <div style={{
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1rem' }}>
+        <div className="mo-card-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: '1.5rem',
+          gap: '1rem',
         }}>
           {displayCourses.map((course: Record<string, unknown>, i: number) => {
             const title = locale === 'mn'
@@ -226,6 +226,22 @@ export default async function CoursesPage({
           })}
         </div>
       </div>
+      <style>{`
+        /* 2-col grid on mobile — overrides auto-fill minmax which gives 1-col at 375px */
+        @media (max-width: 767px) {
+          .mo-card-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.75rem !important;
+          }
+        }
+        /* Tighten card text on small cards */
+        @media (max-width: 767px) {
+          .mo-card-grid article h3 { font-size: 12px !important; }
+          .mo-card-grid article div[style*="175px"] { height: 120px !important; }
+        }
+        .netflix-card { transition: transform 0.18s; }
+        .netflix-card:hover { transform: translateY(-3px); }
+      `}</style>
     </div>
   );
 }

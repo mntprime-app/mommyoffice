@@ -146,13 +146,16 @@ follows the floating hero card.**
 ---
 
 ## MOBILE RESPONSIVENESS — MOBILE-001 (RESOLVED 2026-09-05, Session 11)
+## BUG-046 (RESOLVED 2026-09-05, Session 11 continuation) — 4:5 portrait too tall
 
 **Root causes identified from real-device screenshots:**
 1. `Шинээр нэмэгдсэн` badge (position:absolute bottom-right) collided with secondary CTA button
 2. Title/description text overlaid on hero photo covered faces and blocked button area
 3. Autoplay iframe caused choppy performance + cellular data drain on mobile
 
-**Solution implemented: Netflix Mobile Native Layout Standard**
+**BUG-046:** Session 11's first fix used `aspect-ratio: 4/5` on mobile hero. At 375px width → 468px height, filling entire viewport with just the cover photo — no title or buttons visible. Fixed by switching to Option A overlay with `height: 260px`.
+
+**Solution implemented: Option A Overlay Mobile Hero (260px)**
 
 Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual layout:
 - `mo-hero-mobile` — shown on `<768px`, hidden on desktop
@@ -161,11 +164,15 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 **Mobile hero rules (must never be violated):**
 ```
 1. Category badge:  text label ABOVE the card — never a floating chip inside the photo
-2. Title:           ABOVE the card — no face/body collision possible
-3. Hero card:       static portrait poster (aspect-ratio 4/5), NO autoplay iframe
-4. Corner badge:    top-right INSIDE card — never bottom, never near buttons
-5. CTA buttons:     isolated flex row BELOW the card, z-index: 20
+2. Hero card:       h-[260px] fixed height, static poster ONLY — NO autoplay iframe
+3. Strong vignette: rgba(0,0,0,0) 0% → rgba(0,0,0,0.92) 100% covering 70% of card
+4. Title overlay:   15px, weight 800, 2-line clamp — INSIDE card at bottom
+5. CTA buttons:     8px 12px padding — INSIDE card below title, overlaid in card
+6. Corner badge:    top-right INSIDE card — never bottom, never near buttons
+7. One-line meta:   below card, 11px #666 — category + duration + free/paid
 ```
+
+**NEVER USE aspect-ratio on mobile hero.** 4:5 = 468px at 375px viewport. Use `height: '260px'` always.
 
 **CSS classes used (add to any new hero component):**
 ```tsx
@@ -187,12 +194,40 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 }
 ```
 
-**Remaining mobile work (lower priority):**
+**Mobile fixes applied (Session 11 continuation):**
+
+| Area | Fix | Status |
+|---|---|---|
+| `UniversalHero.tsx` mobile | 260px + overlay Option A | ✅ DONE |
+| `VideosClient.tsx` mobile | 260px + overlay Option A | ✅ DONE |
+| `courses/page.tsx` grid | `mo-card-grid` 2-col on `<768px` | ✅ DONE |
+| Home carousel rows | `mo-row-wrap` right-fade scroll hint | ✅ DONE |
+| Home course cards | `mo-home-course-card` 45vw on mobile | ✅ DONE |
+
+**Mobile CSS classes (platform standard):**
+```css
+/* Scroll hint wrapper — add to any horizontal scroll row container */
+.mo-row-wrap { position: relative; overflow: hidden; }
+.mo-row-wrap::after {
+  content: ''; position: absolute;
+  top: 0; right: 0; bottom: 0; width: 56px;
+  background: linear-gradient(to right, transparent, #141414);
+  pointer-events: none; z-index: 2;
+}
+@media (min-width: 768px) { .mo-row-wrap::after { display: none; } }
+
+/* 2-col card grid on mobile */
+@media (max-width: 767px) {
+  .mo-card-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+```
+
+**Remaining mobile work:**
 
 | Area | Problem | Fix approach |
 |---|---|---|
 | `Navbar.tsx` | Hamburger menu — verify opens/closes cleanly | Already has mobile CSS toggle; verify on device |
-| Article/Course card rows | 260px minmax grid may cause 1-col on narrow screens | Add `minmax(150px, 1fr)` or explicit 2-col on mobile |
+| `articles/page.tsx` | CategoryRow cards 220px — check visibility on 375px | Scroll hint already on articles page via .mo-editorial-grid CSS |
 | `CoverImagePicker.tsx` | 2-column layout breaks on narrow screens | Switch to `gridTemplateColumns: '1fr'` below 600px |
 | Admin pages | Low priority for mobile | Skip |
 

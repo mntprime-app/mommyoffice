@@ -318,15 +318,11 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       {/* ── MOBILE HERO ──────────────────────────────────────────────────────── */}
       <div className="mo-hero-mobile" style={{ background:'#141414', padding:'12px 1rem 8px' }}>
         {/* Category label — above card */}
-        <p style={{ fontSize:'10px', fontWeight:700, color:'#00B5AD', letterSpacing:'2px', textTransform:'uppercase', margin:'0 0 6px' }}>
+        <p style={{ fontSize:'10px', fontWeight:700, color:'#00B5AD', letterSpacing:'2px', textTransform:'uppercase', margin:'0 0 8px' }}>
           🎬 КИНО & ВИДЕО
         </p>
-        {/* Title — above card, fully readable */}
-        <h1 style={{ fontSize:'1.55rem', fontWeight:800, lineHeight:1.2, color:'#fff', margin:'0 0 12px', letterSpacing:'-0.3px' }}>
-          {hero?.title_mn ?? 'Кино & Видео'}
-        </h1>
-        {/* Hero card — portrait 4:5, static poster, clean image */}
-        <div style={{ position:'relative', width:'100%', aspectRatio:'4 / 5', borderRadius:'16px', overflow:'hidden', background:'#0a0a0a' }}>
+        {/* Hero card — 260px fixed height, static poster, title + buttons overlay inside */}
+        <div style={{ position:'relative', width:'100%', height:'260px', borderRadius:'14px', overflow:'hidden', background:'#0a0a0a' }}>
           {hero && getThumbHQ(hero) ? (
             <img src={getThumbHQ(hero)} alt={hero.title_mn}
               style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
@@ -335,29 +331,35 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%)` }} />
             </div>
           )}
-          {/* Corner badge — top-right inside card, never near buttons */}
+          {/* Corner badge — top-right inside card */}
           {hero && (
             <div style={{ position:'absolute', top:'12px', right:'12px', zIndex:10, display:'inline-flex', alignItems:'center', gap:'4px', background:'rgba(0,0,0,0.65)', border:'1px solid rgba(255,255,255,0.2)', color:'#e5e5e5', padding:'4px 10px', borderRadius:'20px', fontSize:'11px', fontWeight:600, backdropFilter:'blur(8px)' }}>
               🆕 Шинэ
             </div>
           )}
-          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'25%', background:'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.25) 100%)' }} />
+          {/* Strong bottom vignette */}
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'70%', background:'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.92) 100%)' }} />
+          {/* Overlay: title + CTA buttons inside card */}
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'12px 14px', zIndex:5 }}>
+            <h1 style={{ fontSize:'15px', fontWeight:800, lineHeight:1.25, color:'#fff', margin:'0 0 10px', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+              {hero?.title_mn ?? 'Кино & Видео'}
+            </h1>
+            <div style={{ display:'flex', gap:'8px' }}>
+              <button onClick={() => hero && openPlayer(hero)} style={{ flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'5px', background:'#fff', color:'#000', padding:'8px 12px', borderRadius:'8px', fontWeight:700, fontSize:'13px', border:'none', cursor:'pointer' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ҮЗЭХ
+              </button>
+              <button onClick={() => hero && openInfo(hero)} style={{ flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'5px', background:'rgba(0,0,0,0.5)', color:'#e5e5e5', padding:'8px 12px', borderRadius:'8px', fontWeight:700, fontSize:'13px', border:'1px solid rgba(255,255,255,0.3)', cursor:'pointer' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> ДЭЛГЭРЭНГҮЙ
+              </button>
+            </div>
+          </div>
         </div>
-        {/* Meta tags below card */}
-        <div style={{ display:'flex', alignItems:'center', gap:'6px', margin:'10px 0 0', fontSize:'12px', fontWeight:600, color:'#aaa' }}>
+        {/* One-line meta below card */}
+        <div style={{ display:'flex', alignItems:'center', gap:'6px', margin:'8px 0 0', fontSize:'11px', color:'#666' }}>
           <span>{hero?.category ?? 'Платформ'}</span>
-          {hero?.duration_text && <><span style={{ color:'#555' }}>•</span><span>{hero.duration_text}</span></>}
-          <span style={{ color:'#555' }}>•</span>
+          {hero?.duration_text && <><span>•</span><span>{hero.duration_text}</span></>}
+          <span>•</span>
           <span>{hero?.video_type === 'paid' ? '🔒 Гишүүнчлэл' : '✓ Үнэгүй'}</span>
-        </div>
-        {/* CTA buttons — isolated row below card, z-20, badge collision impossible */}
-        <div style={{ display:'flex', gap:'10px', marginTop:'14px', position:'relative', zIndex:20 }}>
-          <button onClick={() => hero && openPlayer(hero)} style={{ flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'6px', background:'#fff', color:'#000', padding:'12px 8px', borderRadius:'10px', fontWeight:700, fontSize:'14px', border:'none', cursor:'pointer' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ҮЗЭХ
-          </button>
-          <button onClick={() => hero && openInfo(hero)} style={{ flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'6px', background:'#2a2a2a', color:'#e5e5e5', padding:'12px 8px', borderRadius:'10px', fontWeight:700, fontSize:'14px', border:'1px solid #444', cursor:'pointer' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> ДЭЛГЭРЭНГҮЙ
-          </button>
         </div>
       </div>
 
