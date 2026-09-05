@@ -73,92 +73,56 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* ═══════════════════════════════════════
           HERO — full-viewport cinematic
       ═══════════════════════════════════════ */}
-      <section className="mo-hero-section" style={{
-        position: 'relative', width: '100%',
-        height: '88vh', minHeight: '560px',
-        overflow: 'hidden', background: '#000',
-      }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)',
+      {/* Floating card wrapper */}
+      <div style={{ padding: '12px 16px 0', background: '#141414' }}>
+        <section className="mo-hero-section" style={{
+          position: 'relative', width: '100%',
+          height: '72vh', minHeight: '500px',
+          overflow: 'hidden', background: '#000',
+          borderRadius: '24px',
         }}>
-          <div style={{
-            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundImage: `
-              radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%),
-              radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)
-            `,
-          }} />
-        </div>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'linear-gradient(to right, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 55%, transparent 100%)',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
-          background: 'linear-gradient(to bottom, transparent, #141414)',
-        }} />
+          {/* Background gradient (home has no featured image) */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)` }} />
+          </div>
+          {/* Left + bottom gradients */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 40%, transparent 70%)' }} />
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.92) 100%)' }} />
 
-        {/* Hero content */}
-        <div className="mo-hero-content" style={{
-          position: 'absolute', bottom: '20%', left: '4%',
-          maxWidth: '560px', zIndex: 2,
-        }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            background: 'rgba(0,181,173,0.15)',
-            border: '1px solid rgba(0,181,173,0.4)',
-            color: '#00B5AD', padding: '4px 12px', borderRadius: '4px',
-            fontSize: '10px', fontWeight: 700, marginBottom: '1.25rem',
-            letterSpacing: '2px', textTransform: 'uppercase',
-          }}>
+          {/* TOP-LEFT: brand badge */}
+          <div style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 5, display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,181,173,0.18)', border: '1px solid rgba(0,181,173,0.45)', color: '#00B5AD', padding: '4px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', backdropFilter: 'blur(6px)' }}>
             🇲🇳 MONGOLIA #1 PLATFORM
           </div>
 
-          <h1 style={{
-            fontSize: 'clamp(1.6rem, 3vw, 2.6rem)',
-            fontWeight: 800, lineHeight: 1.15,
-            color: '#fff', marginBottom: '1rem',
-            textShadow: '0 2px 24px rgba(0,0,0,0.7)',
-            letterSpacing: '-0.5px',
-          }}>
-            {t('hero_title')}
-          </h1>
-
-          <div style={{ display: 'none' }}>
+          {/* BOTTOM-LEFT: title + tags + buttons */}
+          <div className="mo-hero-content" style={{ position: 'absolute', bottom: '32px', left: '32px', maxWidth: '560px', zIndex: 2 }}>
+            <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.6rem)', fontWeight: 800, lineHeight: 1.15, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.5px' }}>
+              {t('hero_title')}
+            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.75rem', fontSize: '13px', fontWeight: 500, color: '#d1d5db' }}>
+              <span>Платформ</span><span style={{ color: '#666' }}>•</span><span>Сургалт</span><span style={{ color: '#666' }}>•</span><span>Нийтлэл</span><span style={{ color: '#666' }}>•</span><span>Видео</span>
+            </div>
+            <p style={{ fontSize: '14px', color: '#9ca3af', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '440px' }}>
+              {t('hero_subtitle')}
+            </p>
+            <div className="mo-hero-buttons" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <Link href={`/${locale}/courses`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#fff', color: '#000', padding: '12px 30px', borderRadius: '8px', fontWeight: 700, textDecoration: 'none', fontSize: '15px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                Үзэх
+              </Link>
+              <Link href={`/${locale}/articles`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(109,109,110,0.45)', color: '#fff', padding: '12px 30px', borderRadius: '8px', fontWeight: 700, textDecoration: 'none', fontSize: '15px', backdropFilter: 'blur(8px)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                Дэлгэрэнгүй
+              </Link>
+            </div>
           </div>
 
-          <p style={{
-            fontSize: '15px', color: '#9ba8b5',
-            lineHeight: 1.7, marginBottom: '2rem',
-          }}>
-            {t('hero_subtitle')}
-          </p>
-
-          <div className="mo-hero-buttons" style={{ display: 'flex', gap: '0.75rem' }}>
-            <Link href={`/${locale}/courses`} style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              background: '#00B5AD', color: '#fff',
-              padding: '12px 30px', borderRadius: '6px',
-              fontWeight: 700, textDecoration: 'none', fontSize: '15px',
-              boxShadow: '0 4px 24px rgba(0,181,173,0.35)',
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              Үзэх
-            </Link>
-            <Link href={`/${locale}/articles`} style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              background: 'rgba(109,109,110,0.65)', color: '#fff',
-              padding: '12px 30px', borderRadius: '6px',
-              fontWeight: 700, textDecoration: 'none', fontSize: '15px',
-              backdropFilter: 'blur(6px)',
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-              Дэлгэрэнгүй
-            </Link>
+          {/* BOTTOM-RIGHT: badge */}
+          <div style={{ position: 'absolute', bottom: '32px', right: '24px', zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.2)', color: '#e5e5e5', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, backdropFilter: 'blur(8px)' }}>
+            🏆 Mongolia #1
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* ═══════════════════════════════════════
           ROW 1 — FEATURED COURSES

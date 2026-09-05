@@ -60,109 +60,64 @@ export default async function CoursesPage({
   return (
     <div style={{ background: '#141414', minHeight: '100vh' }}>
 
-      {/* ── NETFLIX-STYLE HERO ── */}
-      <section style={{
-        position: 'relative', width: '100%',
-        height: '72vh', minHeight: '480px',
-        overflow: 'hidden',
-      }}>
-        {/* Background */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          background: featuredGrad,
-        }}>
-          {Boolean(featured?.cover_image_url) && (
-            <img
-              src={String(featured!.cover_image_url)}
-              alt={featuredTitle}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45 }}
-            />
-          )}
-          {!featured?.cover_image_url && (
-            <div style={{
-              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-              paddingRight: '8%', opacity: 0.18,
-              fontSize: 'min(40vw, 360px)',
-            }}>
-              📚
+      {/* ── FLOATING HERO CARD ── */}
+      <div style={{ padding: '12px 16px 0', background: '#141414' }}>
+        <section style={{ position: 'relative', width: '100%', height: '72vh', minHeight: '500px', overflow: 'hidden', borderRadius: '24px' }}>
+          {/* Background */}
+          <div style={{ position: 'absolute', inset: 0, background: featuredGrad }}>
+            {Boolean(featured?.cover_image_url) && (
+              <img src={String(featured!.cover_image_url)} alt={featuredTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            )}
+            {!featured?.cover_image_url && (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8%', opacity: 0.18, fontSize: 'min(40vw, 360px)' }}>📚</div>
+            )}
+          </div>
+          {/* Gradients */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 40%, transparent 70%)' }} />
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.92) 100%)' }} />
+
+          {/* TOP-LEFT: category badge */}
+          <div style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 5, display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,181,173,0.18)', border: '1px solid rgba(0,181,173,0.45)', color: '#00B5AD', padding: '4px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', backdropFilter: 'blur(6px)' }}>
+            🎓 {String(featured?.category || 'Сургалт')}
+          </div>
+
+          {/* BOTTOM-LEFT: title + tags + buttons */}
+          <div style={{ position: 'absolute', bottom: '32px', left: '32px', maxWidth: '560px', zIndex: 2 }}>
+            <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.6rem)', fontWeight: 800, lineHeight: 1.15, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.5px' }}>
+              {featuredTitle}
+            </h1>
+            {/* Tags row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.75rem', fontSize: '13px', fontWeight: 500, color: '#d1d5db' }}>
+              <span>Сургалт</span>
+              <span style={{ color: '#666' }}>•</span>
+              <span>{String(featured?.category || 'Ерөнхий')}</span>
+              {featuredRating > 0 && <><span style={{ color: '#666' }}>•</span><span style={{ color: '#f59e0b' }}>★ {featuredRating.toFixed(1)}</span></>}
+              <span style={{ color: '#666' }}>•</span>
+              <span>{featuredPrice === 0 ? '✓ Үнэгүй' : `${featuredPrice.toLocaleString()}₮`}</span>
             </div>
-          )}
-        </div>
-
-        {/* Gradients */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 55%, transparent 100%)',
-        }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%',
-          background: 'linear-gradient(to bottom, transparent, #141414)',
-        }} />
-
-        {/* Hero content */}
-        <div style={{
-          position: 'absolute', bottom: '22%', left: '4%',
-          maxWidth: '520px', zIndex: 2,
-        }}>
-          <span style={{
-            display: 'inline-block',
-            background: 'rgba(0,181,173,0.15)', border: '1px solid rgba(0,181,173,0.4)',
-            color: '#00B5AD', padding: '3px 10px', borderRadius: '4px',
-            fontSize: '10px', fontWeight: 700, letterSpacing: '2px',
-            textTransform: 'uppercase', marginBottom: '1rem',
-          }}>
-            {String(featured?.category || 'Сургалт')}
-          </span>
-
-          <h1 style={{
-            fontSize: 'clamp(1.6rem, 3vw, 2.6rem)', fontWeight: 800,
-            lineHeight: 1.15, color: '#fff', marginBottom: '0.75rem',
-            letterSpacing: '-0.5px', textShadow: '0 2px 16px rgba(0,0,0,0.5)',
-          }}>
-            {featuredTitle}
-          </h1>
-
-          {featuredDesc && (
-            <p style={{
-              fontSize: '15px', color: '#b0bcc8', lineHeight: 1.65,
-              marginBottom: '1.5rem', maxWidth: '440px',
-            }}>
-              {featuredDesc}
-            </p>
-          )}
-
-          {/* Rating row in hero */}
-          {featuredRating > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '1.25rem' }}>
-              <span style={{ color: '#f59e0b', fontSize: '14px' }}>★</span>
-              <span style={{ color: '#f59e0b', fontWeight: 700, fontSize: '14px' }}>{featuredRating.toFixed(1)}</span>
-              <span style={{ color: '#888', fontSize: '13px' }}>({featuredRatingCount.toLocaleString()} үнэлгээ)</span>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Link href={featuredSlug} style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              background: '#00B5AD', color: '#fff',
-              padding: '11px 28px', borderRadius: '6px',
-              fontWeight: 700, textDecoration: 'none', fontSize: '15px',
-              boxShadow: '0 4px 20px rgba(0,181,173,0.35)',
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              Элсэх
-            </Link>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontWeight: 800, fontSize: '18px', color: featuredPrice === 0 ? '#10b981' : '#fff' }}>
-                {featuredPrice === 0 ? 'Үнэгүй' : `${featuredPrice.toLocaleString()}₮`}
-              </span>
-              {featuredOriginalPrice > featuredPrice && featuredOriginalPrice > 0 && (
-                <span style={{ fontSize: '14px', color: '#555', textDecoration: 'line-through' }}>
-                  {featuredOriginalPrice.toLocaleString()}₮
-                </span>
-              )}
+            {featuredDesc && (
+              <p style={{ fontSize: '14px', color: '#9ca3af', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '440px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                {featuredDesc}
+              </p>
+            )}
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <Link href={featuredSlug} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#fff', color: '#000', padding: '12px 30px', borderRadius: '8px', fontWeight: 700, textDecoration: 'none', fontSize: '15px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                Элсэх
+              </Link>
+              <Link href={`/${locale}/courses`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(109,109,110,0.45)', color: '#fff', padding: '12px 30px', borderRadius: '8px', fontWeight: 700, textDecoration: 'none', fontSize: '15px', backdropFilter: 'blur(8px)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                Дэлгэрэнгүй
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
+
+          {/* BOTTOM-RIGHT: badge */}
+          <div style={{ position: 'absolute', bottom: '32px', right: '24px', zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.2)', color: '#e5e5e5', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, backdropFilter: 'blur(8px)' }}>
+            🆕 Шинээр нэмэгдсэн
+          </div>
+        </section>
+      </div>
 
       {/* ── CATEGORY FILTER PILLS ── */}
       <div style={{

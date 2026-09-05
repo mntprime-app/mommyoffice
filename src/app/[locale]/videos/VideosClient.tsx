@@ -295,72 +295,50 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
   return (
     <div style={{ background:'#141414', minHeight:'100vh', color:'#e5e5e5', overflowX:'hidden' }}>
 
-      {/* ══ HERO ═════════════════════════════════════════════════════════════ */}
-      <section style={{ position:'relative', width:'100%', height:'88vh', minHeight:'560px', overflow:'hidden', background:'#000' }}>
+      {/* ══ HERO — Floating Netflix Card ══════════════════════════════════════ */}
+      <div style={{ padding:'12px 16px 0', background:'#141414' }}>
+        <section style={{ position:'relative', width:'100%', height:'72vh', minHeight:'500px', overflow:'hidden', background:'#000', borderRadius:'24px' }}>
 
-        {/* ── Background: crisp thumbnail (Netflix-style: near full opacity) ── */}
-        {hero && getThumbHQ(hero) && !heroVideoActive && (
-          <img
-            src={getThumbHQ(hero)}
-            alt=""
-            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}
-          />
-        )}
+          {/* ── Background: crisp thumbnail ── */}
+          {hero && getThumbHQ(hero) && !heroVideoActive && (
+            <img src={getThumbHQ(hero)} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
+          )}
 
-        {/* ── Auto-play muted YouTube video after 4s (WiFi behaviour) ─────── */}
-        {hero?.youtube_id && heroVideoActive && (
-          <>
-            {/* thumbnail stays under iframe while video buffers */}
-            {getThumbHQ(hero) && (
-              <img src={getThumbHQ(hero)} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
-            )}
-            <iframe
-              key={`hero-${hero.id}`}
-              src={`https://www.youtube.com/embed/${hero.youtube_id}?autoplay=1&mute=${heroMuted?1:0}&controls=0&showinfo=0&rel=0&loop=1&playlist=${hero.youtube_id}&modestbranding=1&iv_load_policy=3&enablejsapi=1`}
-              style={{ position:'absolute', top:'50%', left:'50%', width:'177.78vh', minWidth:'100%', height:'100%', minHeight:'56.25vw', transform:'translate(-50%,-50%)', border:'none' }}
-              allow="autoplay; fullscreen"
-            />
-          </>
-        )}
+          {/* ── Auto-play muted YouTube video after 4s ── */}
+          {hero?.youtube_id && heroVideoActive && (
+            <>
+              {getThumbHQ(hero) && (
+                <img src={getThumbHQ(hero)} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
+              )}
+              <iframe
+                key={`hero-${hero.id}`}
+                src={`https://www.youtube.com/embed/${hero.youtube_id}?autoplay=1&mute=${heroMuted?1:0}&controls=0&showinfo=0&rel=0&loop=1&playlist=${hero.youtube_id}&modestbranding=1&iv_load_policy=3&enablejsapi=1`}
+                style={{ position:'absolute', top:'50%', left:'50%', width:'177.78vh', minWidth:'100%', height:'100%', minHeight:'56.25vw', transform:'translate(-50%,-50%)', border:'none' }}
+                allow="autoplay; fullscreen"
+              />
+            </>
+          )}
 
-        {/* ── Fallback: no thumbnail ────────────────────────────────────────── */}
-        {(!hero || !getThumbHQ(hero)) && (
-          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
-            <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)` }} />
+          {/* ── Fallback: no thumbnail ── */}
+          {(!hero || !getThumbHQ(hero)) && (
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
+              <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)` }} />
+            </div>
+          )}
+
+          {/* ── Gradients: left (text legibility) + bottom (controls readability) ── */}
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)' }} />
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'55%', background:'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.92) 100%)' }} />
+
+          {/* ── TOP-LEFT: brand badge ── */}
+          <div style={{ position:'absolute', top:'24px', left:'24px', zIndex:5, display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(0,181,173,0.18)', border:'1px solid rgba(0,181,173,0.45)', color:'#00B5AD', padding:'4px 12px', borderRadius:'4px', fontSize:'10px', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', backdropFilter:'blur(6px)' }}>
+            🎬 КИНО & ВИДЕО
           </div>
-        )}
 
-        {/* ── Netflix-style gradients: left (text legibility) + bottom (page fade) */}
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 40%, transparent 70%)' }} />
-        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'65%', background:'linear-gradient(to bottom, transparent 0%, rgba(20,20,20,0.65) 55%, #141414 100%)' }} />
-
-        {/* ── Text + buttons ────────────────────────────────────────────────── */}
-        <div style={{ position:'absolute', bottom:'20%', left:'4%', maxWidth:'560px', zIndex:2 }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(0,181,173,0.15)', border:'1px solid rgba(0,181,173,0.4)', color:'#00B5AD', padding:'4px 12px', borderRadius:'4px', fontSize:'10px', fontWeight:700, marginBottom:'1.25rem', letterSpacing:'2px', textTransform:'uppercase' }}>
-            🎬 КИНО & ВИДЕО ПЛАТФОРМ
-          </div>
-          <h1 style={{ fontSize:'clamp(1.6rem, 3vw, 2.6rem)', fontWeight:800, lineHeight:1.15, color:'#fff', marginBottom: hero?.title_mn ? '0.5rem' : '1rem', textShadow:'0 2px 8px rgba(0,0,0,0.5)', letterSpacing:'-0.5px' }}>
-            Кино & Видео
-          </h1>
-          {hero?.title_mn && <p style={{ fontSize:'16px', fontWeight:600, color:'#e2e8f0', lineHeight:1.4, marginBottom:'0.75rem', textShadow:'0 1px 6px rgba(0,0,0,0.6)' }}>{hero.title_mn}</p>}
-          <p style={{ fontSize:'15px', color:'#cbd5e1', lineHeight:1.7, marginBottom:'2rem', textShadow:'0 1px 4px rgba(0,0,0,0.5)' }}>
-            {hero?.description_mn ?? 'Бизнес, эрүүл мэнд, гэр бүлийн сэдвээр монгол эмэгтэйчүүдэд зориулсан онлайн видео контентийн нэгдсэн платформ.'}
-          </p>
-          <div style={{ display:'flex', gap:'0.75rem' }}>
-            <button onClick={() => hero && openPlayer(hero)} style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'#fff', color:'#000', padding:'12px 30px', borderRadius:'6px', fontWeight:700, fontSize:'15px', border:'none', cursor:'pointer' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ҮЗЭХ
-            </button>
-            <button onClick={() => hero && openInfo(hero)} style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'rgba(109,109,110,0.65)', color:'#fff', padding:'12px 30px', borderRadius:'6px', fontWeight:700, fontSize:'15px', border:'none', cursor:'pointer', backdropFilter:'blur(6px)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> ДЭЛГЭРЭНГҮЙ
-            </button>
-          </div>
-        </div>
-
-        {/* ── Mute / unmute button (Netflix-style, bottom-right) ────────────── */}
-        {hero?.youtube_id && heroVideoActive && (
+          {/* ── TOP-RIGHT: mute / unmute button ── */}
           <button
             onClick={() => setHeroMuted(m => !m)}
-            style={{ position:'absolute', bottom:'22%', right:'4%', width:'40px', height:'40px', borderRadius:'50%', border:'2px solid rgba(255,255,255,0.65)', background:'rgba(0,0,0,0.35)', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:5, backdropFilter:'blur(4px)' }}
+            style={{ position:'absolute', top:'24px', right:'24px', width:'42px', height:'42px', borderRadius:'50%', border:'2px solid rgba(255,255,255,0.6)', background:'rgba(0,0,0,0.4)', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:5, backdropFilter:'blur(8px)' }}
             title={heroMuted ? 'Дуу нэмэх' : 'Дуу хаах'}
           >
             {heroMuted
@@ -368,11 +346,43 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             }
           </button>
-        )}
-      </section>
+
+          {/* ── BOTTOM-LEFT: title + tags + action buttons ── */}
+          <div style={{ position:'absolute', bottom:'32px', left:'32px', maxWidth:'560px', zIndex:2 }}>
+            <h1 style={{ fontSize:'clamp(1.6rem, 3vw, 2.6rem)', fontWeight:800, lineHeight:1.15, color:'#fff', marginBottom:'0.5rem', letterSpacing:'-0.5px' }}>
+              {hero?.title_mn ?? 'Кино & Видео'}
+            </h1>
+            {/* Tags row: Category • Duration • Type */}
+            <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'0.75rem', fontSize:'13px', fontWeight:500, color:'#d1d5db' }}>
+              <span>{hero?.category ?? 'Платформ'}</span>
+              {hero?.duration_text && <><span style={{ color:'#666' }}>•</span><span>{hero.duration_text}</span></>}
+              <span style={{ color:'#666' }}>•</span>
+              <span>{hero?.video_type === 'paid' ? '🔒 Гишүүнчлэл' : '✓ Үнэгүй'}</span>
+            </div>
+            <p style={{ fontSize:'14px', color:'#9ca3af', lineHeight:1.6, marginBottom:'1.25rem', maxWidth:'440px', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+              {hero?.description_mn ?? 'Монгол эмэгтэйчүүдэд зориулсан онлайн видео контентийн нэгдсэн платформ.'}
+            </p>
+            <div style={{ display:'flex', gap:'12px', flexWrap:'wrap' }}>
+              <button onClick={() => hero && openPlayer(hero)} style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'#fff', color:'#000', padding:'12px 30px', borderRadius:'8px', fontWeight:700, fontSize:'15px', border:'none', cursor:'pointer' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ҮЗЭХ
+              </button>
+              <button onClick={() => hero && openInfo(hero)} style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'rgba(109,109,110,0.45)', color:'#fff', padding:'12px 30px', borderRadius:'8px', fontWeight:700, fontSize:'15px', border:'none', cursor:'pointer', backdropFilter:'blur(8px)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> ДЭЛГЭРЭНГҮЙ
+              </button>
+            </div>
+          </div>
+
+          {/* ── BOTTOM-RIGHT: "Шинээр нэмэгдсэн" badge ── */}
+          {hero && (
+            <div style={{ position:'absolute', bottom:'32px', right:'24px', zIndex:2, display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.2)', color:'#e5e5e5', padding:'6px 14px', borderRadius:'20px', fontSize:'12px', fontWeight:600, backdropFilter:'blur(8px)' }}>
+              🆕 Шинээр нэмэгдсэн
+            </div>
+          )}
+        </section>
+      </div>
 
       {/* ══ GENRE PILLS ═══════════════════════════════════════════════════════ */}
-      <div style={{ display:'flex', gap:'8px', padding:'1.25rem 4%', overflowX:'auto', borderBottom:'1px solid #1f1f1f', scrollbarWidth:'none', marginTop:'-3rem', position:'relative', zIndex:3 }}>
+      <div style={{ display:'flex', gap:'8px', padding:'1.25rem 4%', overflowX:'auto', borderBottom:'1px solid #1f1f1f', scrollbarWidth:'none', marginTop:'0', position:'relative', zIndex:3 }}>
         {GENRE_LABELS.map(g => (
           <button key={g} onClick={() => setGenre(g)} style={{ flexShrink:0, padding:'7px 18px', borderRadius:'20px', fontSize:'13px', fontWeight:500, cursor:'pointer', border:'1px solid', transition:'all 0.15s', background: genre===g ? 'rgba(0,181,173,0.15)' : '#1a1a1a', color: genre===g ? '#00B5AD' : '#9ca3af', borderColor: genre===g ? 'rgba(0,181,173,0.4)' : '#2a2a2a' }}>{g}</button>
         ))}
