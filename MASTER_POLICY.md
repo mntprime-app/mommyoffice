@@ -5,6 +5,39 @@
 
 ---
 
+## 0. DUAL-SAVE RULE — LOCAL + GOOGLE DRIVE (Non-Negotiable)
+
+> Amaraa works across multiple devices. **Every project document must exist in two places simultaneously:**
+> 1. Local: `F:\MNT\Workspace\GLink Strategic Projects\mommyoffice\`
+> 2. Google Drive: `GLink Strategic Projects → MommyOffice\`
+
+### Google Drive folder structure (mirror local docs/)
+```
+GLink Strategic Projects/
+└── MommyOffice/
+    ├── Sessions/               ← all SESSION_NOTES_*.md
+    ├── MASTER_POLICY.md
+    ├── PROJECT_LOG.md
+    ├── registry.md
+    ├── UPGRADE_PLAN.md
+    ├── AUDIT_CLEARANCE_REPORT_*.md
+    ├── supabase_schema.sql
+    └── docs/                   ← Word docs, video prompts, ElevenLab scripts
+```
+
+### After every session — mandatory sync checklist
+- [ ] Upload new `SESSION_NOTES_YYYY_MM_DD.md` to Drive → MommyOffice → Sessions
+- [ ] Re-upload `PROJECT_LOG.md` (updated each session)
+- [ ] Re-upload `registry.md` if any bugs or standards were added
+- [ ] Re-upload any other file that changed this session
+
+### What does NOT go to Drive
+- `.env.local` — never, anywhere (security rule)
+- `LOCAL_PASSWORDS_DO_NOT_COMMIT.md` — never, anywhere
+- `node_modules/`, `.next/`, build artifacts — not needed
+
+---
+
 ## 1. FILE ORGANIZATION
 
 ### Project root — allowed files only
