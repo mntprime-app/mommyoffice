@@ -233,6 +233,37 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+---
+
+## BUG-047 — Mobile Carousel: No Snap + No Pagination Dots (RESOLVED 2026-09-05, Session 12)
+
+**Pages affected:** `/mn`, `/mn/videos`
+
+**Symptoms:** Horizontal card rows scrolled freely with no snap points; no visual indicator of scroll position on mobile.
+
+**Root cause:** Raw `<div style={{ display:'flex', overflowX:'auto' }}>` wrappers had no `scrollSnapType` and no dot UI.
+
+**Fix:** Created `src/components/shared/CarouselRow.tsx` — client component with:
+- `scrollSnapType: 'x mandatory'` on the scroll container
+- `onScroll` handler tracking dot index (`Math.round((scrollLeft / max) * (dots - 1))`)
+- Pagination dots (max 7, teal `#00B5AD` active pill, `rgba(255,255,255,0.2)` inactive)
+- Right-fade `::after` gradient on `.mo-row-wrap` (mobile scroll hint)
+
+**CSS classes added (all pages using CarouselRow must include these in their `<style>` tag):**
+```css
+.mo-snap-card { scroll-snap-align: start; }
+.mo-carousel-dots { display: none; justify-content: center; gap: 5px; margin-top: 10px; }
+@media (max-width: 767px) { .mo-carousel-dots { display: flex; align-items: center; } }
+.mo-row-wrap { position: relative; overflow: hidden; }
+.mo-row-wrap::after { content:''; position:absolute; top:0; right:0; bottom:0; width:56px;
+  background:linear-gradient(to right,transparent,#141414); pointer-events:none; z-index:2; }
+@media (min-width:768px) { .mo-row-wrap::after { display:none; } }
+```
+
+**Applied to:** `page.tsx` (4 rows: courses, articles, videos, shop), `VideosClient.tsx` (genre rows + movies row)
+
+---
+
 ## SECURITY CONSTRAINTS (never change)
 
 - Student count: NEVER shown anywhere on MO

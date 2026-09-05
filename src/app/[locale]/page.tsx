@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
 import UniversalHero from '@/components/shared/UniversalHero';
+import CarouselRow from '@/components/shared/CarouselRow';
 
 async function getFeaturedCourses() {
   const supabase = await createAdminClient();
@@ -92,8 +93,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section className="mo-section-gap mo-courses-row" style={{ padding: '2rem 0 3rem', marginTop: '0', position: 'relative', zIndex: 2 }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title={t('featured_courses')} href={`/${locale}/courses`} />
-          <div className="mo-row-wrap" style={{ position: 'relative' }}>
-          <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '8px' }}>
+          <CarouselRow count={displayCourses.length}>
             {displayCourses.map((c: Record<string, unknown>, i: number) => {
               const title = locale === 'mn'
                 ? String(c.title_mn || c.title || '')
@@ -108,7 +108,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 'linear-gradient(135deg,#0d2537,#1a5a6b)',
               ];
               return (
-                <Link key={String(c.id || i)} href={slug} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                <Link key={String(c.id || i)} href={slug} className="mo-snap-card" style={{ textDecoration: 'none', flexShrink: 0 }}>
                   <div className="netflix-card mo-home-course-card" style={{
                     width: '280px', borderRadius: '10px', overflow: 'hidden',
                     background: '#1a1a1a', position: 'relative',
@@ -158,8 +158,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </Link>
               );
             })}
-          </div>
-          </div>{/* end mo-row-wrap */}
+          </CarouselRow>
         </div>
       </section>
 
@@ -261,15 +260,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
 
           {/* More articles — horizontal scroll row */}
-          <div className="mo-row-wrap" style={{ marginTop: '2rem' }}>
-          <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
+          <div style={{ marginTop: '2rem' }}>
+          <CarouselRow count={moreArticles.length}>
             {moreArticles.map((a: Record<string, unknown>, i: number) => {
               const title = locale === 'mn'
                 ? String(a.title_mn || a.title || '')
                 : String(a.title_en || a.title_mn || a.title || '');
               const href = a.slug ? `/${locale}/articles/${a.slug}` : '#';
               return (
-                <Link key={String(a.id || i)} href={href} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                <Link key={String(a.id || i)} href={href} className="mo-snap-card" style={{ textDecoration: 'none', flexShrink: 0 }}>
                   <div className="netflix-card" style={{
                     width: '220px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a',
                   }}>
@@ -307,8 +306,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </Link>
               );
             })}
+          </CarouselRow>
           </div>
-          </div>{/* end mo-row-wrap */}
         </div>
       </section>
 
@@ -319,9 +318,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title="Кино & Видео" href={`/${locale}/videos`} badge="УДАХГҮЙ" />
-          <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
+          <CarouselRow count={PLACEHOLDER_VIDEOS.length}>
             {PLACEHOLDER_VIDEOS.map((v, i) => (
-              <Link key={i} href={`/${locale}/videos`} style={{ textDecoration: 'none', flexShrink: 0 }}>
+              <Link key={i} href={`/${locale}/videos`} className="mo-snap-card" style={{ textDecoration: 'none', flexShrink: 0 }}>
                 <div className="netflix-card" style={{
                   width: '280px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a',
                 }}>
@@ -355,7 +354,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </div>
               </Link>
             ))}
-          </div>
+          </CarouselRow>
         </div>
       </section>
 
@@ -366,9 +365,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section className="mo-section-gap" style={{ padding: '0 0 5rem' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title="Дэлгүүр" href={`/${locale}/shop`} badge="ШИНЭ" />
-          <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
+          <CarouselRow count={PLACEHOLDER_SHOP.length}>
             {PLACEHOLDER_SHOP.map((p, i) => (
-              <Link key={i} href={`/${locale}/shop`} style={{ textDecoration: 'none', flexShrink: 0 }}>
+              <Link key={i} href={`/${locale}/shop`} className="mo-snap-card" style={{ textDecoration: 'none', flexShrink: 0 }}>
                 <div className="netflix-card" style={{
                   width: '200px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a',
                 }}>
@@ -399,7 +398,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </div>
               </Link>
             ))}
-          </div>
+          </CarouselRow>
         </div>
       </section>
 
@@ -423,6 +422,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           .mo-home-course-card { width: calc(45vw) !important; min-width: 140px !important; }
           .mo-home-course-thumb { width: 100% !important; height: auto !important; aspect-ratio: 16/9; }
         }
+        /* ── Carousel snap + pagination dots ── */
+        .mo-snap-card { scroll-snap-align: start; }
+        .mo-carousel-dots { display: none; justify-content: center; gap: 5px; margin-top: 10px; }
+        @media (max-width: 767px) { .mo-carousel-dots { display: flex; align-items: center; } }
         .netflix-card { transition: transform 0.18s; }
         .netflix-card:hover { transform: translateY(-3px); }
         .mo-editorial-grid {
