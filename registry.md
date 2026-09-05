@@ -29,8 +29,8 @@ All four hero pages (Нүүр, Нийтлэл, Сургалт, Кино & Вид
   <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '12px 2rem 0' }}>
     <section style={{
       position: 'relative', width: '100%',
-      height: '72vh', minHeight: '500px',
-      overflow: 'hidden', background: '#000', borderRadius: '24px',
+      height: '65vh', minHeight: '420px',
+      overflow: 'hidden', background: '#0a0a0a', borderRadius: '24px',
     }}>
       {/* content */}
     </section>
@@ -40,27 +40,56 @@ All four hero pages (Нүүр, Нийтлэл, Сургалт, Кино & Вид
 
 ---
 
-## IFRAME COVER (YouTube hero auto-play)
+## HERO VIDEO ARCHITECTURE — Poster Cover Mode (MANDATORY)
 
-For a YouTube iframe to fill a fixed-height container without black bars,
-use the oversized-centered trick — CSS `object-fit: cover` equivalent for iframes:
+**The hero section is ALWAYS a static cover image. Never embed a YouTube iframe
+directly inside the hero card.** This is the Netflix / Disney+ / industry standard.
+
+### Why iframes in the hero always break
+
+There is no CSS-only way to make a YouTube `<iframe>` behave like `objectFit: cover`.
+Every approach that has been tried and rejected:
+
+| Approach | What breaks |
+|---|---|
+| `width: 177.78vh` oversized trick | Over-zooms ~20% on wide screens, crops human heads/hair |
+| `aspectRatio: 16/9` + `maxHeight` on section | maxHeight clamps height but NOT width → container becomes wider than 16:9 → YouTube pillarboxes (black side bars) |
+| `width: 100%, height: 100%` iframe in above container | Same pillarbox result — YouTube renders its own 16:9 box inside the wider container |
+
+**None of these can be fixed by tweaking values. The constraint is YouTube's renderer,
+not CSS. Do not attempt any of these again.**
+
+### Correct pattern
 
 ```tsx
-<iframe
-  style={{
-    position: 'absolute',
-    top: '50%', left: '50%',
-    width: '177.78vh', minWidth: '100%',
-    height: '100%', minHeight: '56.25vw',
-    transform: 'translate(-50%, -50%)',
-    border: 'none',
-  }}
-/>
+{/* Hero: static poster image — objectFit:cover fills 100% with zero black bars */}
+<section style={{ position:'relative', width:'100%', height:'65vh', minHeight:'420px', overflow:'hidden', borderRadius:'24px' }}>
+
+  {/* Cover image — objectPosition:'center top' keeps faces in frame */}
+  <img
+    src={heroVideo.thumbnail_url ?? `https://img.youtube.com/vi/${heroVideo.youtube_id}/maxresdefault.jpg`}
+    alt={heroVideo.title}
+    style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}
+  />
+
+  {/* Asymmetric vignette + text + CTA buttons (see ASYMMETRIC GRADIENT MASK below) */}
+  ...
+
+  {/* ҮЗЭХ button → openPlayer() which opens the modal, NOT an inline iframe */}
+</section>
+
+{/* Modal: proper 16:9 iframe with paddingBottom trick — black bars impossible here */}
+<div style={{ position:'relative', paddingBottom:'56.25%', background:'#000' }}>
+  <iframe style={{ position:'absolute', inset:0, width:'100%', height:'100%', border:'none' }} ... />
+</div>
 ```
 
-**Never use `aspectRatio + maxHeight` on the section container** — when maxHeight
-clamps height the section becomes wider than 16:9, the iframe fills that space,
-and YouTube pillarboxes the video inside it.
+### Rules
+
+- **Never** set `heroVideoActive`, auto-play timers, or mute buttons on the hero card.
+- **Never** put an `<iframe>` inside the hero `<section>`.
+- **Never** use `aspectRatio` + `maxHeight` together on any container that holds an iframe.
+- The modal's `paddingBottom: 56.25%` pattern is the ONLY safe iframe container.
 
 ---
 
