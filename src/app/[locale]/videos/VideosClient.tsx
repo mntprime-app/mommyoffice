@@ -115,6 +115,9 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
   const [isPlaying, setIsPlaying]   = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [watchlist, setWatchlist]   = useState<string[]>([]);
+  // ── Hybrid hero: poster → muted autoplay after 2.5s ──────────────────────
+  const [heroVideoActive, setHeroVideoActive] = useState(false);
+  const [heroMuted, setHeroMuted]             = useState(true);
 
   // ── Rating state ─────────────────────────────────────────────────────────
   // Map: video_id → user's current rating type (loaded from DB)
@@ -138,6 +141,15 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       if (wl) setWatchlist(JSON.parse(wl));
     } catch {}
   }, []);
+
+  // ── 2.5s delayed autoplay: poster first, then muted video fades in ───────
+  useEffect(() => {
+    setHeroVideoActive(false);
+    if (!hero?.youtube_id) return;
+    const t = setTimeout(() => setHeroVideoActive(true), 2500);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hero?.id]);
 
   // ── URL deep-link ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -284,14 +296,14 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
   return (
     <div style={{ background:'#141414', minHeight:'100vh', color:'#e5e5e5', overflowX:'hidden' }}>
 
-      {/* ══ HERO — Poster Cover Mode (Netflix/Disney+ standard) ═══════════════ */}
-      {/* Hero is ALWAYS a static cover image. No inline iframe ever.           */}
-      {/* ҮЗЭХ opens the modal player with a proper 16:9 container.             */}
+      {/* ══ HERO — Hybrid: Poster → Muted Autoplay (Netflix standard) ═══════ */}
       <div style={{ background:'#141414' }}>
         <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'12px 2rem 0' }}>
           <section style={{ position:'relative', width:'100%', height:'65vh', minHeight:'420px', overflow:'hidden', background:'#0a0a0a', borderRadius:'24px' }}>
 
-            {/* ── 1. Full-bleed cover image — objectFit:cover fills 100% with zero black bars ── */}
+            {/* ── Layer 1: Full-bleed cover image — ALWAYS visible (0s onward) ── */}
+            {/* objectFit:cover fills 100% of any container shape — zero black bars   */}
+            {/* objectPosition:center top — faces/foreheads never clipped             */}
             {hero && getThumbHQ(hero) ? (
               <img
                 src={getThumbHQ(hero)}
@@ -304,16 +316,56 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               </div>
             )}
 
-            {/* ── 2. Asymmetric vignette — darkens left text zone, right stays bright for faces ── */}
-            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.15) 55%, transparent 72%)' }} />
-            <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'18%', background:'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)' }} />
+            {/* ── Layer 2: Muted autoplay iframe — fades in after 2.5s (youtube only) ── */}
+            {/* scale(1.35) + overflow:hidden pushes YouTube's pillarbox bars               */}
+            {/* outside the visible container — video content fills 100% of the card        */}
+            {hero?.youtube_id && (
+              <div style={{
+                position:'absolute', inset:0, overflow:'hidden',
+                opacity: heroVideoActive ? 1 : 0,
+                transition: 'opacity 1s ease',
+                pointerEvents:'none',
+              }}>
+                <iframe
+                  key={`hero-bg-${hero.id}`}
+                  src={`https://www.youtube.com/embed/${hero.youtube_id}?autoplay=1&mute=${heroMuted?1:0}&controls=0&showinfo=0&rel=0&loop=1&playlist=${hero.youtube_id}&modestbranding=1&iv_load_policy=3&enablejsapi=1`}
+                  style={{
+                    position:'absolute',
+                    top:'50%', left:'50%',
+                    transform:'translate(-50%, -50%) scale(1.35)',
+                    width:'100%', height:'100%',
+                    border:'none',
+                    pointerEvents:'none',
+                  }}
+                  allow="autoplay; fullscreen"
+                />
+              </div>
+            )}
 
-            {/* ── 3. TOP-LEFT: brand badge ── */}
+            {/* ── Layer 3: Asymmetric vignette (always on top of video/image) ── */}
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.15) 55%, transparent 72%)', zIndex:1 }} />
+            <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'18%', background:'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)', zIndex:1 }} />
+
+            {/* ── TOP-LEFT: brand badge ── */}
             <div style={{ position:'absolute', top:'24px', left:'24px', zIndex:5, display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(0,181,173,0.18)', border:'1px solid rgba(0,181,173,0.45)', color:'#00B5AD', padding:'4px 12px', borderRadius:'4px', fontSize:'10px', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', backdropFilter:'blur(6px)' }}>
               🎬 КИНО & ВИДЕО
             </div>
 
-            {/* ── 4. BOTTOM-LEFT: title + tags + CTA buttons ── */}
+            {/* ── TOP-RIGHT: mute/unmute toggle (only when video is playing) ── */}
+            {hero?.youtube_id && heroVideoActive && (
+              <button
+                onClick={() => setHeroMuted(m => !m)}
+                style={{ position:'absolute', top:'24px', right:'24px', width:'42px', height:'42px', borderRadius:'50%', border:'2px solid rgba(255,255,255,0.6)', background:'rgba(0,0,0,0.4)', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:5, backdropFilter:'blur(8px)' }}
+                title={heroMuted ? 'Дуу нэмэх' : 'Дуу хаах'}
+              >
+                {heroMuted
+                  ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                  : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                }
+              </button>
+            )}
+
+            {/* ── BOTTOM-LEFT: title + tags + CTA buttons ── */}
             <div style={{ position:'absolute', bottom:'32px', left:'32px', maxWidth:'560px', zIndex:2 }}>
               <h1 style={{ fontSize:'clamp(1.6rem, 3vw, 2.6rem)', fontWeight:800, lineHeight:1.15, color:'#fff', marginBottom:'0.5rem', letterSpacing:'-0.5px', textShadow:'0 4px 12px rgba(0,0,0,0.85), 0 2px 4px rgba(0,0,0,0.7)' }}>
                 {hero?.title_mn ?? 'Кино & Видео'}
@@ -337,7 +389,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               </div>
             </div>
 
-            {/* ── 5. BOTTOM-RIGHT: new badge ── */}
+            {/* ── BOTTOM-RIGHT: new badge ── */}
             {hero && (
               <div style={{ position:'absolute', bottom:'32px', right:'24px', zIndex:2, display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.2)', color:'#e5e5e5', padding:'6px 14px', borderRadius:'20px', fontSize:'12px', fontWeight:600, backdropFilter:'blur(8px)' }}>
                 🆕 Шинээр нэмэгдсэн

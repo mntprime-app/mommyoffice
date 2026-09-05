@@ -84,12 +84,37 @@ not CSS. Do not attempt any of these again.**
 </div>
 ```
 
+### Hybrid hero pattern (poster + delayed autoplay)
+
+When a youtube_id exists, iframe CAN be layered on top of the poster image using
+`scale(1.35) + overflow:hidden` to push YouTube's pillarbox bars outside the visible area:
+
+```tsx
+{/* Layer 1: static poster — always visible, objectFit:cover, zero bars */}
+<img style={{ position:'absolute', inset:0, width:'100%', height:'100%',
+  objectFit:'cover', objectPosition:'center top' }} />
+
+{/* Layer 2: autoplay iframe — fades in after 2.5s, scale pushes bars out */}
+{/* Math: scale ≥ 1336/(1336-2*148) = 1.285 for typical 1336×585 hero.    */}
+{/* Using 1.35 gives a safe margin. NEVER use less than 1.29.               */}
+<div style={{ position:'absolute', inset:0, overflow:'hidden',
+  opacity: heroVideoActive ? 1 : 0, transition:'opacity 1s ease' }}>
+  <iframe style={{
+    position:'absolute', top:'50%', left:'50%',
+    transform:'translate(-50%, -50%) scale(1.35)',
+    width:'100%', height:'100%', border:'none',
+    pointerEvents:'none',
+  }} />
+</div>
+```
+
 ### Rules
 
-- **Never** set `heroVideoActive`, auto-play timers, or mute buttons on the hero card.
-- **Never** put an `<iframe>` inside the hero `<section>`.
 - **Never** use `aspectRatio` + `maxHeight` together on any container that holds an iframe.
-- The modal's `paddingBottom: 56.25%` pattern is the ONLY safe iframe container.
+- **Never** reduce scale below 1.29 — black bars will reappear at typical viewport widths.
+- **Never** give the iframe `pointerEvents:auto` in the hero — it would swallow all clicks.
+- The modal's `paddingBottom: 56.25%` pattern is the ONLY safe container for a clickable player.
+- Mute toggle shows ONLY after `heroVideoActive` is true (otherwise the button is orphaned).
 
 ---
 

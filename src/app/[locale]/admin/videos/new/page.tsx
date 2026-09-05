@@ -209,10 +209,26 @@ export default function NewVideoPage() {
           </Field>
         </div>
 
-        {/* Thumbnail override */}
-        <Field label="Thumbnail URL (заавал биш)" hint="Хоосон орхивол YouTube thumbnail автоматаар авна">
-          <input value={form.thumbnail_url} onChange={(e) => set('thumbnail_url', e.target.value)} style={inp} placeholder="https://..." />
-        </Field>
+        {/* Cover Image (Hero Poster) */}
+        <div style={{ background:'#1a1a1a', border:'1px solid #2a2a2a', borderRadius:'12px', padding:'1.25rem' }}>
+          <label style={{ ...lbl, display:'block', marginBottom:'0.5rem' }}>🖼️ Cover Image — Hero Poster</label>
+          <p style={{ fontSize:'11px', color:'#6b7280', marginBottom:'0.75rem' }}>
+            Энэ зургийг Hero картны дэвсгэр болгон харуулна. <strong style={{ color:'#9ca3af' }}>object-cover object-top</strong> — зураг хэрчигдэхгүй, толгой/нүүр бүрэн харагдана.<br />
+            Хоосон орхивол YouTube thumbnail автоматаар авна.
+          </p>
+          <Field label="Cover Image URL (Poster — 16:9 эсвэл 21:9 дээд нарийвчлал)">
+            <input value={form.thumbnail_url} onChange={(e) => set('thumbnail_url', e.target.value)} style={inp} placeholder="https://cdn.mommyoffice.mn/covers/video-name.jpg" />
+          </Field>
+          {form.thumbnail_url && (
+            <img src={form.thumbnail_url} alt="Cover preview" style={{ marginTop:'10px', borderRadius:'8px', maxHeight:'140px', border:'1px solid #333', objectFit:'cover', objectPosition:'top' }} />
+          )}
+          <div style={{ marginTop:'0.75rem', padding:'10px 12px', background:'rgba(0,181,173,0.06)', border:'1px solid rgba(0,181,173,0.2)', borderRadius:'8px' }}>
+            <p style={{ fontSize:'11px', color:'#6b7280', margin:0 }}>
+              💡 <strong style={{ color:'#00B5AD' }}>Mobile Cover</strong> — Босоо (4:5 / 1:1) хувилбар одоогоор тусдаа талбаргүй.
+              DB migration хийсний дараа <code style={{ color:'#9ca3af' }}>mobile_cover_image</code> багана нэмэгдэнэ.
+            </p>
+          </div>
+        </div>
 
         {/* Descriptions */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
