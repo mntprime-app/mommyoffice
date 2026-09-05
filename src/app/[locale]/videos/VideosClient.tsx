@@ -78,7 +78,7 @@ const PH: Video[] = [
 // ─── rows ─────────────────────────────────────────────────────────────────────
 
 const GENRE_LABELS = [
-  'Бүгд', 'Бизнес & Санхүү', 'Эрүүл мэнд & Гоо сайхан',
+  'Бүгд', 'Амжилтын эзэд', 'Бизнес & Санхүү', 'Эрүүл мэнд & Гоо сайхан',
   'Хүүхдийн хүмүүжил & Гэр бүл', 'Хувийн хөгжил & Карьер',
   'Гэрийн менежмент & Лайфстайл',
 ];
@@ -89,9 +89,10 @@ type Row = {
   sort: (a: AnyVideo, b: AnyVideo) => number;
 };
 const ROWS: Row[] = [
-  { key:'new',    emoji:'🔥', label:'Шинээр нэмэгдсэн',                         filter:()=>true,                                          sort:(a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime() },
-  { key:'top',    emoji:'⭐', label:'Санал болгох',                              filter:()=>true,                                          sort:(a,b)=>b.view_count-a.view_count },
-  { key:'money',  emoji:'💰', label:'MoneyCorner — Бизнес & Санхүү', gold:true, filter:(v)=>v.category==='Бизнес & Санхүү',              sort:(a,b)=>b.view_count-a.view_count },
+  { key:'new',     emoji:'🔥', label:'Шинээр нэмэгдсэн',                         filter:()=>true,                                           sort:(a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime() },
+  { key:'top',     emoji:'⭐', label:'Санал болгох',                              filter:()=>true,                                           sort:(a,b)=>b.view_count-a.view_count },
+  { key:'ezed',    emoji:'🏆', label:'Амжилтын эзэд',              gold:true,    filter:(v)=>v.category==='Амжилтын эзэд',                 sort:(a,b)=>b.view_count-a.view_count },
+  { key:'money',   emoji:'💰', label:'MoneyCorner — Бизнес & Санхүү', gold:true, filter:(v)=>v.category==='Бизнес & Санхүү',               sort:(a,b)=>b.view_count-a.view_count },
   { key:'health', emoji:'💆‍♀️', label:'Эрүүл мэнд & Гоо сайхан',                filter:(v)=>v.category==='Эрүүл мэнд & Гоо сайхан',    sort:(a,b)=>b.view_count-a.view_count },
   { key:'family', emoji:'👨‍👩‍👧', label:'Хүүхдийн хүмүүжил & Гэр бүл',          filter:(v)=>v.category==='Хүүхдийн хүмүүжил & Гэр бүл',sort:(a,b)=>b.view_count-a.view_count },
   { key:'growth', emoji:'🚀', label:'Хувийн хөгжил & Карьер',                   filter:(v)=>v.category==='Хувийн хөгжил & Карьер',      sort:(a,b)=>b.view_count-a.view_count },
@@ -285,10 +286,21 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
 
       {/* ══ HERO ═════════════════════════════════════════════════════════════ */}
       <section style={{ position:'relative', width:'100%', height:'88vh', minHeight:'560px', overflow:'hidden', background:'#000' }}>
-        <div style={{ position:'absolute', top:0, left:0, right:0, bottom:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
-          <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)` }} />
-        </div>
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 55%, transparent 100%)' }} />
+        {/* Hero thumbnail background */}
+        {hero && getThumbHQ(hero) && (
+          <img
+            src={getThumbHQ(hero)}
+            alt=""
+            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', opacity:0.55 }}
+          />
+        )}
+        {/* Fallback gradient when no thumbnail */}
+        {(!hero || !getThumbHQ(hero)) && (
+          <div style={{ position:'absolute', top:0, left:0, right:0, bottom:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
+            <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)` }} />
+          </div>
+        )}
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.2) 100%)' }} />
         <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'40%', background:'linear-gradient(to bottom, transparent, #141414)' }} />
 
         <div style={{ position:'absolute', bottom:'20%', left:'4%', maxWidth:'560px', zIndex:2 }}>
