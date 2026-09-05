@@ -29,7 +29,7 @@ All four hero pages (Нүүр, Нийтлэл, Сургалт, Кино & Вид
   <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '12px 2rem 0' }}>
     <section style={{
       position: 'relative', width: '100%',
-      height: '65vh', minHeight: '420px',
+      height: 'clamp(500px, 52vh, 680px)',   /* min 500px · scales with viewport · max 680px */
       overflow: 'hidden', background: '#0a0a0a', borderRadius: '24px',
     }}>
       {/* content */}

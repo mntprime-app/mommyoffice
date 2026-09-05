@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getVideoById, updateVideo, deleteVideoById } from '@/app/actions/admin';
+import CoverImagePicker from '@/components/ui/CoverImagePicker';
 
 const CATEGORIES = [
   'Бизнес & Санхүү',
@@ -209,14 +210,12 @@ export default function EditVideoPage() {
           <input value={form.slug} onChange={(e) => set('slug', e.target.value)} style={inp} placeholder="biznes-ehleh-5-alkham" />
         </div>
 
-        {/* Thumbnail URL */}
-        <div>
-          <label style={lbl}>Thumbnail URL</label>
-          <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 6px' }}>💡 1280×720px — YouTube тhumbnail авто ашиглагдана (YouTube видео бол оруулах шаардлагагүй)</p>
-          {form.thumbnail_url && (
-            <img src={form.thumbnail_url} alt="thumb" style={{ width: '100%', maxHeight: '140px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
-          )}
-          <input value={form.thumbnail_url} onChange={(e) => set('thumbnail_url', e.target.value)} style={inp} placeholder="https://..." />
+        {/* Cover Image Picker */}
+        <div style={{ background:'#1a1a1a', border:'1px solid #2a2a2a', borderRadius:'12px', padding:'1.25rem' }}>
+          <CoverImagePicker
+            value={form.thumbnail_url}
+            onChange={(url) => set('thumbnail_url', url)}
+          />
         </div>
 
         {/* Meta */}
