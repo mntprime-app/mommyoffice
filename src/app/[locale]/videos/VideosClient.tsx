@@ -331,8 +331,9 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
                   src={`https://www.youtube.com/embed/${hero.youtube_id}?autoplay=1&mute=${heroMuted?1:0}&controls=0&showinfo=0&rel=0&loop=1&playlist=${hero.youtube_id}&modestbranding=1&iv_load_policy=3&enablejsapi=1`}
                   style={{
                     position:'absolute',
-                    top:'50%', left:'50%',
-                    transform:'translate(-50%, -50%) scale(1.35)',
+                    top:0, left:'50%',
+                    transform:'translateX(-50%) scale(1.35)',
+                    transformOrigin:'top center',
                     width:'100%', height:'100%',
                     border:'none',
                     pointerEvents:'none',

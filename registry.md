@@ -97,11 +97,14 @@ When a youtube_id exists, iframe CAN be layered on top of the poster image using
 {/* Layer 2: autoplay iframe — fades in after 2.5s, scale pushes bars out */}
 {/* Math: scale ≥ 1336/(1336-2*148) = 1.285 for typical 1336×585 hero.    */}
 {/* Using 1.35 gives a safe margin. NEVER use less than 1.29.               */}
+{/* transformOrigin:'top center' — scale anchors to top edge so subjects'   */}
+{/* heads are NEVER cropped. NEVER use center or translate(-50%,-50%).      */}
 <div style={{ position:'absolute', inset:0, overflow:'hidden',
   opacity: heroVideoActive ? 1 : 0, transition:'opacity 1s ease' }}>
   <iframe style={{
-    position:'absolute', top:'50%', left:'50%',
-    transform:'translate(-50%, -50%) scale(1.35)',
+    position:'absolute', top:0, left:'50%',
+    transform:'translateX(-50%) scale(1.35)',
+    transformOrigin:'top center',
     width:'100%', height:'100%', border:'none',
     pointerEvents:'none',
   }} />
