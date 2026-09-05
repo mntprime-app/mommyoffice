@@ -115,9 +115,11 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
   const [isPlaying, setIsPlaying]   = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [watchlist, setWatchlist]   = useState<string[]>([]);
-  // ── Hybrid hero: poster → muted autoplay after 2.5s ──────────────────────
+  // ── Hybrid hero: poster → muted autoplay after 2.5s (desktop only) ───────
   const [heroVideoActive, setHeroVideoActive] = useState(false);
   const [heroMuted, setHeroMuted]             = useState(true);
+  // ── Mobile detection ──────────────────────────────────────────────────────
+  const [isMobile, setIsMobile]               = useState(false);
 
   // ── Rating state ─────────────────────────────────────────────────────────
   // Map: video_id → user's current rating type (loaded from DB)
@@ -134,6 +136,14 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
   const filtered = genre === 'Бүгд' ? displayVideos : displayVideos.filter(v => v.category === genre);
   const hero = displayVideos.find(v => v.is_featured) ?? displayVideos[0] ?? null;
 
+  // ── Mobile detection ──────────────────────────────────────────────────────
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   // ── Hydrate localStorage ──────────────────────────────────────────────────
   useEffect(() => {
     try {
@@ -142,14 +152,14 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
     } catch {}
   }, []);
 
-  // ── 2.5s delayed autoplay: poster first, then muted video fades in ───────
+  // ── 2.5s delayed autoplay: poster first, then muted video fades in (desktop only) ──
   useEffect(() => {
     setHeroVideoActive(false);
-    if (!hero?.youtube_id) return;
+    if (!hero?.youtube_id || isMobile) return;
     const t = setTimeout(() => setHeroVideoActive(true), 2500);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hero?.id]);
+  }, [hero?.id, isMobile]);
 
   // ── URL deep-link ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -296,69 +306,102 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
   return (
     <div style={{ background:'#141414', minHeight:'100vh', color:'#e5e5e5', overflowX:'hidden' }}>
 
-      {/* ══ HERO — Hybrid: Poster → Muted Autoplay (Netflix standard) ═══════ */}
-      <div style={{ background:'#141414' }}>
+      {/* ══ HERO ════════════════════════════════════════════════════════════════
+          MOBILE  (<768px) — Netflix Mobile Native Layout Standard
+            • Category badge + title ABOVE card (no overlay, no face collision)
+            • Portrait card (4:5), static poster ONLY — no autoplay on mobile
+            • Corner badge anchored top-right inside card
+            • Action buttons in isolated row BELOW card (z-20, no collision)
+          DESKTOP (≥768px) — Cinematic hybrid: poster → muted autoplay after 2.5s
+      ══════════════════════════════════════════════════════════════════════════ */}
+
+      {/* ── MOBILE HERO ──────────────────────────────────────────────────────── */}
+      <div className="mo-hero-mobile" style={{ background:'#141414', padding:'12px 1rem 8px' }}>
+        {/* Category label — above card */}
+        <p style={{ fontSize:'10px', fontWeight:700, color:'#00B5AD', letterSpacing:'2px', textTransform:'uppercase', margin:'0 0 6px' }}>
+          🎬 КИНО & ВИДЕО
+        </p>
+        {/* Title — above card, fully readable */}
+        <h1 style={{ fontSize:'1.55rem', fontWeight:800, lineHeight:1.2, color:'#fff', margin:'0 0 12px', letterSpacing:'-0.3px' }}>
+          {hero?.title_mn ?? 'Кино & Видео'}
+        </h1>
+        {/* Hero card — portrait 4:5, static poster, clean image */}
+        <div style={{ position:'relative', width:'100%', aspectRatio:'4 / 5', borderRadius:'16px', overflow:'hidden', background:'#0a0a0a' }}>
+          {hero && getThumbHQ(hero) ? (
+            <img src={getThumbHQ(hero)} alt={hero.title_mn}
+              style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
+          ) : (
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
+              <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%)` }} />
+            </div>
+          )}
+          {/* Corner badge — top-right inside card, never near buttons */}
+          {hero && (
+            <div style={{ position:'absolute', top:'12px', right:'12px', zIndex:10, display:'inline-flex', alignItems:'center', gap:'4px', background:'rgba(0,0,0,0.65)', border:'1px solid rgba(255,255,255,0.2)', color:'#e5e5e5', padding:'4px 10px', borderRadius:'20px', fontSize:'11px', fontWeight:600, backdropFilter:'blur(8px)' }}>
+              🆕 Шинэ
+            </div>
+          )}
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'25%', background:'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.25) 100%)' }} />
+        </div>
+        {/* Meta tags below card */}
+        <div style={{ display:'flex', alignItems:'center', gap:'6px', margin:'10px 0 0', fontSize:'12px', fontWeight:600, color:'#aaa' }}>
+          <span>{hero?.category ?? 'Платформ'}</span>
+          {hero?.duration_text && <><span style={{ color:'#555' }}>•</span><span>{hero.duration_text}</span></>}
+          <span style={{ color:'#555' }}>•</span>
+          <span>{hero?.video_type === 'paid' ? '🔒 Гишүүнчлэл' : '✓ Үнэгүй'}</span>
+        </div>
+        {/* CTA buttons — isolated row below card, z-20, badge collision impossible */}
+        <div style={{ display:'flex', gap:'10px', marginTop:'14px', position:'relative', zIndex:20 }}>
+          <button onClick={() => hero && openPlayer(hero)} style={{ flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'6px', background:'#fff', color:'#000', padding:'12px 8px', borderRadius:'10px', fontWeight:700, fontSize:'14px', border:'none', cursor:'pointer' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ҮЗЭХ
+          </button>
+          <button onClick={() => hero && openInfo(hero)} style={{ flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'6px', background:'#2a2a2a', color:'#e5e5e5', padding:'12px 8px', borderRadius:'10px', fontWeight:700, fontSize:'14px', border:'1px solid #444', cursor:'pointer' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> ДЭЛГЭРЭНГҮЙ
+          </button>
+        </div>
+      </div>
+
+      {/* ── DESKTOP HERO ─────────────────────────────────────────────────────── */}
+      <div className="mo-hero-desktop" style={{ background:'#141414' }}>
         <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'12px 2rem 0' }}>
           <section style={{ position:'relative', width:'100%', height:'clamp(580px, 68vh, 780px)', overflow:'hidden', background:'#0a0a0a', borderRadius:'24px' }}>
 
-            {/* ── Layer 1: Full-bleed cover image — ALWAYS visible (0s onward) ── */}
-            {/* objectFit:cover fills 100% of any container shape — zero black bars   */}
-            {/* objectPosition:center top — faces/foreheads never clipped             */}
+            {/* Layer 1: Full-bleed cover image */}
             {hero && getThumbHQ(hero) ? (
-              <img
-                src={getThumbHQ(hero)}
-                alt={hero.title_mn}
-                style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}
-              />
+              <img src={getThumbHQ(hero)} alt={hero.title_mn}
+                style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
             ) : (
               <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
                 <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)` }} />
               </div>
             )}
 
-            {/* ── Layer 2: Muted autoplay iframe — fades in after 2.5s (youtube only) ── */}
-            {/* scale(1.35) + overflow:hidden pushes YouTube's pillarbox bars               */}
-            {/* outside the visible container — video content fills 100% of the card        */}
-            {hero?.youtube_id && (
-              <div style={{
-                position:'absolute', inset:0, overflow:'hidden',
-                opacity: heroVideoActive ? 1 : 0,
-                transition: 'opacity 1s ease',
-                pointerEvents:'none',
-              }}>
+            {/* Layer 2: Muted autoplay iframe — desktop only */}
+            {hero?.youtube_id && !isMobile && (
+              <div style={{ position:'absolute', inset:0, overflow:'hidden', opacity: heroVideoActive ? 1 : 0, transition:'opacity 1s ease', pointerEvents:'none' }}>
                 <iframe
                   key={`hero-bg-${hero.id}`}
                   src={`https://www.youtube.com/embed/${hero.youtube_id}?autoplay=1&mute=${heroMuted?1:0}&controls=0&showinfo=0&rel=0&loop=1&playlist=${hero.youtube_id}&modestbranding=1&iv_load_policy=3&enablejsapi=1`}
-                  style={{
-                    position:'absolute',
-                    top:0, left:'50%',
-                    transform:'translateX(-50%) scale(1.35)',
-                    transformOrigin:'top center',
-                    width:'100%', height:'100%',
-                    border:'none',
-                    pointerEvents:'none',
-                  }}
+                  style={{ position:'absolute', top:0, left:'50%', transform:'translateX(-50%) scale(1.35)', transformOrigin:'top center', width:'100%', height:'100%', border:'none', pointerEvents:'none' }}
                   allow="autoplay; fullscreen"
                 />
               </div>
             )}
 
-            {/* ── Layer 3: Asymmetric vignette (always on top of video/image) ── */}
+            {/* Layer 3: Asymmetric vignette */}
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.15) 55%, transparent 72%)', zIndex:1 }} />
             <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'18%', background:'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)', zIndex:1 }} />
 
-            {/* ── TOP-LEFT: brand badge ── */}
+            {/* TOP-LEFT: brand badge */}
             <div style={{ position:'absolute', top:'24px', left:'24px', zIndex:5, display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(0,181,173,0.18)', border:'1px solid rgba(0,181,173,0.45)', color:'#00B5AD', padding:'4px 12px', borderRadius:'4px', fontSize:'10px', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', backdropFilter:'blur(6px)' }}>
               🎬 КИНО & ВИДЕО
             </div>
 
-            {/* ── TOP-RIGHT: mute/unmute toggle (only when video is playing) ── */}
+            {/* TOP-RIGHT: mute toggle (only when video playing) */}
             {hero?.youtube_id && heroVideoActive && (
-              <button
-                onClick={() => setHeroMuted(m => !m)}
+              <button onClick={() => setHeroMuted(m => !m)}
                 style={{ position:'absolute', top:'24px', right:'24px', width:'42px', height:'42px', borderRadius:'50%', border:'2px solid rgba(255,255,255,0.6)', background:'rgba(0,0,0,0.4)', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:5, backdropFilter:'blur(8px)' }}
-                title={heroMuted ? 'Дуу нэмэх' : 'Дуу хаах'}
-              >
+                title={heroMuted ? 'Дуу нэмэх' : 'Дуу хаах'}>
                 {heroMuted
                   ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
                   : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
@@ -366,7 +409,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               </button>
             )}
 
-            {/* ── BOTTOM-LEFT: title + tags + CTA buttons ── */}
+            {/* BOTTOM-LEFT: title + tags + CTA */}
             <div style={{ position:'absolute', bottom:'32px', left:'32px', maxWidth:'560px', zIndex:2 }}>
               <h1 style={{ fontSize:'clamp(1.6rem, 3vw, 2.6rem)', fontWeight:800, lineHeight:1.15, color:'#fff', marginBottom:'0.5rem', letterSpacing:'-0.5px', textShadow:'0 4px 12px rgba(0,0,0,0.85), 0 2px 4px rgba(0,0,0,0.7)' }}>
                 {hero?.title_mn ?? 'Кино & Видео'}
@@ -390,7 +433,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               </div>
             </div>
 
-            {/* ── BOTTOM-RIGHT: new badge ── */}
+            {/* BOTTOM-RIGHT: new badge */}
             {hero && (
               <div style={{ position:'absolute', bottom:'32px', right:'24px', zIndex:2, display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.2)', color:'#e5e5e5', padding:'6px 14px', borderRadius:'20px', fontSize:'12px', fontWeight:600, backdropFilter:'blur(8px)' }}>
                 🆕 Шинээр нэмэгдсэн
@@ -606,6 +649,18 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
           from { transform: translateX(-50%) translateY(20px); opacity: 0; }
           to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
         }
+        /* ── Mobile layout switcher ── */
+        .mo-hero-mobile  { display: none;  }
+        .mo-hero-desktop { display: block; }
+        @media (max-width: 767px) {
+          .mo-hero-mobile  { display: block; }
+          .mo-hero-desktop { display: none;  }
+        }
+        /* ── Video card responsive sizing ── */
+        @media (max-width: 767px) {
+          .mo-video-card       { width: calc(45vw) !important; min-width: 130px !important; }
+          .mo-video-card-thumb { width: 100% !important; height: auto !important; aspect-ratio: 16/9; }
+        }
       `}</style>
     </div>
   );
@@ -619,8 +674,8 @@ function VideoCard({ video, index, onPlay, onInfo }: { video: AnyVideo; index: n
   const match = matchDisplay(video);
 
   return (
-    <div className="netflix-card" onClick={onInfo} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', position:'relative', cursor:'pointer' }}>
-      <div style={{ width:'280px', height:'157px', background: GRADIENTS[index % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
+    <div className="netflix-card mo-video-card" onClick={onInfo} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', position:'relative', cursor:'pointer' }}>
+      <div className="mo-video-card-thumb" style={{ width:'280px', height:'157px', background: GRADIENTS[index % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
         {thumb ? <img src={thumb} alt={video.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy" /> : <span style={{ fontSize:'3rem' }}>🎬</span>}
         <span style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', color:'#fff', fontSize:'10px', fontWeight:700, padding:'3px 9px', borderRadius:'4px', textTransform:'uppercase', letterSpacing:'0.8px' }}>{video.category.split(' & ')[0]}</span>
         <span style={{ position:'absolute', bottom:'10px', right:'10px', background:'#00B5AD', color:'#fff', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'4px' }}>{video.duration_text}</span>

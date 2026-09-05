@@ -28,6 +28,47 @@
   - Video cards: added `right: 12px`, `whiteSpace: nowrap`, `textOverflow: ellipsis`, `overflow: hidden` + parent `overflow: hidden`
   - Article/course scroll row cards: fixed-height text containers (50px / 54px)
 
+### Session 10 — 2026-09-05 — Hero Video Architecture + UniversalHero Refactor
+
+**Commits pushed today:**
+- `3321300` — Genre pills border fix (moved to outer full-width wrapper)
+- `6aafb7d` — Poster-only hero (removed inline iframes)
+- `ae18789` — Hybrid hero: poster → muted autoplay after 2.5s (scale(1.35) + overflow:hidden)
+- `ed4d6aa` — CoverImagePicker admin component + hero height clamp(500px,52vh,680px)
+- `4b78145` — Hero height → clamp(580px,68vh,780px); CoverImagePicker fallback label fixed
+- `f2e2560` — **transformOrigin: top center** — stops scale(1.35) from cropping subjects' heads
+- `d73681e` — UniversalHero shared component extracted; home/courses/articles all migrated
+
+**Core architectural decisions locked in:**
+
+**Hero Video Architecture (FINAL):**
+- Layer 1: Static cover image — `objectFit:cover, objectPosition:center top` — always visible
+- Layer 2: YouTube iframe — fades in after 2.5s — `scale(1.35), transformOrigin:top center` to push pillarbox bars out of view without cropping heads
+- Layer 3: Asymmetric vignette gradient — left zone dark for text, right zone bright for subjects
+- Root cause of head-cropping: `transform:translate(-50%,-50%) scale(1.35)` anchors scale to center, pushing top of video upward past overflow:hidden border. Fix: `top:0 + translateX(-50%) + transformOrigin:top center` pins top of video to top of container.
+
+**UniversalHero component** (`src/components/shared/UniversalHero.tsx`):
+- Platform-wide hero standard — height `clamp(580px, 68vh, 780px)`, grid `maxWidth:1400px`, `borderRadius:24px`
+- Props: `badgeText`, `title`, `description`, `coverImage`, `youtubeId`, `primaryHref/onPrimaryClick`, `secondaryHref/onSecondaryClick`, `cornerBadge`, `fallbackGradient`
+- Used by: `/mn` (home), `/mn/courses`, `/mn/articles`
+- NOT used by `/mn/videos` — that page has additional logic (ratings, modal, genre pills) so stays in `VideosClient.tsx`
+
+**Admin CMS:**
+- `CoverImagePicker.tsx` — drag-drop upload OR URL paste, live 16:9 preview with `objectFit:cover, objectPosition:center top`
+- Supabase Storage bucket `media` required for file uploads
+- Priority: custom `thumbnail_url` always wins — YouTube auto-thumbnail is fallback only
+
+**Bugs fixed:**
+- BUG-009: Genre pills border was on inner container — fixed to outer full-width div
+- BUG-010: Pillarboxing (black side bars) in YouTube iframe hero — solved with scale(1.35) hybrid approach
+- BUG-011: Head/forehead clipping when video active — solved with transformOrigin:top center
+- BUG-012: Mute button appearing before video loaded — fixed: only renders when heroVideoActive===true
+
+**Known issue logged:**
+- MOBILE-001: All pages look poor on mobile — full mobile responsiveness pass needed next session
+
+---
+
 ### Session 4 — Courses & Articles Pages
 - Rebuilt `src/app/[locale]/courses/page.tsx`:
   - Netflix hero (72vh) with `CAT_GRADIENTS` background map
@@ -138,25 +179,37 @@ default           → blue-navy
 
 ## Pending Tasks (Priority Order)
 
+### 🔴 NEXT SESSION — Mobile Responsiveness (CRITICAL)
+0. **MOBILE-001: Full mobile pass** — All pages look poor on mobile (verified by Amaraa on real device). Scope:
+   - `UniversalHero.tsx` — title font-size, button stacking, hero height on small screens
+   - `VideosClient.tsx` — hero height, title/button layout, genre pill scroll on mobile
+   - `Navbar.tsx` — hamburger menu, mobile search, cart icon spacing
+   - Video card rows — 280px cards need mobile-friendly sizing (maybe 2-col grid on mobile)
+   - Article/course grid — readable on 375px viewport
+   - Admin pages — not mobile priority, but CoverImagePicker 2-col should stack on mobile
+
 ### 🔴 High — Blocks revenue
 1. **Checkout page** — `/checkout/[slug]` — guest form (name, email, phone) → QPay QR → mo_enrollments record created on payment confirm
 2. **Cart page** — `/cart` — list of slugs from localStorage `mo_cart`, proceed to checkout
 3. **Search page** — `/search?q=` — search mo_courses + mo_articles by title
-4. **Create admin Supabase user** — Add `info.mommyoffice@gmail.com` in Supabase Dashboard → Authentication → Users → Invite
-5. **Connect mommyoffice.com domain** — Vercel → Settings → Domains → GoDaddy DNS
+4. **5 videos** — Enter remaining videos in admin at `/mn/admin/videos/new`
+5. **Verify Supabase `media` bucket** — required for CoverImagePicker file upload feature
+6. **`mobile_cover_image` DB migration** — `ALTER TABLE mo_videos ADD COLUMN IF NOT EXISTS mobile_cover_image TEXT`
+7. **Connect mommyoffice.com domain** — Vercel → Settings → Domains → GoDaddy DNS
+8. **Set** `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` in Vercel Production env vars
 
 ### 🟡 Medium
-6. **Course player page** — `/courses/[slug]/learn` — locked until enrolled, shows video lessons
-7. **Review submission UI** — on course detail, gated to enrolled users (check mo_enrollments by buyer_email)
-8. **BREVO_API_KEY** — Add to Vercel env vars for purchase confirmation emails
-9. **Build article edit page** — `/admin/articles/[id]/edit`
-10. **Fix TypeScript strict errors properly** — Currently bypassed with `ignoreBuildErrors: true`
+9. **Shop (Дэлгүүр) page hero** — currently no hero section; use `UniversalHero`
+10. **Comment section** under videos — native Supabase-based
+11. **Course player** — `/courses/[slug]/learn` with Cloudflare Stream
+12. **KNOWN-004** — Build `/mn/instructor/login` page (Phase 2)
+13. **BUG-008** — Brevo SPF/DKIM for noreply@mommyoffice.com
+14. **Fix TypeScript strict errors** — Currently bypassed with `ignoreBuildErrors: true`
 
 ### 🟢 Low / Future
-11. Customer profile / My Account page — photo, interests, enrolled courses list
-12. QPay subscription model — recurring billing for category access
-13. Videos page content population
-14. MNT Prime AutoDM feature (on hold, separate project)
+15. Customer profile / My Account page
+16. QPay subscription model — recurring billing
+17. MNT Prime AutoDM feature (on hold, separate project)
 
 ---
 
@@ -201,7 +254,7 @@ default           → blue-navy
 ## Next Session Start Command
 
 ```
-Read F:\MNT\Workspace\GLink Strategic Projects\mommyoffice\PROJECT_LOG.md and confirm you have read Session 6 (2026-08-22). Then we continue MO platform build. Next priority: checkout page /checkout/[slug] with guest form and QPay QR.
+Read F:\MNT\Workspace\GLink Strategic Projects\mommyoffice\PROJECT_LOG.md and registry.md. Confirm you have read Session 10 (2026-09-05). Next priority: MOBILE-001 — full mobile responsiveness pass across all pages. Start by reading UniversalHero.tsx, VideosClient.tsx, and Navbar.tsx, then execute a systematic mobile-first refactor.
 ```
 
 ---

@@ -145,6 +145,59 @@ follows the floating hero card.**
 
 ---
 
+## MOBILE RESPONSIVENESS — MOBILE-001 (RESOLVED 2026-09-05, Session 11)
+
+**Root causes identified from real-device screenshots:**
+1. `Шинээр нэмэгдсэн` badge (position:absolute bottom-right) collided with secondary CTA button
+2. Title/description text overlaid on hero photo covered faces and blocked button area
+3. Autoplay iframe caused choppy performance + cellular data drain on mobile
+
+**Solution implemented: Netflix Mobile Native Layout Standard**
+
+Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual layout:
+- `mo-hero-mobile` — shown on `<768px`, hidden on desktop
+- `mo-hero-desktop` — shown on `≥768px`, hidden on mobile
+
+**Mobile hero rules (must never be violated):**
+```
+1. Category badge:  text label ABOVE the card — never a floating chip inside the photo
+2. Title:           ABOVE the card — no face/body collision possible
+3. Hero card:       static portrait poster (aspect-ratio 4/5), NO autoplay iframe
+4. Corner badge:    top-right INSIDE card — never bottom, never near buttons
+5. CTA buttons:     isolated flex row BELOW the card, z-index: 20
+```
+
+**CSS classes used (add to any new hero component):**
+```tsx
+<style>{`
+  .mo-hero-mobile  { display: none;  }
+  .mo-hero-desktop { display: block; }
+  @media (max-width: 767px) {
+    .mo-hero-mobile  { display: block; }
+    .mo-hero-desktop { display: none;  }
+  }
+`}</style>
+```
+
+**Video card mobile sizing:**
+```css
+@media (max-width: 767px) {
+  .mo-video-card       { width: calc(45vw) !important; min-width: 130px !important; }
+  .mo-video-card-thumb { width: 100% !important; height: auto !important; aspect-ratio: 16/9; }
+}
+```
+
+**Remaining mobile work (lower priority):**
+
+| Area | Problem | Fix approach |
+|---|---|---|
+| `Navbar.tsx` | Hamburger menu — verify opens/closes cleanly | Already has mobile CSS toggle; verify on device |
+| Article/Course card rows | 260px minmax grid may cause 1-col on narrow screens | Add `minmax(150px, 1fr)` or explicit 2-col on mobile |
+| `CoverImagePicker.tsx` | 2-column layout breaks on narrow screens | Switch to `gridTemplateColumns: '1fr'` below 600px |
+| Admin pages | Low priority for mobile | Skip |
+
+---
+
 ## SECURITY CONSTRAINTS (never change)
 
 - Student count: NEVER shown anywhere on MO
