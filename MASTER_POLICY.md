@@ -5,6 +5,29 @@
 
 ---
 
+## 0. SESSION COMMANDS
+
+### Starting a session
+> **`Alex, resume MommyOffice`**
+
+Alex will automatically:
+1. Read `PROJECT_LOG.md` — understand where we left off
+2. Read `registry.md` — reload all standards and known bugs
+3. Read latest file in `docs/sessions/` — see pending carry-forward items
+4. Report: *"Session [N] ready. Last commit was [hash]. Pending: [list]."*
+
+### Ending a session
+> **`Alex, close session`**
+
+Alex will automatically:
+1. Write `SESSION_NOTES_YYYY_MM_DD.md` to `docs/sessions/` (completed work + commit hashes + pending items)
+2. Update `registry.md` with any new bugs or standards from this session
+3. Update `PROJECT_LOG.md` with the session summary
+4. Provide the git commit command to run
+5. Remind Amaraa to re-upload changed files to Google Drive → MommyOffice
+
+---
+
 ## 0. DUAL-SAVE RULE — LOCAL + GOOGLE DRIVE (Non-Negotiable)
 
 > Amaraa works across multiple devices. **Every project document must exist in two places simultaneously:**
