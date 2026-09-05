@@ -346,3 +346,155 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 - LOCAL_PASSWORDS_DO_NOT_COMMIT.md: READ ONLY, never commit/push/share
 - API keys: .env.local AND Vercel env vars only, never hardcoded
 - GLink boost budget: $3 USD daily MAXIMUM
+
+---
+
+## BUG REGISTRY — Developer Incident Log
+
+> **Rule:** Before fixing ANY bug, search this section first.
+> If the bug class is already here, apply the known fix directly — do not re-investigate.
+> After fixing a new bug, add it here immediately.
+
+---
+
+## [BUG-001] Git HEAD.lock / index.lock blocks commits from sandbox
+
+**Status**: Known limitation. Manual workaround required.
+**First seen**: 2026-08-25
+**Module**: Git / Windows filesystem
+
+### Symptom
+`git commit` or `git add` fails with "Unable to create '.git/HEAD.lock': File exists" or "Unable to create '.git/index.lock': File exists" when run from the Claude sandbox.
+
+### Root cause
+The sandbox mounts the Windows filesystem. Windows Git leaves lock files behind after crashes or interruptions. The sandbox cannot delete Windows mount lock files due to filesystem permission boundaries.
+
+### Fix
+Amaraa must run this manually in CMD before each commit sequence:
+```cmd
+del .git\HEAD.lock 2>nul & del .git\index.lock 2>nul
+```
+
+### Prevention
+Always run `del` on both lock files before `git add / commit / push` if a previous session ended abruptly.
+
+---
+
+## [BUG-002] Secrets in SESSION_NOTES committed to git → GitHub Push Protection blocks push
+
+**Status**: Resolved. Preventive rules added.
+**First seen**: 2026-08-26
+**Module**: Developer workflow / session documentation
+
+### Symptom
+`git push` rejected: "Push cannot contain secrets — Sendinblue API Key detected."
+
+### Root cause
+Raw Brevo API key written into session notes files on Aug 23–24.
+
+### Fix
+1. Rotated Brevo API key in app.brevo.com → SMTP & API → API Keys
+2. Updated new key in Vercel env vars + `.env.local`
+3. Redacted old key in session notes files
+4. Added `SESSION_NOTES_*.md` to `.gitignore`, ran `git rm --cached`
+5. Used GitHub unblock URL after key rotation
+
+### Prevention
+**NEVER write raw credentials into session notes.** `SESSION_NOTES_*.md` is permanently gitignored. Credentials belong ONLY in `.env.local` + Vercel env vars.
+
+---
+
+## [BUG-003] Vercel GitHub webhook breaks after GitHub Push Protection event
+
+**Status**: Fixed. Known operational risk.
+**First seen**: 2026-08-26
+**Module**: Vercel GitHub integration
+
+### Symptom
+After GitHub Push Protection blocks a push, Vercel stops auto-deploying new commits.
+
+### Root cause
+GitHub Push Protection interference breaks the Vercel webhook registration.
+
+### Fix
+Vercel → mommyoffice → Settings → Git → Click "GitHub" → Connect next to the correct repo. Then push any commit to trigger a fresh deploy.
+
+### Prevention
+After any rejected push, verify Vercel is still auto-deploying within 30s.
+
+---
+
+## [BUG-004] TypeScript error: `Buffer<ArrayBuffer>` not assignable to `ArrayBuffer`
+
+**Status**: Fixed.
+**First seen**: 2026-08-25
+**Module**: `src/app/api/stream/token/route.ts`
+
+### Fix
+Change function signature from `base64url(data: ArrayBuffer)` to `base64url(data: ArrayBuffer | Buffer)`.
+
+---
+
+## [BUG-005] Vercel stale node_modules cache causes `Module not found` for newly added packages
+
+**Status**: Fixed. Prevention in place.
+**First seen**: 2026-08-26
+**Module**: Vercel build / npm install
+
+### Fix
+Added `vercel.json` with `"installCommand": "npm ci"`. This deletes and reinstalls from lockfile every build, bypassing cache.
+
+### Prevention
+Keep `"installCommand": "npm ci"` in `vercel.json` permanently.
+
+---
+
+## [BUG-006] Turbopack cannot resolve `@tiptap/*` ESM packages on Vercel Linux build
+
+**Status**: Fixed by removing Tiptap.
+**First seen**: 2026-08-26
+**Module**: `src/components/admin/RichTextEditor.tsx`
+
+### Fix
+Replaced all `@tiptap/*` with a pure React textarea + HTML formatting toolbar (zero npm dependencies).
+
+### Prevention
+Test production Vercel build before adopting ESM-heavy packages with Tiptap-style export maps.
+
+---
+
+## [BUG-007] `git add -A` stages local build artifacts
+
+**Status**: Fixed. Prevention added.
+**First seen**: 2026-08-26
+**Module**: Developer workflow / git
+
+### Fix
+`git rm -r --cached tmp/` + commit + push. Added `tmp/` to `.gitignore`.
+
+### Prevention
+Always update `.gitignore` BEFORE running `git add`. Never run `next build` locally. Scan `git status --short` before committing.
+
+---
+
+## Template for new bug entries
+
+```
+## [BUG-NNN] Short title
+
+**Status**: Active | Fixed | Known limitation
+**First seen**: YYYY-MM-DD
+**Module**: file path or component name
+
+### Symptom
+What the developer observes.
+
+### Root cause
+Why it happens.
+
+### Fix
+Exact code change or action taken.
+
+### Prevention
+How to avoid repeating this.
+```
