@@ -52,6 +52,7 @@ export default function NewVideoPage() {
     youtube_id: '',           // resolved ID
     cloudflare_stream_id: '',
     thumbnail_url: '',
+    mobile_cover_image: '',
     duration_text: '',
     category: 'Амжилтын эзэд',
     video_type: 'free',       // 'free' | 'paid'
@@ -92,6 +93,7 @@ export default function NewVideoPage() {
       youtube_id:           form.video_type === 'free' ? form.youtube_id : null,
       cloudflare_stream_id: form.video_type === 'paid' ? form.cloudflare_stream_id : null,
       thumbnail_url:        form.thumbnail_url || null,
+      mobile_cover_image:   (form as Record<string, unknown>).mobile_cover_image || null,
       duration_text:        form.duration_text || '0 мин',
       category:             form.category,
       video_type:           form.video_type,
@@ -187,8 +189,8 @@ export default function NewVideoPage() {
 
         {/* Title */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <Field label="Гарчиг (МН) *">
-            <input value={form.title_mn} onChange={(e) => set('title_mn', e.target.value)} required style={inp} placeholder="Бизнес эхлүүлэх 5 алхам" />
+          <Field label="Гарчиг (МН) *" hint={`💡 Mobile hero-д 2 мөр хайчлагдана. Оновчтой урт: 60 тэмдэгт хүртэл. Одоо: ${form.title_mn.length} тэмдэгт.`}>
+            <input value={form.title_mn} onChange={(e) => set('title_mn', e.target.value)} required style={{ ...inp, borderColor: form.title_mn.length > 60 ? 'rgba(251,146,60,0.6)' : undefined }} placeholder="Бизнес эхлүүлэх 5 алхам" />
           </Field>
           <Field label="Гарчиг (EN)">
             <input value={form.title_en} onChange={(e) => set('title_en', e.target.value)} style={inp} placeholder="5 Steps to Start a Business" />
@@ -215,6 +217,10 @@ export default function NewVideoPage() {
           <CoverImagePicker
             value={form.thumbnail_url}
             onChange={(url) => set('thumbnail_url', url)}
+            mobileValue={form.mobile_cover_image}
+            onMobileChange={(url) => set('mobile_cover_image', url)}
+            previewTitle={form.title_mn || 'Гарчиг энд харагдана'}
+            previewBadge="Кино & Видео"
           />
         </div>
 

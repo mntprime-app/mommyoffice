@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
 import { createCourse, uploadImage, getInstructors } from '@/app/actions/admin';
+import CoverImagePicker from '@/components/ui/CoverImagePicker';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 const LEVELS = ['', 'Анхан шат', 'Дунд шат', 'Ахисан шат'];
@@ -34,7 +35,7 @@ export default function NewCoursePage() {
     requirements_mn: '', requirements_en: '',
     price: '0', original_price: '0',
     category: 'Хоол', level_mn: '',
-    cover_image_url: '', trailer_url: '',
+    cover_image_url: '', mobile_cover_image: '', trailer_url: '',
     cloudflare_stream_id: '',
     access_duration_days: '0',
     duration_minutes: '0',
@@ -146,8 +147,8 @@ export default function NewCoursePage() {
             {/* Title + Slug */}
             <Card title="Нэр ба URL">
               <div style={grid2}>
-                <Field label="Нэр (МН) *" required>
-                  <input value={form.title_mn} onChange={(e) => set('title_mn', e.target.value)} required style={inp} placeholder="Гэрийн хоол хийх урлаг" />
+                <Field label={`Нэр (МН) * — ${form.title_mn.length} тэмдэгт ${form.title_mn.length > 60 ? '⚠️ mobile-д хайчлагдана' : ''}`} required>
+                  <input value={form.title_mn} onChange={(e) => set('title_mn', e.target.value)} required style={{ ...inp, borderColor: form.title_mn.length > 60 ? 'rgba(251,146,60,0.6)' : undefined }} placeholder="Гэрийн хоол хийх урлаг" />
                 </Field>
                 <Field label="Нэр (EN)">
                   <input value={form.title_en} onChange={(e) => set('title_en', e.target.value)} style={inp} placeholder="Home Cooking Masterclass" />
@@ -413,23 +414,14 @@ export default function NewCoursePage() {
 
             {/* Cover Image */}
             <SideCard title="Cover Image">
-              <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 8px' }}>1280×720px · 16:9 · макс 2MB</p>
-              {imgPreview && (
-                <img src={imgPreview} alt="preview" style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: '7px', marginBottom: '8px' }} />
-              )}
-              <label style={{
-                display: 'block', width: '100%', textAlign: 'center',
-                background: '#2a2a2a', border: '1px solid #333', color: '#e5e5e5',
-                padding: '8px', borderRadius: '7px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, boxSizing: 'border-box'
-              }}>
-                📁 Зураг сонгох
-                <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
-              </label>
-              <input
+              <CoverImagePicker
                 value={form.cover_image_url}
-                onChange={(e) => { set('cover_image_url', e.target.value); setImgPreview(e.target.value); }}
-                style={{ ...inp, marginTop: '6px', fontSize: '12px' }}
-                placeholder="https://... (URL)" />
+                onChange={(url) => { set('cover_image_url', url); setImgPreview(url); }}
+                mobileValue={form.mobile_cover_image}
+                onMobileChange={(url) => set('mobile_cover_image', url)}
+                previewTitle={form.title_mn || 'Гарчиг энд харагдана'}
+                previewBadge="Сургалт"
+              />
             </SideCard>
 
             {/* Video */}

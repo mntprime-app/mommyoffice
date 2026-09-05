@@ -169,8 +169,8 @@ export default function NewArticlePage() {
               Зураг арилгах
             </button>
           )}
-          <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', marginBottom: '4px' }}>
-            💡 Зөвлөмж хэмжээ: 1280×720px (16:9 landscape) — Desktop болон thumbnail
+          <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', marginBottom: '4px', padding:'6px 8px', background:'rgba(0,181,173,0.05)', borderRadius:'5px', border:'1px solid rgba(0,181,173,0.1)' }}>
+            💡 <strong style={{ color:'#9ca3af' }}>Thumbnail Priority:</strong> Custom upload takes 100% priority. YouTube / auto-thumbnails serve as fallback ONLY if left empty. Санал болгох: 1920×1080px WebP · 16:9.
           </p>
           <input value={form.cover_image_url}
             onChange={(e) => { set('cover_image_url', e.target.value); setPreview(e.target.value); }}
@@ -207,7 +207,7 @@ export default function NewArticlePage() {
 
         {/* Title */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <Field label={`Гарчиг (МН) * — ${form.title_mn.length}/80`}>
+          <Field label={`Гарчиг (МН) * — ${form.title_mn.length}/80 ${form.title_mn.length > 60 ? '⚠️ mobile-д хайчлагдана' : ''}`}>
             <input value={form.title_mn} onChange={(e) => set('title_mn', e.target.value.slice(0, 80))} required style={inp} placeholder="Өглөөний эрүүл дэглэм" maxLength={80} />
           </Field>
           <Field label="Гарчиг (EN)">

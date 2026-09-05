@@ -43,7 +43,7 @@ export default function EditVideoPage() {
     title_mn: '', title_en: '', slug: '',
     description_mn: '', description_en: '',
     youtube_url: '', youtube_id: '',
-    cloudflare_stream_id: '', thumbnail_url: '',
+    cloudflare_stream_id: '', thumbnail_url: '', mobile_cover_image: '',
     duration_text: '', category: 'Бизнес & Санхүү',
     video_type: 'free', is_published: false,
     is_featured: false, placement: 'normal',
@@ -63,6 +63,7 @@ export default function EditVideoPage() {
         youtube_id: youtubeId,
         cloudflare_stream_id: data.cloudflare_stream_id || '',
         thumbnail_url: data.thumbnail_url || '',
+        mobile_cover_image: (data as Record<string, unknown>).mobile_cover_image as string || '',
         duration_text: data.duration_text || '',
         category: data.category || 'Бизнес & Санхүү',
         video_type: data.video_type || 'free',
@@ -103,6 +104,7 @@ export default function EditVideoPage() {
       youtube_id: form.video_type === 'free' ? form.youtube_id : null,
       cloudflare_stream_id: form.video_type === 'paid' ? form.cloudflare_stream_id : null,
       thumbnail_url: form.thumbnail_url || null,
+      mobile_cover_image: (form as Record<string, unknown>).mobile_cover_image || null,
       duration_text: form.duration_text || '0 мин',
       category: form.category,
       video_type: form.video_type,
@@ -195,7 +197,7 @@ export default function EditVideoPage() {
         {/* Titles */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <div>
-            <label style={lbl}>Нэр (МН) * — {form.title_mn.length}/80</label>
+            <label style={lbl}>Нэр (МН) * — {form.title_mn.length}/80 {form.title_mn.length > 60 ? '⚠️ 60+ тэмдэгт — mobile-д хайчлагдаж болно' : '✓ mobile-д тохиромжтой'}</label>
             <input value={form.title_mn} onChange={(e) => set('title_mn', e.target.value.slice(0, 80))}
               required maxLength={80} style={inp} placeholder="Бизнес эхлүүлэх 5 алхам" />
           </div>
@@ -215,6 +217,10 @@ export default function EditVideoPage() {
           <CoverImagePicker
             value={form.thumbnail_url}
             onChange={(url) => set('thumbnail_url', url)}
+            mobileValue={(form as Record<string, unknown>).mobile_cover_image as string}
+            onMobileChange={(url) => set('mobile_cover_image', url)}
+            previewTitle={form.title_mn || 'Гарчиг энд харагдана'}
+            previewBadge="Кино & Видео"
           />
         </div>
 

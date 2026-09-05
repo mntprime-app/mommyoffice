@@ -235,6 +235,51 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-049 — Admin CMS: No Mobile Poster Upload + Single Desktop Preview (RESOLVED 2026-09-05, Session 12)
+
+**Pages affected:** `/admin/videos/new`, `/admin/videos/[id]/edit`, `/admin/courses/new`, `/admin/articles/new`
+
+**Symptoms:**
+- `CoverImagePicker.tsx` showed only a single 16:9 desktop preview; admins had no way to verify how images appear on the 240px mobile pure-card layout (BUG-048 standard)
+- No mobile poster upload field in videos or courses forms — only articles had `mobile_cover_image`
+- Courses `/new` used a primitive inline text input (not `CoverImagePicker`) with no upload drag-drop
+- No thumbnail priority tooltip explaining custom-upload vs. auto-thumbnail fallback priority
+
+**Fix applied (Session 12):**
+
+1. **`CoverImagePicker.tsx` (complete rewrite — BUG-049 upgrade):**
+   - Extracted reusable `UploadZone` sub-component (supports both URL-paste and drag-drop upload modes)
+   - Added optional `mobileValue` + `onMobileChange` props for second mobile poster upload
+   - New `DualPreview` sub-component showing side-by-side:
+     - Desktop: 16:9 cinematic card with asymmetric vignette simulation + title/button overlay
+     - Mobile: 240px pure image card (zero overlay) + external text stack below (BUG-048 standard)
+   - `previewTitle` + `previewBadge` props feed live mock text into preview cards
+   - Thumbnail priority tip added: "Custom upload takes 100% priority. Auto-thumbnails serve as fallback ONLY if field is empty."
+
+2. **`/admin/videos/new` + `/admin/videos/[id]/edit`:**
+   - Added `mobile_cover_image` to form state + DB upsert
+   - Passes `mobileValue` / `onMobileChange` / `previewTitle` / `previewBadge` to `CoverImagePicker`
+   - Title field shows live character count with `⚠️` warning at >60 chars (mobile 2-line clamp threshold)
+
+3. **`/admin/courses/new`:**
+   - Replaced primitive inline cover image block (file input + text input) with `CoverImagePicker`
+   - Added `mobile_cover_image` to form state + DB upsert
+   - Title field shows live character count with mobile clamp warning
+
+4. **`/admin/articles/new`:**
+   - Already had `mobile_cover_image` wired — added Thumbnail Priority tooltip to desktop cover section
+
+**Admin CMS standard (BUG-049, must not regress):**
+```
+1. Desktop Hero Poster:  CoverImagePicker — 1920×1080px WebP, 16:9, drag-drop or URL
+2. Mobile Hero Poster:   Optional 2nd upload — 4:5 or 3:4 crop for portrait subjects
+3. Live Dual Preview:    Desktop 16:9 card + Mobile 240px pure card side-by-side
+4. Title hint:           Live char count, orange border + ⚠️ warning above 60 chars
+5. Priority tip:         Custom upload = 100% priority; auto-thumb = fallback only
+```
+
+---
+
 ## BUG-048 — Mobile Hero: Text Overlay Covering Faces (RESOLVED 2026-09-05, Session 12)
 
 **Pages affected:** All pages using `UniversalHero.tsx`, `/mn/videos` (`VideosClient.tsx`)
