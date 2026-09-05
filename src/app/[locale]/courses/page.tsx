@@ -72,9 +72,8 @@ export default async function CoursesPage({
               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8%', opacity: 0.18, fontSize: 'min(40vw, 360px)' }}>📚</div>
             )}
           </div>
-          {/* Gradients */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 40%, transparent 70%)' }} />
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.92) 100%)' }} />
+          {/* Minimal bottom vignette only */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '22%', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.38) 100%)' }} />
 
           {/* TOP-LEFT: category badge */}
           <div style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 5, display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,181,173,0.18)', border: '1px solid rgba(0,181,173,0.45)', color: '#00B5AD', padding: '4px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', backdropFilter: 'blur(6px)' }}>
@@ -83,11 +82,11 @@ export default async function CoursesPage({
 
           {/* BOTTOM-LEFT: title + tags + buttons */}
           <div style={{ position: 'absolute', bottom: '32px', left: '32px', maxWidth: '560px', zIndex: 2 }}>
-            <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.6rem)', fontWeight: 800, lineHeight: 1.15, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.5px' }}>
+            <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.6rem)', fontWeight: 800, lineHeight: 1.15, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.5px', textShadow: '0 4px 12px rgba(0,0,0,0.85), 0 2px 4px rgba(0,0,0,0.7)' }}>
               {featuredTitle}
             </h1>
             {/* Tags row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.75rem', fontSize: '13px', fontWeight: 500, color: '#d1d5db' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.75rem', fontSize: '13px', fontWeight: 600, color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
               <span>Сургалт</span>
               <span style={{ color: '#666' }}>•</span>
               <span>{String(featured?.category || 'Ерөнхий')}</span>

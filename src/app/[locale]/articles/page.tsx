@@ -358,8 +358,7 @@ export default async function ArticlesPage({
               </div>
             )}
           </div>
-          <div className="mo-hero-overlay" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 40%, transparent 70%)' }} />
-          <div className="mo-hero-bottom-fade" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.92) 100%)' }} />
+          <div className="mo-hero-bottom-fade" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '22%', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.38) 100%)' }} />
 
           {/* TOP-LEFT: badge */}
           <div style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 5, display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,181,173,0.18)', border: '1px solid rgba(0,181,173,0.45)', color: '#00B5AD', padding: '4px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', backdropFilter: 'blur(6px)' }}>
@@ -368,14 +367,14 @@ export default async function ArticlesPage({
 
           {/* BOTTOM-LEFT: title + tags + buttons */}
           <div className="mo-hero-content" style={{ position: 'absolute', bottom: '32px', left: '32px', maxWidth: '560px', zIndex: 2 }}>
-            <h1 style={{ fontSize: 'clamp(1.6rem,3vw,2.6rem)', fontWeight: 800, lineHeight: 1.15, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.5px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <h1 style={{ fontSize: 'clamp(1.6rem,3vw,2.6rem)', fontWeight: 800, lineHeight: 1.15, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.5px', textShadow: '0 4px 12px rgba(0,0,0,0.85), 0 2px 4px rgba(0,0,0,0.7)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {featuredTitle}
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.75rem', fontSize: '13px', fontWeight: 500, color: '#d1d5db' }}>
-              <span>Нийтлэл</span><span style={{ color: '#666' }}>•</span><span>{featured ? articleReadTime(featured, locale) : 1} мин</span><span style={{ color: '#666' }}>•</span><span>{String(featured?.category || 'Ерөнхий')}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.75rem', fontSize: '13px', fontWeight: 600, color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
+              <span>Нийтлэл</span><span style={{ color:'rgba(255,255,255,0.5)' }}>•</span><span>{featured ? articleReadTime(featured, locale) : 1} мин</span><span style={{ color:'rgba(255,255,255,0.5)' }}>•</span><span>{String(featured?.category || 'Ерөнхий')}</span>
             </div>
             {featuredExcerpt && (
-              <p className="mo-hero-excerpt" style={{ fontSize: '14px', color: '#9ca3af', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '440px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              <p className="mo-hero-excerpt" style={{ fontSize: '14px', color: '#fff', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '440px', textShadow: '0 2px 8px rgba(0,0,0,0.9)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {featuredExcerpt}
               </p>
             )}
