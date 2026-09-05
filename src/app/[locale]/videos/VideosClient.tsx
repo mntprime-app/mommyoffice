@@ -299,7 +299,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       {/* ══ HERO — Hybrid: Poster → Muted Autoplay (Netflix standard) ═══════ */}
       <div style={{ background:'#141414' }}>
         <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'12px 2rem 0' }}>
-          <section style={{ position:'relative', width:'100%', height:'clamp(500px, 52vh, 680px)', overflow:'hidden', background:'#0a0a0a', borderRadius:'24px' }}>
+          <section style={{ position:'relative', width:'100%', height:'clamp(580px, 68vh, 780px)', overflow:'hidden', background:'#0a0a0a', borderRadius:'24px' }}>
 
             {/* ── Layer 1: Full-bleed cover image — ALWAYS visible (0s onward) ── */}
             {/* objectFit:cover fills 100% of any container shape — zero black bars   */}

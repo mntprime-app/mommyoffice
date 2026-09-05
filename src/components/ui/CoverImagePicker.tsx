@@ -131,7 +131,7 @@ export default function CoverImagePicker({ value, onChange, label }: Props) {
               />
               {!value && (
                 <p style={{ fontSize:'11px', color:'#6b7280', marginTop:'6px' }}>
-                  YouTube видео бол хоосон орхино — thumbnail автоматаар авна.
+                  💡 Upload a custom high-res Hero Poster (16:9 / 1920×1080 WebP). If left empty, system will fallback to the YouTube thumbnail.
                 </p>
               )}
               {value && (
