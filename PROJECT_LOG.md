@@ -28,6 +28,36 @@
   - Video cards: added `right: 12px`, `whiteSpace: nowrap`, `textOverflow: ellipsis`, `overflow: hidden` + parent `overflow: hidden`
   - Article/course scroll row cards: fixed-height text containers (50px / 54px)
 
+### Session 11 — 2026-09-05 — MOBILE-001: Netflix Mobile Native Layout Standard
+
+**Commits pushed today:**
+- `4e9fa2c` — MOBILE-001: Netflix mobile layout — title above card, portrait poster, buttons below, no autoplay on mobile
+
+**Root causes fixed:**
+- Badge collision: `Шинээр нэмэгдсэн` (position:absolute bottom-right) physically overlapped secondary CTA buttons
+- Face/text collision: title + description overlaid on hero image covered subjects' faces on narrow viewports
+- Autoplay iframe loading on mobile caused choppy performance + cellular data usage
+
+**Architecture: Netflix Mobile Native Layout Standard (new platform rule)**
+
+On `<768px`, both `UniversalHero.tsx` and `VideosClient.tsx` now render a completely separate mobile layout via CSS classes (`mo-hero-mobile` / `mo-hero-desktop`):
+1. Category badge — plain teal text ABOVE the card
+2. Title — full-width ABOVE the card, no overlay, no face collision
+3. Hero card — portrait `aspect-ratio: 4/5`, static poster only, no iframe loads
+4. Corner badge — anchored `top: 12px, right: 12px` INSIDE the card
+5. CTA buttons — isolated flex row BELOW the card, `z-index: 20`
+
+Desktop layout unchanged (cinematic, hybrid poster → autoplay).
+
+**VideoCard mobile sizing:** `className="mo-video-card"` added. On `<768px`: `width: calc(45vw)` so ~2 cards visible in horizontal scroll rows.
+
+**Bugs fixed:**
+- BUG-013: Badge/button collision on mobile hero (UniversalHero + VideosClient)
+- BUG-014: Title/face overlay collision on mobile (all hero pages)
+- BUG-015: Autoplay iframe loading on mobile (suppressed via isMobile state + CSS display:none)
+
+---
+
 ### Session 10 — 2026-09-05 — Hero Video Architecture + UniversalHero Refactor
 
 **Commits pushed today:**
@@ -179,14 +209,11 @@ default           → blue-navy
 
 ## Pending Tasks (Priority Order)
 
-### 🔴 NEXT SESSION — Mobile Responsiveness (CRITICAL)
-0. **MOBILE-001: Full mobile pass** — All pages look poor on mobile (verified by Amaraa on real device). Scope:
-   - `UniversalHero.tsx` — title font-size, button stacking, hero height on small screens
-   - `VideosClient.tsx` — hero height, title/button layout, genre pill scroll on mobile
-   - `Navbar.tsx` — hamburger menu, mobile search, cart icon spacing
-   - Video card rows — 280px cards need mobile-friendly sizing (maybe 2-col grid on mobile)
-   - Article/course grid — readable on 375px viewport
-   - Admin pages — not mobile priority, but CoverImagePicker 2-col should stack on mobile
+### 🔴 NEXT SESSION — Mobile Remaining (medium priority)
+0. **MOBILE-001: RESOLVED** — Netflix Mobile Native Layout Standard applied to UniversalHero + VideosClient (commit 4e9fa2c). Remaining mobile items:
+   - `Navbar.tsx` — verify hamburger opens/closes cleanly on real device
+   - Article/course card grid — `minmax(260px, 1fr)` may cause 1-col on narrow screens; test on device
+   - `CoverImagePicker.tsx` — switch to `gridTemplateColumns: '1fr'` below 600px
 
 ### 🔴 High — Blocks revenue
 1. **Checkout page** — `/checkout/[slug]` — guest form (name, email, phone) → QPay QR → mo_enrollments record created on payment confirm
@@ -254,7 +281,7 @@ default           → blue-navy
 ## Next Session Start Command
 
 ```
-Read F:\MNT\Workspace\GLink Strategic Projects\mommyoffice\PROJECT_LOG.md and registry.md. Confirm you have read Session 10 (2026-09-05). Next priority: MOBILE-001 — full mobile responsiveness pass across all pages. Start by reading UniversalHero.tsx, VideosClient.tsx, and Navbar.tsx, then execute a systematic mobile-first refactor.
+Read F:\MNT\Workspace\GLink Strategic Projects\mommyoffice\PROJECT_LOG.md and registry.md. Confirm you have read Session 11 (2026-09-05). Next priority: verify MOBILE-001 on real device after Vercel deploy, then move to 🔴 High revenue blockers — checkout page /checkout/[slug], cart page /cart, and entering the 5 remaining videos in admin.
 ```
 
 ---
