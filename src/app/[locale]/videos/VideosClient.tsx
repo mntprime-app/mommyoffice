@@ -115,6 +115,8 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
   const [isPlaying, setIsPlaying]   = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [watchlist, setWatchlist]   = useState<string[]>([]);
+  const [heroVideoActive, setHeroVideoActive] = useState(false);
+  const [heroMuted, setHeroMuted]             = useState(true);
 
   // ── Rating state ─────────────────────────────────────────────────────────
   // Map: video_id → user's current rating type (loaded from DB)
@@ -138,6 +140,15 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       if (wl) setWatchlist(JSON.parse(wl));
     } catch {}
   }, []);
+
+  // ── Hero auto-play: start muted video after 4s ────────────────────────────
+  useEffect(() => {
+    if (!hero?.youtube_id) return;
+    setHeroVideoActive(false);
+    const t = setTimeout(() => setHeroVideoActive(true), 4000);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hero?.id]);
 
   // ── URL deep-link ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -286,36 +297,57 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
 
       {/* ══ HERO ═════════════════════════════════════════════════════════════ */}
       <section style={{ position:'relative', width:'100%', height:'88vh', minHeight:'560px', overflow:'hidden', background:'#000' }}>
-        {/* Hero thumbnail background */}
-        {hero && getThumbHQ(hero) && (
+
+        {/* ── Background: crisp thumbnail (Netflix-style: near full opacity) ── */}
+        {hero && getThumbHQ(hero) && !heroVideoActive && (
           <img
             src={getThumbHQ(hero)}
             alt=""
-            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', opacity:0.55 }}
+            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}
           />
         )}
-        {/* Fallback gradient when no thumbnail */}
+
+        {/* ── Auto-play muted YouTube video after 4s (WiFi behaviour) ─────── */}
+        {hero?.youtube_id && heroVideoActive && (
+          <>
+            {/* thumbnail stays under iframe while video buffers */}
+            {getThumbHQ(hero) && (
+              <img src={getThumbHQ(hero)} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
+            )}
+            <iframe
+              key={`hero-${hero.id}`}
+              src={`https://www.youtube.com/embed/${hero.youtube_id}?autoplay=1&mute=${heroMuted?1:0}&controls=0&showinfo=0&rel=0&loop=1&playlist=${hero.youtube_id}&modestbranding=1&iv_load_policy=3&enablejsapi=1`}
+              style={{ position:'absolute', top:'50%', left:'50%', width:'177.78vh', minWidth:'100%', height:'100%', minHeight:'56.25vw', transform:'translate(-50%,-50%)', border:'none' }}
+              allow="autoplay; fullscreen"
+            />
+          </>
+        )}
+
+        {/* ── Fallback: no thumbnail ────────────────────────────────────────── */}
         {(!hero || !getThumbHQ(hero)) && (
-          <div style={{ position:'absolute', top:0, left:0, right:0, bottom:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
             <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)` }} />
           </div>
         )}
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.2) 100%)' }} />
-        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'40%', background:'linear-gradient(to bottom, transparent, #141414)' }} />
 
+        {/* ── Netflix-style gradients: left (text legibility) + bottom (page fade) */}
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 40%, transparent 70%)' }} />
+        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'65%', background:'linear-gradient(to bottom, transparent 0%, rgba(20,20,20,0.65) 55%, #141414 100%)' }} />
+
+        {/* ── Text + buttons ────────────────────────────────────────────────── */}
         <div style={{ position:'absolute', bottom:'20%', left:'4%', maxWidth:'560px', zIndex:2 }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(0,181,173,0.15)', border:'1px solid rgba(0,181,173,0.4)', color:'#00B5AD', padding:'4px 12px', borderRadius:'4px', fontSize:'10px', fontWeight:700, marginBottom:'1.25rem', letterSpacing:'2px', textTransform:'uppercase' }}>
             🎬 КИНО & ВИДЕО ПЛАТФОРМ
           </div>
-          <h1 style={{ fontSize:'clamp(1.6rem, 3vw, 2.6rem)', fontWeight:800, lineHeight:1.15, color:'#fff', marginBottom: hero?.title_mn ? '0.5rem' : '1rem', textShadow:'0 2px 24px rgba(0,0,0,0.7)', letterSpacing:'-0.5px' }}>
+          <h1 style={{ fontSize:'clamp(1.6rem, 3vw, 2.6rem)', fontWeight:800, lineHeight:1.15, color:'#fff', marginBottom: hero?.title_mn ? '0.5rem' : '1rem', textShadow:'0 2px 8px rgba(0,0,0,0.5)', letterSpacing:'-0.5px' }}>
             Кино & Видео
           </h1>
-          {hero?.title_mn && <p style={{ fontSize:'16px', fontWeight:600, color:'#cbd5e1', lineHeight:1.4, marginBottom:'0.75rem' }}>{hero.title_mn}</p>}
-          <p style={{ fontSize:'15px', color:'#9ba8b5', lineHeight:1.7, marginBottom:'2rem' }}>
+          {hero?.title_mn && <p style={{ fontSize:'16px', fontWeight:600, color:'#e2e8f0', lineHeight:1.4, marginBottom:'0.75rem', textShadow:'0 1px 6px rgba(0,0,0,0.6)' }}>{hero.title_mn}</p>}
+          <p style={{ fontSize:'15px', color:'#cbd5e1', lineHeight:1.7, marginBottom:'2rem', textShadow:'0 1px 4px rgba(0,0,0,0.5)' }}>
             {hero?.description_mn ?? 'Бизнес, эрүүл мэнд, гэр бүлийн сэдвээр монгол эмэгтэйчүүдэд зориулсан онлайн видео контентийн нэгдсэн платформ.'}
           </p>
           <div style={{ display:'flex', gap:'0.75rem' }}>
-            <button onClick={() => hero && openPlayer(hero)} style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'#00B5AD', color:'#fff', padding:'12px 30px', borderRadius:'6px', fontWeight:700, fontSize:'15px', border:'none', cursor:'pointer', boxShadow:'0 4px 24px rgba(0,181,173,0.35)' }}>
+            <button onClick={() => hero && openPlayer(hero)} style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'#fff', color:'#000', padding:'12px 30px', borderRadius:'6px', fontWeight:700, fontSize:'15px', border:'none', cursor:'pointer' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ҮЗЭХ
             </button>
             <button onClick={() => hero && openInfo(hero)} style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'rgba(109,109,110,0.65)', color:'#fff', padding:'12px 30px', borderRadius:'6px', fontWeight:700, fontSize:'15px', border:'none', cursor:'pointer', backdropFilter:'blur(6px)' }}>
@@ -323,6 +355,20 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
             </button>
           </div>
         </div>
+
+        {/* ── Mute / unmute button (Netflix-style, bottom-right) ────────────── */}
+        {hero?.youtube_id && heroVideoActive && (
+          <button
+            onClick={() => setHeroMuted(m => !m)}
+            style={{ position:'absolute', bottom:'22%', right:'4%', width:'40px', height:'40px', borderRadius:'50%', border:'2px solid rgba(255,255,255,0.65)', background:'rgba(0,0,0,0.35)', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:5, backdropFilter:'blur(4px)' }}
+            title={heroMuted ? 'Дуу нэмэх' : 'Дуу хаах'}
+          >
+            {heroMuted
+              ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+              : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+            }
+          </button>
+        )}
       </section>
 
       {/* ══ GENRE PILLS ═══════════════════════════════════════════════════════ */}
