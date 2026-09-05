@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
+import UniversalHero from '@/components/shared/UniversalHero';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -345,59 +346,19 @@ export default async function ArticlesPage({
   return (
     <div style={{ background: '#111', minHeight: '100vh' }}>
 
-      {/* ── HERO ── */}
-      {/* Floating card wrapper */}
-      <div style={{ background: '#111' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '12px 2rem 0' }}>
-        <section className="mo-hero-section" style={{ position: 'relative', width: '100%', height: '72vh', minHeight: '500px', overflow: 'hidden', borderRadius: '24px' }}>
-          <div className="mo-hero-bg" style={{ position: 'absolute', inset: 0, background: featuredGrad }}>
-            {(featured?.cover_image_url || featured?.mobile_cover_image) ? (
-              <img src={String(featured?.cover_image_url || featured?.mobile_cover_image)} alt={featuredTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
-            ) : (
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '6%', overflow: 'hidden' }}>
-                <div style={{ fontSize: '13rem', fontWeight: 900, color: 'rgba(0,181,173,0.07)', lineHeight: 1, userSelect: 'none', letterSpacing: '-8px', fontFamily: 'Georgia,serif' }}>MO</div>
-              </div>
-            )}
-          </div>
-          {/* Asymmetric left-zone gradient — text area dark, subject's face stays bright */}
-          <div className="mo-hero-overlay" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.15) 55%, transparent 72%)' }} />
-          <div className="mo-hero-bottom-fade" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '18%', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)' }} />
-
-          {/* TOP-LEFT: badge */}
-          <div style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 5, display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,181,173,0.18)', border: '1px solid rgba(0,181,173,0.45)', color: '#00B5AD', padding: '4px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', backdropFilter: 'blur(6px)' }}>
-            📰 {String(featured?.category || 'Нийтлэл')}
-          </div>
-
-          {/* BOTTOM-LEFT: title + tags + buttons */}
-          <div className="mo-hero-content" style={{ position: 'absolute', bottom: '32px', left: '32px', maxWidth: '560px', zIndex: 2 }}>
-            <h1 style={{ fontSize: 'clamp(1.6rem,3vw,2.6rem)', fontWeight: 800, lineHeight: 1.15, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.5px', textShadow: '0 4px 12px rgba(0,0,0,0.85), 0 2px 4px rgba(0,0,0,0.7)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-              {featuredTitle}
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.75rem', fontSize: '13px', fontWeight: 600, color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
-              <span>Нийтлэл</span><span style={{ color:'rgba(255,255,255,0.5)' }}>•</span><span>{featured ? articleReadTime(featured, locale) : 1} мин</span><span style={{ color:'rgba(255,255,255,0.5)' }}>•</span><span>{String(featured?.category || 'Ерөнхий')}</span>
-            </div>
-            {featuredExcerpt && (
-              <p className="mo-hero-excerpt" style={{ fontSize: '14px', color: '#fff', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '440px', textShadow: '0 2px 8px rgba(0,0,0,0.9)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                {featuredExcerpt}
-              </p>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <Link href={String(featuredSlug)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#fff', color: '#000', padding: '12px 30px', borderRadius: '8px', fontWeight: 700, textDecoration: 'none', fontSize: '15px' }}>
-                Унших →
-              </Link>
-              <Link href={`/${locale}/articles`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(109,109,110,0.45)', color: '#fff', padding: '12px 30px', borderRadius: '8px', fontWeight: 700, textDecoration: 'none', fontSize: '15px', backdropFilter: 'blur(8px)' }}>
-                Бүгдийг үзэх
-              </Link>
-            </div>
-          </div>
-
-          {/* BOTTOM-RIGHT: badge */}
-          <div style={{ position: 'absolute', bottom: '32px', right: '24px', zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.2)', color: '#e5e5e5', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, backdropFilter: 'blur(8px)' }}>
-            🆕 Шинээр нэмэгдсэн
-          </div>
-        </section>
-        </div>
-      </div>
+      {/* ── HERO — UniversalHero standard ── */}
+      <UniversalHero
+        badgeText={`📰 ${String(featured?.category || 'Нийтлэл')}`}
+        title={featuredTitle}
+        description={featuredExcerpt}
+        coverImage={(featured?.cover_image_url || featured?.mobile_cover_image) ? String(featured?.cover_image_url || featured?.mobile_cover_image) : undefined}
+        fallbackGradient={featuredGrad}
+        primaryActionText="Унших →"
+        primaryHref={String(featuredSlug)}
+        secondaryActionText="Бүгдийг үзэх"
+        secondaryHref={`/${locale}/articles`}
+        cornerBadge="🆕 Шинээр нэмэгдсэн"
+      />
 
       {/* ── BODY: 2-COLUMN EDITORIAL GRID ── */}
       <div className="mo-body-wrap" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 2rem' }}>

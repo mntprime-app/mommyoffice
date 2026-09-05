@@ -20,7 +20,8 @@ drifts away from the fixed nav/hero alignment at any width other than ~800px.
 
 ## HERO CARD STANDARD
 
-All four hero pages (Нүүр, Нийтлэл, Сургалт, Кино & Видео) share:
+All four hero pages (Нүүр, Нийтлэл, Сургалт, Кино & Видео) share the same component:
+`src/components/shared/UniversalHero.tsx` — import and use this. Do NOT write inline hero sections.
 
 ```tsx
 {/* Outer — full-width background color */}

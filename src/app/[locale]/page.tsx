@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
+import UniversalHero from '@/components/shared/UniversalHero';
 
 async function getFeaturedCourses() {
   const supabase = await createAdminClient();
@@ -71,60 +72,18 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     <div style={{ background: '#141414', minHeight: '100vh', overflowX: 'hidden' }}>
 
       {/* ═══════════════════════════════════════
-          HERO — full-viewport cinematic
+          HERO — UniversalHero standard
       ═══════════════════════════════════════ */}
-      {/* Floating card wrapper */}
-      <div style={{ background: '#141414' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '12px 2rem 0' }}>
-        <section className="mo-hero-section" style={{
-          position: 'relative', width: '100%',
-          height: '72vh', minHeight: '500px',
-          overflow: 'hidden', background: '#000',
-          borderRadius: '24px',
-        }}>
-          {/* Background gradient (home has no featured image) */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: `radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)` }} />
-          </div>
-          {/* Asymmetric left-zone gradient */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.15) 55%, transparent 72%)' }} />
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '18%', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)' }} />
-
-          {/* TOP-LEFT: brand badge */}
-          <div style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 5, display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,181,173,0.18)', border: '1px solid rgba(0,181,173,0.45)', color: '#00B5AD', padding: '4px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', backdropFilter: 'blur(6px)' }}>
-            🇲🇳 MONGOLIA #1 PLATFORM
-          </div>
-
-          {/* BOTTOM-LEFT: title + tags + buttons */}
-          <div className="mo-hero-content" style={{ position: 'absolute', bottom: '32px', left: '32px', maxWidth: '560px', zIndex: 2 }}>
-            <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.6rem)', fontWeight: 800, lineHeight: 1.15, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.5px', textShadow: '0 4px 12px rgba(0,0,0,0.85), 0 2px 4px rgba(0,0,0,0.7)' }}>
-              {t('hero_title')}
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.75rem', fontSize: '13px', fontWeight: 600, color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
-              <span>Платформ</span><span style={{ color:'rgba(255,255,255,0.5)' }}>•</span><span>Сургалт</span><span style={{ color:'rgba(255,255,255,0.5)' }}>•</span><span>Нийтлэл</span><span style={{ color:'rgba(255,255,255,0.5)' }}>•</span><span>Видео</span>
-            </div>
-            <p style={{ fontSize: '14px', color: '#fff', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '440px', textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
-              {t('hero_subtitle')}
-            </p>
-            <div className="mo-hero-buttons" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <Link href={`/${locale}/courses`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#fff', color: '#000', padding: '12px 30px', borderRadius: '8px', fontWeight: 700, textDecoration: 'none', fontSize: '15px' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                Үзэх
-              </Link>
-              <Link href={`/${locale}/articles`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(109,109,110,0.45)', color: '#fff', padding: '12px 30px', borderRadius: '8px', fontWeight: 700, textDecoration: 'none', fontSize: '15px', backdropFilter: 'blur(8px)' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                Дэлгэрэнгүй
-              </Link>
-            </div>
-          </div>
-
-          {/* BOTTOM-RIGHT: badge */}
-          <div style={{ position: 'absolute', bottom: '32px', right: '24px', zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.2)', color: '#e5e5e5', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, backdropFilter: 'blur(8px)' }}>
-            🏆 Mongolia #1
-          </div>
-        </section>
-        </div>
-      </div>
+      <UniversalHero
+        badgeText="🇲🇳 MONGOLIA #1 PLATFORM"
+        title={t('hero_title')}
+        description={t('hero_subtitle')}
+        primaryActionText="Үзэх"
+        primaryHref={`/${locale}/courses`}
+        secondaryActionText="Дэлгэрэнгүй"
+        secondaryHref={`/${locale}/articles`}
+        cornerBadge="🏆 Mongolia #1"
+      />
 
       {/* ═══════════════════════════════════════
           ROW 1 — FEATURED COURSES
