@@ -131,7 +131,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           MasterClass-style large landscape cards
       ═══════════════════════════════════════ */}
       <section className="mo-section-gap mo-courses-row" style={{ padding: '2rem 0 3rem', marginTop: '0', position: 'relative', zIndex: 2 }}>
-        <div style={{ padding: '0 4%' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title={t('featured_courses')} href={`/${locale}/courses`} />
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '8px' }}>
             {displayCourses.map((c: Record<string, unknown>, i: number) => {
@@ -207,7 +207,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           Refinery29-inspired editorial grid
       ═══════════════════════════════════════ */}
       <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
-        <div style={{ padding: '0 4%' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title="Трэндинг нийтлэлүүд" href={`/${locale}/articles`} badge="TRENDING" />
 
           {/* Featured editorial layout: 65% big card + 35% thumbnail list */}
@@ -354,7 +354,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           Disney+-style landscape row
       ═══════════════════════════════════════ */}
       <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
-        <div style={{ padding: '0 4%' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title="Кино & Видео" href={`/${locale}/videos`} badge="УДАХГҮЙ" />
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
             {PLACEHOLDER_VIDEOS.map((v, i) => (
@@ -401,7 +401,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           Product cards
       ═══════════════════════════════════════ */}
       <section className="mo-section-gap" style={{ padding: '0 0 5rem' }}>
-        <div style={{ padding: '0 4%' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title="Дэлгүүр" href={`/${locale}/shop`} badge="ШИНЭ" />
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
             {PLACEHOLDER_SHOP.map((p, i) => (
