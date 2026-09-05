@@ -123,7 +123,8 @@ export default async function CoursesPage({
 
       {/* ── CATEGORY FILTER PILLS ── */}
       <div style={{
-        padding: '1.5rem 4%',
+        maxWidth: '1400px', margin: '0 auto',
+        padding: '1.5rem 2rem',
         display: 'flex', gap: '0.5rem', flexWrap: 'wrap',
         borderBottom: '1px solid #2a2a2a',
       }}>
@@ -149,7 +150,7 @@ export default async function CoursesPage({
       </div>
 
       {/* ── COURSE GRID ── */}
-      <div style={{ padding: '2rem 4%' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 2rem' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',

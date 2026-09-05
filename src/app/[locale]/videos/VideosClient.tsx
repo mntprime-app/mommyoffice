@@ -385,7 +385,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       </div>
 
       {/* ══ GENRE PILLS ═══════════════════════════════════════════════════════ */}
-      <div style={{ display:'flex', gap:'8px', padding:'1.25rem 4%', overflowX:'auto', borderBottom:'1px solid #1f1f1f', scrollbarWidth:'none', marginTop:'0', position:'relative', zIndex:3 }}>
+      <div style={{ display:'flex', gap:'8px', padding:'1.25rem 2rem', maxWidth:'1400px', margin:'0 auto', overflowX:'auto', borderBottom:'1px solid #1f1f1f', scrollbarWidth:'none', marginTop:'0', position:'relative', zIndex:3 }}>
         {GENRE_LABELS.map(g => (
           <button key={g} onClick={() => setGenre(g)} style={{ flexShrink:0, padding:'7px 18px', borderRadius:'20px', fontSize:'13px', fontWeight:500, cursor:'pointer', border:'1px solid', transition:'all 0.15s', background: genre===g ? 'rgba(0,181,173,0.15)' : '#1a1a1a', color: genre===g ? '#00B5AD' : '#9ca3af', borderColor: genre===g ? 'rgba(0,181,173,0.4)' : '#2a2a2a' }}>{g}</button>
         ))}
@@ -397,7 +397,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
           const rowVideos = filtered.filter(row.filter).sort(row.sort).slice(0,12);
           if (!rowVideos.length) return null;
           return (
-            <div key={row.key} style={{ padding:'1.5rem 4% 0.5rem' }}>
+            <div key={row.key} style={{ maxWidth:'1400px', margin:'0 auto', padding:'1.5rem 2rem 0.5rem' }}>
               <div style={{ fontSize:'16px', fontWeight:700, marginBottom:'1rem', color: row.gold ? '#f59e0b' : '#e5e5e5', display:'flex', alignItems:'center', gap:'8px' }}>{row.emoji} {row.label}</div>
               <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'8px', scrollbarWidth:'none' }}>
                 {rowVideos.map((v, i) => (
@@ -410,7 +410,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       </div>
 
       {/* ══ COMING SOON: MOVIES ═══════════════════════════════════════════════ */}
-      <div style={{ padding:'0 4% 4rem' }}>
+      <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'0 2rem 4rem' }}>
         <div style={{ fontSize:'16px', fontWeight:700, marginBottom:'1rem', color:'#e5e5e5', display:'flex', alignItems:'center', gap:'8px' }}>🎬 Кино & Баримтат кино</div>
         <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'8px', scrollbarWidth:'none' }}>
           {MOVIE_PLACEHOLDERS.map((m, i) => (
