@@ -74,7 +74,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           HERO — full-viewport cinematic
       ═══════════════════════════════════════ */}
       {/* Floating card wrapper */}
-      <div style={{ padding: '12px 16px 0', background: '#141414' }}>
+      <div style={{ background: '#141414' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '12px 2rem 0' }}>
         <section className="mo-hero-section" style={{
           position: 'relative', width: '100%',
           height: '72vh', minHeight: '500px',
@@ -122,6 +123,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             🏆 Mongolia #1
           </div>
         </section>
+        </div>
       </div>
 
       {/* ═══════════════════════════════════════

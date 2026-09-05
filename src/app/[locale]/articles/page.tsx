@@ -347,7 +347,8 @@ export default async function ArticlesPage({
 
       {/* ── HERO ── */}
       {/* Floating card wrapper */}
-      <div style={{ padding: '12px 16px 0', background: '#111' }}>
+      <div style={{ background: '#111' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '12px 2rem 0' }}>
         <section className="mo-hero-section" style={{ position: 'relative', width: '100%', height: '72vh', minHeight: '500px', overflow: 'hidden', borderRadius: '24px' }}>
           <div className="mo-hero-bg" style={{ position: 'absolute', inset: 0, background: featuredGrad }}>
             {(featured?.cover_image_url || featured?.mobile_cover_image) ? (
@@ -395,6 +396,7 @@ export default async function ArticlesPage({
             🆕 Шинээр нэмэгдсэн
           </div>
         </section>
+        </div>
       </div>
 
       {/* ── BODY: 2-COLUMN EDITORIAL GRID ── */}

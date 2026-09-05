@@ -2,7 +2,7 @@
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 function LogoMark() {
   const [hasLogo, setHasLogo] = useState(false);
@@ -92,8 +92,14 @@ export default function Navbar() {
     if (searchOpen) searchInputRef.current?.focus();
   }, [searchOpen]);
 
+  const pathname = usePathname();
   const otherLocale = locale === 'mn' ? 'en' : 'mn';
   const lp = (path: string) => `/${locale}${path}`;
+
+  const isActive = (href: string) => {
+    if (href === lp('/')) return pathname === lp('/') || pathname === `/${locale}`;
+    return pathname === href || pathname.startsWith(href + '/');
+  };
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -145,29 +151,36 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop nav */}
-        <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center', flex: 1 }} className="desktop-nav">
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} style={{
-              color: link.soon ? '#6b7280' : '#e5e5e5', textDecoration: 'none',
-              fontWeight: 500, fontSize: '14px', letterSpacing: '0.2px',
-              transition: 'color 0.15s', whiteSpace: 'nowrap',
-              display: 'flex', alignItems: 'center', gap: '6px',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = link.soon ? '#6b7280' : '#e5e5e5')}
-            >
-              {link.label}
-              {link.soon && (
-                <span style={{
-                  fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
-                  background: 'rgba(0,181,173,0.15)', color: '#00B5AD',
-                  border: '1px solid rgba(0,181,173,0.3)',
-                  padding: '1px 5px', borderRadius: '4px',
-                  textTransform: 'uppercase',
-                }}>Удахгүй</span>
-              )}
-            </Link>
-          ))}
+        <nav style={{ display: 'flex', gap: '4px', alignItems: 'center', flex: 1 }} className="desktop-nav">
+          {navLinks.map((link) => {
+            const active = isActive(link.href);
+            return (
+              <Link key={link.href} href={link.href} style={{
+                color: link.soon ? '#6b7280' : active ? '#fff' : '#e5e5e5',
+                textDecoration: 'none',
+                fontWeight: active ? 700 : 500,
+                fontSize: '14px', letterSpacing: '0.2px',
+                transition: 'all 0.15s', whiteSpace: 'nowrap',
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                padding: '6px 14px', borderRadius: '9999px',
+                background: active ? '#3f3f3f' : 'transparent',
+              }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+              >
+                {link.label}
+                {link.soon && (
+                  <span style={{
+                    fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
+                    background: 'rgba(0,181,173,0.15)', color: '#00B5AD',
+                    border: '1px solid rgba(0,181,173,0.3)',
+                    padding: '1px 5px', borderRadius: '4px',
+                    textTransform: 'uppercase',
+                  }}>Удахгүй</span>
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Right side — search + cart + lang + login */}

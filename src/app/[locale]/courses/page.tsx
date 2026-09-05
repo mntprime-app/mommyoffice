@@ -61,7 +61,8 @@ export default async function CoursesPage({
     <div style={{ background: '#141414', minHeight: '100vh' }}>
 
       {/* ── FLOATING HERO CARD ── */}
-      <div style={{ padding: '12px 16px 0', background: '#141414' }}>
+      <div style={{ background: '#141414' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '12px 2rem 0' }}>
         <section style={{ position: 'relative', width: '100%', height: '72vh', minHeight: '500px', overflow: 'hidden', borderRadius: '24px' }}>
           {/* Background */}
           <div style={{ position: 'absolute', inset: 0, background: featuredGrad }}>
@@ -117,6 +118,7 @@ export default async function CoursesPage({
             🆕 Шинээр нэмэгдсэн
           </div>
         </section>
+        </div>
       </div>
 
       {/* ── CATEGORY FILTER PILLS ── */}

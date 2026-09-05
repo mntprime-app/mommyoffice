@@ -296,8 +296,9 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
     <div style={{ background:'#141414', minHeight:'100vh', color:'#e5e5e5', overflowX:'hidden' }}>
 
       {/* ══ HERO — Floating Netflix Card ══════════════════════════════════════ */}
-      <div style={{ padding:'12px 16px 0', background:'#141414' }}>
-        <section style={{ position:'relative', width:'100%', height:'72vh', minHeight:'500px', overflow:'hidden', background:'#000', borderRadius:'24px' }}>
+      <div style={{ background:'#141414' }}>
+        <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'12px 2rem 0' }}>
+        <section style={{ position:'relative', width:'100%', aspectRatio:'16/9', maxHeight:'72vh', overflow:'hidden', background:'#000', borderRadius:'24px' }}>
 
           {/* ── Background: crisp thumbnail ── */}
           {hero && getThumbHQ(hero) && !heroVideoActive && (
@@ -313,7 +314,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               <iframe
                 key={`hero-${hero.id}`}
                 src={`https://www.youtube.com/embed/${hero.youtube_id}?autoplay=1&mute=${heroMuted?1:0}&controls=0&showinfo=0&rel=0&loop=1&playlist=${hero.youtube_id}&modestbranding=1&iv_load_policy=3&enablejsapi=1`}
-                style={{ position:'absolute', top:'50%', left:'50%', width:'177.78vh', minWidth:'100%', height:'100%', minHeight:'56.25vw', transform:'translate(-50%,-50%)', border:'none' }}
+                style={{ position:'absolute', inset:0, width:'100%', height:'100%', border:'none' }}
                 allow="autoplay; fullscreen"
               />
             </>
@@ -380,6 +381,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
             </div>
           )}
         </section>
+        </div>
       </div>
 
       {/* ══ GENRE PILLS ═══════════════════════════════════════════════════════ */}
