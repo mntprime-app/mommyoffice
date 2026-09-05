@@ -130,7 +130,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           ROW 1 — FEATURED COURSES
           MasterClass-style large landscape cards
       ═══════════════════════════════════════ */}
-      <section className="mo-section-gap mo-courses-row" style={{ padding: '0 0 3rem', marginTop: '-5rem', position: 'relative', zIndex: 2 }}>
+      <section className="mo-section-gap mo-courses-row" style={{ padding: '2rem 0 3rem', marginTop: '0', position: 'relative', zIndex: 2 }}>
         <div style={{ padding: '0 4%' }}>
           <RowHeader title={t('featured_courses')} href={`/${locale}/courses`} />
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '8px' }}>
