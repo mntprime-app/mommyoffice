@@ -6,6 +6,7 @@ import { createVideo } from '@/app/actions/admin';
 import VideoUploader from '@/components/ui/VideoUploader';
 
 const CATEGORIES = [
+  'Амжилтын эзэд',
   'Бизнес & Санхүү',
   'Эрүүл мэнд & Гоо сайхан',
   'Хүүхдийн хүмүүжил & Гэр бүл',
@@ -51,7 +52,7 @@ export default function NewVideoPage() {
     cloudflare_stream_id: '',
     thumbnail_url: '',
     duration_text: '',
-    category: 'Бизнес & Санхүү',
+    category: 'Амжилтын эзэд',
     video_type: 'free',       // 'free' | 'paid'
     is_published: false,
     is_featured: false,
