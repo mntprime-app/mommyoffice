@@ -104,27 +104,19 @@ export default function UniversalHero({
           Category badge ABOVE card. Title + CTA buttons overlaid INSIDE card.
           CSS class mo-hero-mobile: display:none on desktop, block on mobile.
       ══════════════════════════════════════════════════════════════════════ */}
-      <div className="mo-hero-mobile" style={{ background: '#141414', padding: '12px 1rem 8px' }}>
+      {/* ══ MOBILE HERO (<768px) — BUG-048: Pure image card, zero text overlay ══
+          A. Pure poster card — image ONLY, no vignette, no text, no buttons
+          B. External metadata stack — badge + title + description BELOW image
+          C. Full-width stacked buttons — completely outside/below the image card
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="mo-hero-mobile" style={{ background: '#141414', padding: '12px 1rem 0' }}>
 
-        {/* Category label — above card */}
-        {badgeText && (
-          <p style={{
-            fontSize: '10px', fontWeight: 700, color: '#00B5AD',
-            letterSpacing: '2px', textTransform: 'uppercase',
-            margin: '0 0 8px',
-          }}>
-            {badgeText}
-          </p>
-        )}
-
-        {/* Hero card — 300px fixed height, static poster, Netflix-style stacked pills */}
+        {/* A. PURE POSTER CARD — image only, zero overlay content */}
         <div style={{
-          position: 'relative', width: '100%',
-          height: '300px',
-          borderRadius: '14px', overflow: 'hidden',
-          background: '#0a0a0a',
+          position: 'relative', width: '100%', height: '240px',
+          borderRadius: '14px', overflow: 'hidden', background: '#0a0a0a',
+          border: '1px solid rgba(255,255,255,0.06)',
         }}>
-          {/* Cover image */}
           {coverImage ? (
             <img
               src={coverImage}
@@ -143,96 +135,98 @@ export default function UniversalHero({
               }} />
             </div>
           )}
-
-          {/* Corner badge — top-right inside card */}
+          {/* Corner badge — only non-text element allowed inside card */}
           {cornerBadge && (
             <div style={{
-              position: 'absolute', top: '12px', right: '12px', zIndex: 10,
-              display: 'inline-flex', alignItems: 'center', gap: '4px',
-              background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.2)',
-              color: '#e5e5e5', padding: '4px 10px', borderRadius: '20px',
+              position: 'absolute', top: '10px', right: '10px', zIndex: 5,
+              background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.2)',
+              color: '#e5e5e5', padding: '3px 9px', borderRadius: '20px',
               fontSize: '11px', fontWeight: 600, backdropFilter: 'blur(8px)',
             }}>
               {cornerBadge}
             </div>
           )}
+        </div>
 
-          {/* Deep bottom vignette — 80% to accommodate stacked buttons + description */}
-          <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0, height: '80%',
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
-          }} />
-
-          {/* Overlay: title + description + stacked full-width pill buttons (Netflix standard) */}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 14px', zIndex: 5 }}>
-            <h1 style={{
-              fontSize: '15px', fontWeight: 800, lineHeight: 1.25,
-              color: '#fff', margin: '0 0 4px',
+        {/* B. EXTERNAL TEXT & METADATA — below image, never overlaid */}
+        <div style={{ padding: '10px 2px 0' }}>
+          {badgeText && (
+            <p style={{
+              fontSize: '10px', fontWeight: 700, color: '#00B5AD',
+              letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 6px',
+            }}>
+              {badgeText}
+            </p>
+          )}
+          <h1 style={{
+            fontSize: '20px', fontWeight: 900, lineHeight: 1.2,
+            color: '#fff', margin: '0 0 6px', letterSpacing: '-0.3px',
+            display: '-webkit-box', WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>
+            {title}
+          </h1>
+          {description && (
+            <p style={{
+              fontSize: '12px', color: 'rgba(255,255,255,0.5)',
+              margin: 0, lineHeight: 1.5,
               display: '-webkit-box', WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical', overflow: 'hidden',
             }}>
-              {title}
-            </h1>
-            {description && (
-              <p style={{
-                fontSize: '11px', color: 'rgba(255,255,255,0.75)',
-                margin: '0 0 10px', lineHeight: 1.4,
-                display: '-webkit-box', WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical', overflow: 'hidden',
-              }}>
-                {description}
-              </p>
-            )}
-            {/* Stacked full-width pill buttons — Netflix standard */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-              {primaryHref ? (
-                <Link href={primaryHref} style={{
-                  width: '100%', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '6px',
-                  background: '#fff', color: '#000',
-                  padding: '10px 16px', borderRadius: '24px',
-                  fontWeight: 700, fontSize: '13px', textDecoration: 'none',
-                }}>
-                  <PlayIcon /> {primaryActionText}
-                </Link>
-              ) : onPrimaryClick ? (
-                <button onClick={onPrimaryClick} style={{
-                  width: '100%', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '6px',
-                  background: '#fff', color: '#000',
-                  padding: '10px 16px', borderRadius: '24px',
-                  fontWeight: 700, fontSize: '13px', border: 'none', cursor: 'pointer',
-                }}>
-                  <PlayIcon /> {primaryActionText}
-                </button>
-              ) : null}
-
-              {secondaryHref ? (
-                <Link href={secondaryHref} style={{
-                  width: '100%', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '6px',
-                  background: 'rgba(45,45,45,0.92)', color: '#fff',
-                  padding: '10px 16px', borderRadius: '24px',
-                  fontWeight: 700, fontSize: '13px',
-                  textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)',
-                }}>
-                  <InfoIcon /> {secondaryActionText}
-                </Link>
-              ) : onSecondaryClick ? (
-                <button onClick={onSecondaryClick} style={{
-                  width: '100%', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '6px',
-                  background: 'rgba(45,45,45,0.92)', color: '#fff',
-                  padding: '10px 16px', borderRadius: '24px',
-                  fontWeight: 700, fontSize: '13px',
-                  border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer',
-                }}>
-                  <InfoIcon /> {secondaryActionText}
-                </button>
-              ) : null}
-            </div>
-          </div>
+              {description}
+            </p>
+          )}
         </div>
+
+        {/* C. FULL-WIDTH STACKED ACTION BUTTONS — completely below text */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '12px', paddingBottom: '4px' }}>
+          {primaryHref ? (
+            <Link href={primaryHref} style={{
+              width: '100%', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: '6px',
+              background: '#fff', color: '#000',
+              padding: '11px 16px', borderRadius: '12px',
+              fontWeight: 700, fontSize: '14px', textDecoration: 'none',
+            }}>
+              <PlayIcon /> {primaryActionText}
+            </Link>
+          ) : onPrimaryClick ? (
+            <button onClick={onPrimaryClick} style={{
+              width: '100%', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: '6px',
+              background: '#fff', color: '#000',
+              padding: '11px 16px', borderRadius: '12px',
+              fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer',
+            }}>
+              <PlayIcon /> {primaryActionText}
+            </button>
+          ) : null}
+
+          {secondaryHref ? (
+            <Link href={secondaryHref} style={{
+              width: '100%', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: '6px',
+              background: 'rgba(30,30,30,0.9)', color: '#fff',
+              padding: '11px 16px', borderRadius: '12px',
+              fontWeight: 700, fontSize: '14px', textDecoration: 'none',
+              border: '1px solid rgba(255,255,255,0.15)',
+            }}>
+              <InfoIcon /> {secondaryActionText}
+            </Link>
+          ) : onSecondaryClick ? (
+            <button onClick={onSecondaryClick} style={{
+              width: '100%', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: '6px',
+              background: 'rgba(30,30,30,0.9)', color: '#fff',
+              padding: '11px 16px', borderRadius: '12px',
+              fontWeight: 700, fontSize: '14px',
+              border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer',
+            }}>
+              <InfoIcon /> {secondaryActionText}
+            </button>
+          ) : null}
+        </div>
+
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════

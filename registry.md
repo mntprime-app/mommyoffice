@@ -235,6 +235,35 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-048 — Mobile Hero: Text Overlay Covering Faces (RESOLVED 2026-09-05, Session 12)
+
+**Pages affected:** All pages using `UniversalHero.tsx`, `/mn/videos` (`VideosClient.tsx`)
+
+**Symptoms:** Title, description, and CTA buttons rendered OVER the hero poster image, covering subject faces. Buttons unreachable on short viewports.
+
+**Root cause:** Netflix overlay pattern (text/buttons inside absolute-positioned div at card bottom) works on large screens but collides with human subjects on portrait mobile images.
+
+**Fix: Pure image card architecture**
+- **A. Hero card:** Pure poster image, 240px height, zero text/buttons/vignette inside
+- **B. External metadata:** Badge (cyan, uppercase) + title (20px, w900) + description (12px, zinc-400) rendered BELOW the card in normal flow
+- **C. External buttons:** Full-width stacked white/dark buttons in their own row below text
+
+**Additional fix:** Movie placeholder cards in `VideosClient.tsx` were missing `mo-video-card` + `mo-video-card-thumb` CSS classes, causing them to remain 280px wide on mobile (overflowing viewport). Fixed by adding both classes.
+
+**Mobile hero rules updated (supersedes BUG-046 rules):**
+```
+1. Hero card:    height 240px, image ONLY — no text, no vignette, no buttons inside
+2. Corner badge: ONLY non-text element allowed inside the card
+3. Title:        BELOW the card — 20px, weight 900, 2-line clamp
+4. Meta:         BELOW title — 10px cyan badge + duration + free/paid status
+5. Description:  BELOW meta — 12px, rgba(255,255,255,0.5), 2-line clamp
+6. Buttons:      BELOW description — full-width, borderRadius 12px, NOT 24px pill
+```
+
+**NEVER overlay text on mobile hero images.** Subject faces always in top 40% of frame.
+
+---
+
 ## BUG-047 — Mobile Carousel: No Snap + No Pagination Dots (RESOLVED 2026-09-05, Session 12)
 
 **Pages affected:** `/mn`, `/mn/videos`

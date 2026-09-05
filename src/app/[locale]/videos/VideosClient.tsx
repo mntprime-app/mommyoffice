@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import type { Video } from './page';
+import CarouselRow from '@/components/shared/CarouselRow';
 
 // ─── types ───────────────────────────────────────────────────────────────────
 
@@ -315,59 +316,58 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
           DESKTOP (≥768px) — Cinematic hybrid: poster → muted autoplay after 2.5s
       ══════════════════════════════════════════════════════════════════════════ */}
 
-      {/* ── MOBILE HERO ──────────────────────────────────────────────────────── */}
-      <div className="mo-hero-mobile" style={{ background:'#141414', padding:'12px 1rem 8px' }}>
-        {/* Category label — above card */}
-        <p style={{ fontSize:'10px', fontWeight:700, color:'#00B5AD', letterSpacing:'2px', textTransform:'uppercase', margin:'0 0 8px' }}>
-          🎬 КИНО & ВИДЕО
-        </p>
-        {/* Hero card — 300px fixed height, static poster, Netflix-style stacked pills overlay */}
-        <div style={{ position:'relative', width:'100%', height:'300px', borderRadius:'14px', overflow:'hidden', background:'#0a0a0a' }}>
+      {/* ── MOBILE HERO — BUG-048: Pure image card, zero text overlay ────────── */}
+      {/* A. Pure poster  B. External metadata  C. Stacked buttons — all below card */}
+      <div className="mo-hero-mobile" style={{ background:'#141414', padding:'12px 1rem 0' }}>
+
+        {/* A. PURE POSTER CARD — image ONLY, no vignette, no text */}
+        <div style={{ position:'relative', width:'100%', height:'240px', borderRadius:'14px', overflow:'hidden', background:'#0a0a0a', border:'1px solid rgba(255,255,255,0.06)' }}>
           {hero && getThumbHQ(hero) ? (
-            <img src={getThumbHQ(hero)} alt={hero.title_mn}
+            <img src={getThumbHQ(hero)} alt={hero.title_mn ?? 'Hero'}
               style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
           ) : (
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
               <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%)` }} />
             </div>
           )}
-          {/* Corner badge — top-right inside card */}
+          {/* Only allowed inside card: corner badge (no text content) */}
           {hero && (
-            <div style={{ position:'absolute', top:'12px', right:'12px', zIndex:10, display:'inline-flex', alignItems:'center', gap:'4px', background:'rgba(0,0,0,0.65)', border:'1px solid rgba(255,255,255,0.2)', color:'#e5e5e5', padding:'4px 10px', borderRadius:'20px', fontSize:'11px', fontWeight:600, backdropFilter:'blur(8px)' }}>
+            <div style={{ position:'absolute', top:'10px', right:'10px', zIndex:5, background:'rgba(0,0,0,0.7)', border:'1px solid rgba(255,255,255,0.2)', color:'#e5e5e5', padding:'3px 9px', borderRadius:'20px', fontSize:'11px', fontWeight:600, backdropFilter:'blur(8px)' }}>
               🆕 Шинэ
             </div>
           )}
-          {/* Deep bottom vignette — 80% to accommodate stacked buttons + description */}
-          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'80%', background:'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)' }} />
-          {/* Overlay: title + description + stacked full-width pill buttons (Netflix standard) */}
-          <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'14px 14px', zIndex:5 }}>
-            <h1 style={{ fontSize:'15px', fontWeight:800, lineHeight:1.25, color:'#fff', margin:'0 0 4px', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
-              {hero?.title_mn ?? 'Кино & Видео'}
-            </h1>
-            {/* Meta line */}
-            <p style={{ fontSize:'11px', color:'rgba(255,255,255,0.65)', margin:'0 0 8px', display:'flex', gap:'6px', flexWrap:'wrap' as const }}>
-              <span>{hero?.category ?? ''}</span>
-              {hero?.duration_text && <><span>·</span><span>{hero.duration_text}</span></>}
-              <span>·</span>
-              <span>{hero?.video_type === 'paid' ? '🔒 Гишүүнчлэл' : '✓ Үнэгүй'}</span>
-            </p>
-            {/* Description — 2-line clamp */}
-            {hero?.description_mn && (
-              <p style={{ fontSize:'11px', color:'rgba(255,255,255,0.75)', margin:'0 0 10px', lineHeight:1.4, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
-                {hero.description_mn}
-              </p>
-            )}
-            {/* Stacked full-width pill buttons — Netflix standard */}
-            <div style={{ display:'flex', flexDirection:'column', gap:'8px', width:'100%' }}>
-              <button onClick={() => hero && openPlayer(hero)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', background:'#fff', color:'#000', padding:'10px 16px', borderRadius:'24px', fontWeight:700, fontSize:'13px', border:'none', cursor:'pointer' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ҮЗЭХ
-              </button>
-              <button onClick={() => hero && openInfo(hero)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', background:'rgba(45,45,45,0.92)', color:'#fff', padding:'10px 16px', borderRadius:'24px', fontWeight:700, fontSize:'13px', border:'1px solid rgba(255,255,255,0.2)', cursor:'pointer' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> ДЭЛГЭРЭНГҮЙ
-              </button>
-            </div>
-          </div>
         </div>
+
+        {/* B. EXTERNAL TEXT & METADATA — below image, never overlaid */}
+        <div style={{ padding:'10px 2px 0' }}>
+          <p style={{ fontSize:'10px', fontWeight:700, color:'#00B5AD', letterSpacing:'2px', textTransform:'uppercase', margin:'0 0 6px', display:'flex', gap:'6px', alignItems:'center', flexWrap:'wrap' as const }}>
+            <span>🎬 КИНО & ВИДЕО</span>
+            {hero?.duration_text && <><span style={{ color:'rgba(255,255,255,0.3)' }}>•</span><span>{hero.duration_text}</span></>}
+            <span style={{ color:'rgba(255,255,255,0.3)' }}>•</span>
+            <span style={{ color: hero?.video_type === 'paid' ? '#FFD93D' : '#00B5AD' }}>
+              {hero?.video_type === 'paid' ? '🔒 Гишүүнчлэл' : '✓ Үнэгүй'}
+            </span>
+          </p>
+          <h1 style={{ fontSize:'20px', fontWeight:900, lineHeight:1.2, color:'#fff', margin:'0 0 6px', letterSpacing:'-0.3px', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+            {hero?.title_mn ?? 'Кино & Видео'}
+          </h1>
+          {hero?.description_mn && (
+            <p style={{ fontSize:'12px', color:'rgba(255,255,255,0.5)', margin:0, lineHeight:1.5, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+              {hero.description_mn}
+            </p>
+          )}
+        </div>
+
+        {/* C. FULL-WIDTH STACKED ACTION BUTTONS — completely below text */}
+        <div style={{ display:'flex', flexDirection:'column', gap:'8px', paddingTop:'12px', paddingBottom:'4px' }}>
+          <button onClick={() => hero && openPlayer(hero)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', background:'#fff', color:'#000', padding:'11px 16px', borderRadius:'12px', fontWeight:700, fontSize:'14px', border:'none', cursor:'pointer' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ҮЗЭХ
+          </button>
+          <button onClick={() => hero && openInfo(hero)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', background:'rgba(30,30,30,0.9)', color:'#fff', padding:'11px 16px', borderRadius:'12px', fontWeight:700, fontSize:'14px', border:'1px solid rgba(255,255,255,0.15)', cursor:'pointer' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> ДЭЛГЭРЭНГҮЙ
+          </button>
+        </div>
+
       </div>
 
       {/* ── DESKTOP HERO ─────────────────────────────────────────────────────── */}
@@ -470,11 +470,11 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
           return (
             <div key={row.key} style={{ maxWidth:'1400px', margin:'0 auto', padding:'1.5rem 2rem 0.5rem' }}>
               <div style={{ fontSize:'16px', fontWeight:700, marginBottom:'1rem', color: row.gold ? '#f59e0b' : '#e5e5e5', display:'flex', alignItems:'center', gap:'8px' }}>{row.emoji} {row.label}</div>
-              <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'8px', scrollbarWidth:'none' }}>
+              <CarouselRow count={rowVideos.length}>
                 {rowVideos.map((v, i) => (
                   <VideoCard key={v.id} video={v} index={i} onPlay={() => openPlayer(v)} onInfo={() => openInfo(v)} />
                 ))}
-              </div>
+              </CarouselRow>
             </div>
           );
         })}
@@ -483,10 +483,10 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       {/* ══ COMING SOON: MOVIES ═══════════════════════════════════════════════ */}
       <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'0 2rem 4rem' }}>
         <div style={{ fontSize:'16px', fontWeight:700, marginBottom:'1rem', color:'#e5e5e5', display:'flex', alignItems:'center', gap:'8px' }}>🎬 Кино & Баримтат кино</div>
-        <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'8px', scrollbarWidth:'none' }}>
+        <CarouselRow count={MOVIE_PLACEHOLDERS.length}>
           {MOVIE_PLACEHOLDERS.map((m, i) => (
-            <div key={m.id} className="netflix-card" style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a' }}>
-              <div style={{ width:'280px', height:'157px', background: GRADIENTS[i % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative' }}>
+            <div key={m.id} className="netflix-card mo-video-card mo-snap-card" style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a' }}>
+              <div className="mo-video-card-thumb" style={{ width:'100%', height:'157px', background: GRADIENTS[i % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative' }}>
                 <span style={{ fontSize:'3rem' }}>{m.emoji}</span>
                 <span style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(239,68,68,0.85)', color:'#fff', fontSize:'10px', fontWeight:700, padding:'3px 9px', borderRadius:'4px', textTransform:'uppercase', letterSpacing:'0.8px' }}>УДАХГҮЙ</span>
               </div>
@@ -495,7 +495,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               </div>
             </div>
           ))}
-        </div>
+        </CarouselRow>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
@@ -670,6 +670,18 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
           .mo-video-card       { width: calc(45vw) !important; min-width: 130px !important; }
           .mo-video-card-thumb { width: 100% !important; height: auto !important; aspect-ratio: 16/9; }
         }
+        /* ── Carousel scroll snap + pagination dots ── */
+        .mo-snap-card { scroll-snap-align: start; }
+        .mo-row-wrap { position: relative; overflow: hidden; }
+        .mo-row-wrap::after {
+          content: ''; position: absolute;
+          top: 0; right: 0; bottom: 0; width: 56px;
+          background: linear-gradient(to right, transparent, #141414);
+          pointer-events: none; z-index: 2;
+        }
+        @media (min-width: 768px) { .mo-row-wrap::after { display: none; } }
+        .mo-carousel-dots { display: none; justify-content: center; gap: 5px; margin-top: 10px; }
+        @media (max-width: 767px) { .mo-carousel-dots { display: flex; align-items: center; } }
       `}</style>
     </div>
   );
@@ -683,7 +695,7 @@ function VideoCard({ video, index, onPlay, onInfo }: { video: AnyVideo; index: n
   const match = matchDisplay(video);
 
   return (
-    <div className="netflix-card mo-video-card" onClick={onInfo} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', position:'relative', cursor:'pointer' }}>
+    <div className="netflix-card mo-video-card mo-snap-card" onClick={onInfo} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', position:'relative', cursor:'pointer' }}>
       <div className="mo-video-card-thumb" style={{ width:'280px', height:'157px', background: GRADIENTS[index % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
         {thumb ? <img src={thumb} alt={video.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy" /> : <span style={{ fontSize:'3rem' }}>🎬</span>}
         <span style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', color:'#fff', fontSize:'10px', fontWeight:700, padding:'3px 9px', borderRadius:'4px', textTransform:'uppercase', letterSpacing:'0.8px' }}>{video.category.split(' & ')[0]}</span>
