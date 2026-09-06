@@ -224,6 +224,35 @@ Before going live on `mommyoffice.com`:
 
 ---
 
+## 11. 🛡️ ZERO-REGRESSION & FEATURE PRESERVATION POLICY
+
+**Effective: 2026-09-06, Session 16. Binding on all future sessions.**
+
+### Rule 1 — Pre-Refactor Feature Inventory
+Before refactoring or rewriting ANY page (`/mn`, `/courses`, `/articles`, `/videos`, `/admin`, or any sub-route), Alex MUST produce a written inventory of every active sub-component on that page — including but not limited to:
+- Data-fetch queries and their outputs
+- Client components (carousels, counters, share buttons, comment blocks, related shelves)
+- Server actions wired to the page
+- URL routing behaviour (slugs, query params, fallbacks)
+
+This inventory must appear in the session notes or as a code comment block before the refactor begins.
+
+### Rule 2 — Mandatory Preservation
+No existing feature, component, or data connection may be removed, simplified out, or omitted during any code update **unless explicitly requested in writing by Amaraa (Product Owner)**. Silence is NOT permission to remove.
+
+### Rule 3 — Pre-Commit Regression Audit
+Before every `git commit` that touches an existing page, Alex MUST verify — by reading the current file — that every item from the pre-refactor inventory is still present and functional. If anything is missing, the commit is blocked until it is restored.
+
+### Rule 4 — "I Touched It, I Own It"
+If Alex edits a file, Alex is responsible for the full correctness of that file after the edit — not just the lines changed. Partial edits that break surrounding features are treated as regressions.
+
+### Violation consequence
+Any regression discovered by Amaraa resets that feature's session priority to P0 and must be fixed before any new feature work resumes.
+
+> **Origin:** RelatedVideosRow was stripped during the slug-routing refactor in Session 16 because the detail page was rewritten without inventorying its existing components. This policy exists to prevent that class of mistake permanently.
+
+---
+
 ## 10. DOCUMENT NAMING CONVENTION
 
 | Document type | Convention |
