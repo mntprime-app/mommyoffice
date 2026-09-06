@@ -749,11 +749,7 @@ function VideoCard({ video, index, locale, onPlay, onInfo }: { video: AnyVideo; 
           ? <img src={thumb} alt={video.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} loading="lazy" />
           : <span style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'2.5rem' }}>🎬</span>
         }
-        {/* Small free/paid status pill — allowed because it's a status, not a category label */}
-        <span style={{ position:'absolute', top:'8px', right:'8px', background: video.video_type === 'free' ? 'rgba(16,185,129,0.88)' : 'rgba(251,191,36,0.88)', color:'#fff', fontSize:'9px', fontWeight:800, padding:'2px 7px', borderRadius:'3px', letterSpacing:'0.4px', textTransform:'uppercase' }}>
-          {video.video_type === 'free' ? 'ҮНЭГҮЙ' : 'ГИШҮҮН'}
-        </span>
-        {/* Hover play overlay */}
+        {/* Hover play overlay — image stays 100% clean */}
         {hovered && (
           <div onClick={(e) => { e.stopPropagation(); handleCardClick(); }} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.32)', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <div style={{ width:'44px', height:'44px', background:'#00B5AD', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', color:'#fff' }}>▶</div>
@@ -761,20 +757,19 @@ function VideoCard({ video, index, locale, onPlay, onInfo }: { video: AnyVideo; 
         )}
       </div>
 
-      {/* ── 2. EXTERNAL TEXT BOX — category + duration on one line, title below ── */}
-      <div style={{ padding:'10px 12px 12px', borderTop:'1px solid #1f1f1f', flex:1, display:'flex', flexDirection:'column', gap:'4px' }}>
-        {/* Meta line */}
+      {/* ── 2. EXTERNAL TEXT BOX ── */}
+      <div style={{ padding:'10px 12px 12px', borderTop:'1px solid #1f1f1f', flex:1, display:'flex', flexDirection:'column', gap:'5px' }}>
+        {/* Meta line: category pill · duration · free/paid pill */}
         <div style={{ display:'flex', alignItems:'center', gap:'5px', flexWrap:'wrap' }}>
-          <span style={{ fontSize:'10px', fontWeight:800, color:'#00B5AD', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+          <span style={{ display:'inline-flex', alignItems:'center', background:'rgba(0,181,173,0.10)', color:'#00B5AD', border:'1px solid rgba(0,181,173,0.28)', borderRadius:'20px', fontSize:'10px', fontWeight:600, letterSpacing:'0.4px', textTransform:'uppercase', padding:'2px 8px', whiteSpace:'nowrap' as const }}>
             {video.category.split(' & ')[0]}
           </span>
           {hasDuration(video.duration_text) && (
-            <>
-              <span style={{ color:'#2a2a2a', fontSize:'10px' }}>·</span>
-              <span style={{ fontSize:'10px', color:'#555' }}>{video.duration_text}</span>
-            </>
+            <span style={{ fontSize:'10px', color:'#555' }}>{video.duration_text}</span>
           )}
-          <span style={{ marginLeft:'auto', fontSize:'10px', fontWeight:600, color: match.color }}>{match.label}</span>
+          <span style={{ display:'inline-flex', alignItems:'center', background: video.video_type === 'free' ? 'rgba(16,185,129,0.10)' : 'rgba(251,191,36,0.10)', color: video.video_type === 'free' ? '#10b981' : '#f59e0b', border: video.video_type === 'free' ? '1px solid rgba(16,185,129,0.28)' : '1px solid rgba(251,191,36,0.28)', borderRadius:'20px', fontSize:'9px', fontWeight:700, padding:'2px 7px', whiteSpace:'nowrap' as const }}>
+            {video.video_type === 'free' ? 'Үнэгүй' : 'Гишүүн'}
+          </span>
         </div>
         {/* Title */}
         <p style={{ fontWeight:700, fontSize:'13px', color:'#e5e5e5', lineHeight:1.4, margin:0, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>

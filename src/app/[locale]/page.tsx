@@ -139,21 +139,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                         ? <img src={String(c.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>{String(c.emoji || '📚')}</span>
                       }
-                      {/* Price pill — status badge, stays on image */}
-                      <span style={{
-                        position: 'absolute', top: '8px', right: '8px',
-                        background: price === 0 ? 'rgba(16,185,129,0.88)' : 'rgba(0,181,173,0.88)',
-                        color: '#fff', fontSize: '9px', fontWeight: 800,
-                        padding: '2px 7px', borderRadius: '3px', letterSpacing: '0.4px',
-                      }}>
-                        {price === 0 ? 'ҮНЭГҮЙ' : `${price.toLocaleString()}₮`}
-                      </span>
                     </div>
                     {/* External text box */}
                     <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #1f1f1f', flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#00B5AD', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px', flexWrap: 'wrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(0,181,173,0.10)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.28)', borderRadius: '20px', fontSize: '10px', fontWeight: 600, letterSpacing: '0.4px', textTransform: 'uppercase', padding: '2px 8px', whiteSpace: 'nowrap' }}>
                           {String(c.category || c.cat || 'Сургалт')}
+                        </span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', background: price === 0 ? 'rgba(16,185,129,0.10)' : 'rgba(0,181,173,0.10)', color: price === 0 ? '#10b981' : '#00B5AD', border: price === 0 ? '1px solid rgba(16,185,129,0.28)' : '1px solid rgba(0,181,173,0.28)', borderRadius: '20px', fontSize: '9px', fontWeight: 700, padding: '2px 7px', whiteSpace: 'nowrap' }}>
+                          {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
                         </span>
                       </div>
                       <p style={{
@@ -345,23 +339,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                         ? <img src={v.thumbnail_url || `https://img.youtube.com/vi/${v.youtube_id}/hqdefault.jpg`} alt={v.title_mn} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
                         : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem' }}>🎬</span>
                       }
-                      {/* Free/paid status pill */}
-                      <span style={{ position: 'absolute', top: '8px', right: '8px', background: v.video_type === 'free' ? 'rgba(16,185,129,0.88)' : 'rgba(251,191,36,0.88)', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                        {v.video_type === 'free' ? 'ҮНЭГҮЙ' : 'ГИШҮҮН'}
-                      </span>
                     </div>
                     {/* External text box */}
                     <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #1f1f1f', flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#00B5AD', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px', flexWrap: 'wrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(0,181,173,0.10)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.28)', borderRadius: '20px', fontSize: '10px', fontWeight: 600, letterSpacing: '0.4px', textTransform: 'uppercase', padding: '2px 8px', whiteSpace: 'nowrap' }}>
                           {v.category?.split(' & ')[0]}
                         </span>
                         {v.duration_text && v.duration_text !== '0 мин' && (
-                          <>
-                            <span style={{ color: '#2a2a2a', fontSize: '10px' }}>·</span>
-                            <span style={{ fontSize: '10px', color: '#555' }}>{v.duration_text}</span>
-                          </>
+                          <span style={{ fontSize: '10px', color: '#555' }}>{v.duration_text}</span>
                         )}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', background: v.video_type === 'free' ? 'rgba(16,185,129,0.10)' : 'rgba(251,191,36,0.10)', color: v.video_type === 'free' ? '#10b981' : '#f59e0b', border: v.video_type === 'free' ? '1px solid rgba(16,185,129,0.28)' : '1px solid rgba(251,191,36,0.28)', borderRadius: '20px', fontSize: '9px', fontWeight: 700, padding: '2px 7px', whiteSpace: 'nowrap' }}>
+                          {v.video_type === 'free' ? 'Үнэгүй' : 'Гишүүн'}
+                        </span>
                       </div>
                       <p style={{
                         fontWeight: 700, fontSize: '12px', color: '#e0e0e0',

@@ -132,7 +132,7 @@ export default function RelatedVideosRow({
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '2rem' }}>🎬</div>
                 )}
 
-                {/* Duration badge */}
+                {/* Duration badge — bottom corner only, image stays clean */}
                 {hasDuration(v.duration_text) && (
                   <span style={{
                     position: 'absolute', bottom: '7px', right: '8px',
@@ -142,22 +142,26 @@ export default function RelatedVideosRow({
                     {v.duration_text}
                   </span>
                 )}
-
-                {/* Free/paid badge */}
-                <span style={{
-                  position: 'absolute', top: '7px', left: '8px',
-                  background: v.video_type === 'free' ? 'rgba(16,185,129,0.9)' : 'rgba(251,191,36,0.9)',
-                  color: '#fff', fontSize: '9px', fontWeight: 700,
-                  padding: '2px 7px', borderRadius: '3px', letterSpacing: '0.5px',
-                }}>
-                  {v.video_type === 'free' ? 'ҮНЭГҮЙ' : 'ГИШҮҮН'}
-                </span>
               </div>
 
               {/* Info */}
               <div style={{ padding: '10px 12px 12px' }}>
+                {/* Meta: free/paid pill */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px', flexWrap: 'wrap' }}>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center',
+                    background: v.video_type === 'free' ? 'rgba(16,185,129,0.10)' : 'rgba(251,191,36,0.10)',
+                    color: v.video_type === 'free' ? '#10b981' : '#f59e0b',
+                    border: v.video_type === 'free' ? '1px solid rgba(16,185,129,0.28)' : '1px solid rgba(251,191,36,0.28)',
+                    borderRadius: '20px', fontSize: '9px', fontWeight: 700,
+                    padding: '2px 7px', whiteSpace: 'nowrap',
+                  }}>
+                    {v.video_type === 'free' ? 'Үнэгүй' : 'Гишүүн'}
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#6b7280' }}>👁 {fmtViews(v.view_count)}</span>
+                </div>
                 <p style={{
-                  margin: '0 0 5px',
+                  margin: 0,
                   fontSize: '13px',
                   fontWeight: 700,
                   color: '#e5e5e5',
@@ -169,9 +173,6 @@ export default function RelatedVideosRow({
                 }}>
                   {title}
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '11px', color: '#6b7280' }}>👁 {fmtViews(v.view_count)}</span>
-                </div>
               </div>
             </div>
           );

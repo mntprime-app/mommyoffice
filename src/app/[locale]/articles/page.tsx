@@ -258,7 +258,7 @@ function EditorialPickCard({ a, locale }: { a: Record<string, unknown>; locale: 
         {/* External text box */}
         <div style={{ padding: '14px 16px 16px', borderTop: '1px solid #1f1f1f', flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '7px' }}>
-            <span style={{ fontSize: '10px', fontWeight: 800, color: catColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{cat}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(0,181,173,0.10)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.28)', borderRadius: '20px', fontSize: '10px', fontWeight: 600, letterSpacing: '0.4px', textTransform: 'uppercase', padding: '2px 8px', whiteSpace: 'nowrap' }}>{cat}</span>
           </div>
           <p style={{ fontSize: '14px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 8px', lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</p>
           {excerpt && <p style={{ fontSize: '12px', color: '#666', margin: 0, lineHeight: 1.55, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{excerpt}</p>}
@@ -290,7 +290,7 @@ function ArticleScrollCard({ a, locale }: { a: Record<string, unknown>; locale: 
         {/* External text box */}
         <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #1f1f1f', flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '10px', fontWeight: 800, color: catColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{cat}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(0,181,173,0.10)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.28)', borderRadius: '20px', fontSize: '10px', fontWeight: 600, letterSpacing: '0.4px', textTransform: 'uppercase', padding: '2px 8px', whiteSpace: 'nowrap' }}>{cat}</span>
             {date && (
               <>
                 <span style={{ color: '#2a2a2a', fontSize: '10px' }}>·</span>
