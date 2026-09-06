@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import ShareButton from './ShareButton';
+import ViewCounter from './ViewCounter';
+import VideoComments from './VideoComments';
 
 export const revalidate = 60;
 
@@ -80,13 +82,6 @@ export default async function VideoDetailPage({
 
   if (!video) notFound();
 
-  // Increment view count (fire-and-forget)
-  supabase
-    .from('mo_videos')
-    .update({ view_count: (video.view_count || 0) + 1 })
-    .eq('id', video.id)
-    .then(() => {});
-
   const title = locale === 'mn' ? video.title_mn : (video.title_en || video.title_mn);
   const description = locale === 'mn' ? video.description_mn : (video.description_en || video.description_mn);
   const thumb = getThumb(video.youtube_id, video.thumbnail_url);
@@ -138,7 +133,7 @@ export default async function VideoDetailPage({
             {video.category}
           </span>
         )}
-        {video.duration_text && (
+        {video.duration_text && video.duration_text !== '0 мин' && (
           <span style={{ fontSize: '11px', color: '#6b7280', padding: '3px 8px' }}>⏱ {video.duration_text}</span>
         )}
         <span style={{ fontSize: '11px', color: '#6b7280', padding: '3px 8px' }}>👁 {(video.view_count || 0).toLocaleString()}</span>
@@ -165,6 +160,16 @@ export default async function VideoDetailPage({
           ← Бүх видео
         </Link>
       </div>
+
+      {/* View counter (client, non-blocking) */}
+      <ViewCounter videoId={video.id} />
+
+      {/* Comments */}
+      <VideoComments
+        videoId={video.id}
+        commentsEnabled={video.comments_enabled !== false}
+        locale={locale}
+      />
 
     </div>
   );

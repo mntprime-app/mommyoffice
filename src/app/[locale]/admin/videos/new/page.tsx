@@ -58,6 +58,7 @@ export default function NewVideoPage() {
     is_published: false,
     is_featured: false,
     placement: 'normal',      // 'hero' | 'trending' | 'normal'
+    comments_enabled: true,
   });
 
   function set(key: string, val: string | boolean) {
@@ -98,6 +99,7 @@ export default function NewVideoPage() {
       is_published:         form.is_published,
       is_featured:          form.is_featured,
       placement:            form.placement,
+      comments_enabled:     form.comments_enabled,
     });
 
     if (err) { setError(err); setSaving(false); return; }
@@ -259,8 +261,9 @@ export default function NewVideoPage() {
         {/* Toggles */}
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           {[
-            { key: 'is_published', label: '🌐 Шууд нийтлэх', desc: 'Сурагчдад харагдана', checked: form.is_published },
-            { key: 'is_featured',  label: '⭐ Hero Featured',  desc: 'Нүүр хэсгийн hero болгох', checked: form.is_featured },
+            { key: 'is_published',    label: '🌐 Шууд нийтлэх',    desc: 'Сурагчдад харагдана',              checked: form.is_published },
+            { key: 'is_featured',     label: '⭐ Hero Featured',    desc: 'Нүүр хэсгийн hero болгох',        checked: form.is_featured },
+            { key: 'comments_enabled',label: '💬 Сэтгэгдэл зөвшөөрөх', desc: 'Үзэгчид сэтгэгдэл бичих боломжтой', checked: form.comments_enabled },
           ].map((t) => (
             <label key={t.key} style={{
               flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '10px',

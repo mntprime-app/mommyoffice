@@ -47,6 +47,7 @@ export default function EditVideoPage() {
     duration_text: '', category: 'Бизнес & Санхүү',
     video_type: 'free', is_published: false,
     is_featured: false, placement: 'normal',
+    comments_enabled: true,
   });
 
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function EditVideoPage() {
         is_published: Boolean(data.is_published),
         is_featured: Boolean(data.is_featured),
         placement: data.placement || 'normal',
+        comments_enabled: data.comments_enabled !== false, // default true
       });
       if (youtubeId?.length === 11) {
         setYtPreview(`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`);
@@ -109,6 +111,7 @@ export default function EditVideoPage() {
       is_published: form.is_published,
       is_featured: form.is_featured,
       placement: form.placement,
+      comments_enabled: form.comments_enabled,
     });
     if (err) setError(err);
     else { setSuccess('Амжилттай хадгаллаа ✓'); setTimeout(() => setSuccess(''), 3000); }
@@ -269,10 +272,18 @@ export default function EditVideoPage() {
 
         {/* Toggles */}
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '10px 16px', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
-            <input type="checkbox" checked={form.is_featured} onChange={(e) => set('is_featured', e.target.checked)} style={{ accentColor: '#00B5AD', width: '15px', height: '15px' }} />
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#e5e5e5' }}>⭐ Featured</span>
-          </label>
+          {[
+            { key: 'is_featured',      label: '⭐ Hero Featured',        desc: 'Нүүр хэсгийн hero болгох',           checked: form.is_featured },
+            { key: 'comments_enabled', label: '💬 Сэтгэгдэл зөвшөөрөх', desc: 'Үзэгчид сэтгэгдэл бичих боломжтой', checked: form.comments_enabled },
+          ].map((t) => (
+            <label key={t.key} style={{ display: 'flex', flexDirection: 'column', gap: '2px', cursor: 'pointer', padding: '10px 16px', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input type="checkbox" checked={t.checked} onChange={(e) => set(t.key, e.target.checked)} style={{ accentColor: '#00B5AD', width: '15px', height: '15px' }} />
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#e5e5e5' }}>{t.label}</span>
+              </div>
+              <span style={{ fontSize: '11px', color: '#6b7280', paddingLeft: '23px' }}>{t.desc}</span>
+            </label>
+          ))}
         </div>
 
         {/* Publish */}

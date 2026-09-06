@@ -282,6 +282,7 @@ export async function createVideo(data: {
   is_published: boolean;
   is_featured: boolean;
   placement: string;
+  comments_enabled: boolean;
 }) {
   const supabase = await createAdminClient();
   const { error } = await supabase.from('mo_videos').insert(data);
@@ -325,6 +326,7 @@ export async function updateVideo(id: string, data: {
   is_published: boolean;
   is_featured: boolean;
   placement: string;
+  comments_enabled: boolean;
 }) {
   const supabase = await createAdminClient();
   const { error } = await supabase
