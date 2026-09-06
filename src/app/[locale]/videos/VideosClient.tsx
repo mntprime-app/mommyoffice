@@ -81,6 +81,20 @@ const PH: Video[] = [
 const hasDuration = (d?: string | null): boolean =>
   !!d && !/^0\s*(мин|min)?$/i.test(d.trim());
 
+/** Client-side slug fallback — strips non-ASCII and kebab-cases.
+ *  Used ONLY when video.slug is unexpectedly missing after the DB backfill. */
+function clientSlugify(title: string): string {
+  const base = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
+  return base || 'video';
+}
+
 // ─── rows ─────────────────────────────────────────────────────────────────────
 
 const GENRE_LABELS = [
@@ -619,7 +633,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
             </div>
 
             {/* ── RELATED VIDEOS ─────────────────────────────────────────────── */}
-            <RelatedRow current={infoVideo} all={displayVideos} onPlay={openPlayer} onInfo={openInfo} />
+            <RelatedRow current={infoVideo} all={displayVideos} onPlay={openPlayer} locale={locale} />
 
             <div style={{ height:'32px' }} />
           </div>
@@ -711,11 +725,10 @@ function VideoCard({ video, index, locale, onPlay, onInfo }: { video: AnyVideo; 
   const match = matchDisplay(video);
 
   function handleCardClick() {
-    if (video.slug) {
-      router.push(`/${locale}/videos/${video.slug}`);
-    } else {
-      onInfo();
-    }
+    // Always navigate to the detail page — slug guaranteed by DB constraint;
+    // clientSlugify is a last-resort guard that should never trigger in production.
+    const dest = video.slug || clientSlugify(video.title_mn);
+    router.push(`/${locale}/videos/${dest}`);
   }
 
   return (
@@ -743,7 +756,8 @@ function VideoCard({ video, index, locale, onPlay, onInfo }: { video: AnyVideo; 
 
 // ─── RelatedRow ───────────────────────────────────────────────────────────────
 
-function RelatedRow({ current, all, onPlay, onInfo }: { current: AnyVideo; all: AnyVideo[]; onPlay: (v: AnyVideo) => void; onInfo: (v: AnyVideo) => void; }) {
+function RelatedRow({ current, all, onPlay, locale }: { current: AnyVideo; all: AnyVideo[]; onPlay: (v: AnyVideo) => void; locale: string; }) {
+  const router = useRouter();
   const related = all.filter(v => v.id !== current.id && v.category === current.category).slice(0, 8);
   if (!related.length) return null;
   return (
@@ -753,8 +767,9 @@ function RelatedRow({ current, all, onPlay, onInfo }: { current: AnyVideo; all: 
         {related.map((v, i) => {
           const thumb = getThumb(v);
           const match = matchDisplay(v);
+          const dest = v.slug || clientSlugify(v.title_mn);
           return (
-            <div key={v.id} onClick={() => onInfo(v)} style={{ flexShrink:0, width:'200px', borderRadius:'8px', overflow:'hidden', background:'#222', cursor:'pointer' }}>
+            <div key={v.id} onClick={() => router.push(`/${locale}/videos/${dest}`)} style={{ flexShrink:0, width:'200px', borderRadius:'8px', overflow:'hidden', background:'#222', cursor:'pointer' }}>
               <div style={{ width:'200px', height:'113px', background: GRADIENTS[i % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
                 {thumb ? <img src={thumb} alt={v.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy" /> : <span style={{ fontSize:'2rem' }}>🎬</span>}
                 {hasDuration(v.duration_text) && <span style={{ position:'absolute', bottom:'5px', right:'6px', background:'rgba(0,0,0,0.8)', color:'#e5e5e5', fontSize:'9px', padding:'1px 6px', borderRadius:'2px', fontWeight:600 }}>{v.duration_text}</span>}

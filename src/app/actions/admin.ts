@@ -257,6 +257,22 @@ export async function deleteCourseById(id: string) {
 
 // ─── VIDEOS ───────────────────────────────────────────────────────────────────
 
+/** Server-side slug generator. Strips non-ASCII then kebab-cases.
+ *  Falls back to `fallbackId` (e.g. the video UUID) when title produces no
+ *  Latin characters — ensures slug is NEVER empty. */
+function autoSlug(title: string, fallbackId?: string): string {
+  const base = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')   // keep only ASCII alphanumeric + space + dash
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
+  return base || (fallbackId ? fallbackId.slice(0, 36) : `video-${Date.now()}`);
+}
+
+
 export async function listVideos() {
   const supabase = await createAdminClient();
   const { data, error } = await supabase
@@ -285,7 +301,9 @@ export async function createVideo(data: {
   comments_enabled: boolean;
 }) {
   const supabase = await createAdminClient();
-  const { error } = await supabase.from('mo_videos').insert(data);
+  // Auto-generate slug server-side if admin left it blank
+  const payload = { ...data, slug: data.slug?.trim() || autoSlug(data.title_mn) };
+  const { error } = await supabase.from('mo_videos').insert(payload);
   if (error) return { error: error.message };
   return { error: null };
 }
@@ -329,9 +347,11 @@ export async function updateVideo(id: string, data: {
   comments_enabled: boolean;
 }) {
   const supabase = await createAdminClient();
+  // Auto-generate slug server-side if admin left it blank; fall back to record id
+  const payload = { ...data, slug: data.slug?.trim() || autoSlug(data.title_mn, id) };
   const { error } = await supabase
     .from('mo_videos')
-    .update({ ...data, updated_at: new Date().toISOString() })
+    .update({ ...payload, updated_at: new Date().toISOString() })
     .eq('id', id);
   if (error) return { error: error.message };
   return { error: null };
