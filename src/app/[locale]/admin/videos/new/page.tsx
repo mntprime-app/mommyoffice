@@ -52,7 +52,6 @@ export default function NewVideoPage() {
     youtube_id: '',           // resolved ID
     cloudflare_stream_id: '',
     thumbnail_url: '',
-    mobile_cover_image: '',
     duration_text: '',
     category: 'Амжилтын эзэд',
     video_type: 'free',       // 'free' | 'paid'
@@ -93,7 +92,6 @@ export default function NewVideoPage() {
       youtube_id:           form.video_type === 'free' ? form.youtube_id : null,
       cloudflare_stream_id: form.video_type === 'paid' ? form.cloudflare_stream_id : null,
       thumbnail_url:        form.thumbnail_url || null,
-      mobile_cover_image:   (form as Record<string, unknown>).mobile_cover_image || null,
       duration_text:        form.duration_text || '0 мин',
       category:             form.category,
       video_type:           form.video_type,
@@ -217,8 +215,7 @@ export default function NewVideoPage() {
           <CoverImagePicker
             value={form.thumbnail_url}
             onChange={(url) => set('thumbnail_url', url)}
-            mobileValue={form.mobile_cover_image}
-            onMobileChange={(url) => set('mobile_cover_image', url)}
+
             previewTitle={form.title_mn || 'Гарчиг энд харагдана'}
             previewBadge="Кино & Видео"
           />

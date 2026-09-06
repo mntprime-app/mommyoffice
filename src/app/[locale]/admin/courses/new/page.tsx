@@ -35,7 +35,7 @@ export default function NewCoursePage() {
     requirements_mn: '', requirements_en: '',
     price: '0', original_price: '0',
     category: 'Хоол', level_mn: '',
-    cover_image_url: '', mobile_cover_image: '', trailer_url: '',
+    cover_image_url: '', trailer_url: '',
     cloudflare_stream_id: '',
     access_duration_days: '0',
     duration_minutes: '0',
@@ -417,8 +417,7 @@ export default function NewCoursePage() {
               <CoverImagePicker
                 value={form.cover_image_url}
                 onChange={(url) => { set('cover_image_url', url); setImgPreview(url); }}
-                mobileValue={form.mobile_cover_image}
-                onMobileChange={(url) => set('mobile_cover_image', url)}
+
                 previewTitle={form.title_mn || 'Гарчиг энд харагдана'}
                 previewBadge="Сургалт"
               />
