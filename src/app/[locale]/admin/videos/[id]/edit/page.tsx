@@ -233,13 +233,30 @@ export default function EditVideoPage() {
             <label style={lbl}>Үргэлжлэх хугацаа</label>
             <input value={form.duration_text} onChange={(e) => set('duration_text', e.target.value)} style={inp} placeholder="45 мин" />
           </div>
-          <div>
-            <label style={lbl}>Байршил</label>
-            <select value={form.placement} onChange={(e) => set('placement', e.target.value)} style={inp}>
-              <option value="normal">Энгийн</option>
-              <option value="hero">Hero Banner</option>
-              <option value="trending">Trending</option>
-            </select>
+        </div>
+
+        {/* Placement */}
+        <div style={{ background:'#1a1a1a', border:'1px solid #2a2a2a', borderRadius:'12px', padding:'1.25rem' }}>
+          <label style={{ ...lbl, display:'block', marginBottom:'0.75rem' }}>📍 Байршил (Placement)</label>
+          <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
+            {[
+              { val:'hero',     label:'🌟 Hero Banner', desc:'Нүүр хэсэгт том байдлаар харагдана' },
+              { val:'trending', label:'🔥 Трэндинг',    desc:'Санал болгох эгнээнд дээр харагдана' },
+              { val:'normal',   label:'📋 Энгийн',      desc:'Категорийн эгнээнд харагдана' },
+            ].map((p) => (
+              <label key={p.val} style={{
+                flex:'1 1 160px', display:'flex', flexDirection:'column', gap:'4px',
+                padding:'10px 12px', borderRadius:'8px', cursor:'pointer',
+                background: form.placement === p.val ? 'rgba(0,181,173,0.1)' : 'transparent',
+                border:`1px solid ${form.placement === p.val ? 'rgba(0,181,173,0.4)' : '#333'}`,
+              }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                  <input type="radio" name="placement" value={p.val} checked={form.placement === p.val} onChange={(e) => set('placement', e.target.value)} style={{ accentColor:'#00B5AD' }} />
+                  <span style={{ fontWeight:600, fontSize:'13px', color:'#e5e5e5' }}>{p.label}</span>
+                </div>
+                <span style={{ fontSize:'11px', color:'#6b7280', paddingLeft:'20px' }}>{p.desc}</span>
+              </label>
+            ))}
           </div>
         </div>
 

@@ -135,7 +135,10 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
 
   const displayVideos: AnyVideo[] = videos.length > 0 ? videos : PH;
   const filtered = genre === 'Бүгд' ? displayVideos : displayVideos.filter(v => v.category === genre);
-  const hero = displayVideos.find(v => v.is_featured) ?? displayVideos[0] ?? null;
+  const hero = displayVideos.find(v => (v as Record<string,unknown>).placement === 'hero')
+    ?? displayVideos.find(v => v.is_featured)
+    ?? displayVideos[0]
+    ?? null;
 
   // ── Mobile detection ──────────────────────────────────────────────────────
   useEffect(() => {
