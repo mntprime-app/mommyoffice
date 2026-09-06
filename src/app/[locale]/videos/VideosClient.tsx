@@ -90,8 +90,8 @@ type Row = {
   sort: (a: AnyVideo, b: AnyVideo) => number;
 };
 const ROWS: Row[] = [
-  { key:'new',     emoji:'🔥', label:'Шинээр нэмэгдсэн',                         filter:()=>true,                                           sort:(a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime() },
-  { key:'top',     emoji:'⭐', label:'Санал болгох',                              filter:()=>true,                                           sort:(a,b)=>b.view_count-a.view_count },
+  { key:'new',     emoji:'🔥', label:'Шинээр нэмэгдсэн',                         filter:(v)=>(v as Record<string,unknown>).placement !== 'hero',                                           sort:(a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime() },
+  { key:'top',     emoji:'⭐', label:'Санал болгох',                              filter:(v)=>(v as Record<string,unknown>).placement === 'trending',                                           sort:(a,b)=>b.view_count-a.view_count },
   { key:'ezed',    emoji:'🏆', label:'Амжилтын эзэд',              gold:true,    filter:(v)=>v.category==='Амжилтын эзэд',                 sort:(a,b)=>b.view_count-a.view_count },
   { key:'money',   emoji:'💰', label:'MoneyCorner — Бизнес & Санхүү', gold:true, filter:(v)=>v.category==='Бизнес & Санхүү',               sort:(a,b)=>b.view_count-a.view_count },
   { key:'health', emoji:'💆‍♀️', label:'Эрүүл мэнд & Гоо сайхан',                filter:(v)=>v.category==='Эрүүл мэнд & Гоо сайхан',    sort:(a,b)=>b.view_count-a.view_count },
