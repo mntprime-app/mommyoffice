@@ -11,6 +11,26 @@
 
 ## Session Log
 
+### Session 17 — 2026-09-06 — Task #27: Zero Badges on Images + CategoryBadge System
+
+**Commits:** `deaf43e`, `2213558`
+
+Completed full UX enforcement directive: zero overlaid text of any kind on thumbnail images across all card types. Extracted shared `CategoryBadge.tsx` component with three exports (`CategoryBadge`, `StatusBadge`, `PriceBadge`) — single source of truth matching the article list baseline: `borderRadius: 4px`, `fontWeight: 800`, `letterSpacing: 0.8px`, teal bg/border.
+
+All 4 card files (`VideosClient.tsx`, `RelatedVideosRow.tsx`, `articles/page.tsx`, `page.tsx`) now import from `@/components/ui/CategoryBadge`.
+
+**Pending:** Checkout/cart (revenue blockers), admin comments_enabled toggle, domain connect.
+
+---
+
+### Session 16 — 2026-09-06 — Tasks 23–26: External Text Container Structure Platform-Wide
+
+**Commits:** `f58c3e2`, `5aead03`, `9499250`, `67117f9`, `9c6bb46`, `ab5690f`
+
+Standardized all card components (VideoCard, home course/article/video rows, ArticleScrollCard, EditorialPickCard) to External Text Container Structure: pure 16:9 image on top, all metadata in dark external text box below — zero overlaid text on photos. Article section was the clean baseline. Vercel webhook missed `ab5690f` — fixed with empty commit trick.
+
+---
+
 ### Session 1–2 — Foundation & Deployment
 - Bootstrapped Next.js App Router project with next-intl (mn/en locales)
 - Set up Supabase SSR client (`mo_` prefix tables)
