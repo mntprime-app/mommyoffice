@@ -335,17 +335,32 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <CarouselRow count={homeVideos.length}>
               {homeVideos.map((v) => (
                 <Link key={v.id} href={`/${locale}/videos/${v.slug}`} className="mo-snap-card" style={{ textDecoration: 'none', flexShrink: 0 }}>
-                  <div style={{ width: '280px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a' }}>
-                    <div style={{ width: '280px', height: '157px', background: '#2a2a2a', position: 'relative', overflow: 'hidden' }}>
+                  {/* Card — matches Articles row: image top, solid footer bottom */}
+                  <div className="netflix-card" style={{ width: '220px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a' }}>
+                    {/* Image area */}
+                    <div style={{ height: '124px', background: '#2a2a2a', position: 'relative', overflow: 'hidden' }}>
                       {v.thumbnail_url
                         ? <img src={v.thumbnail_url} alt={v.title_mn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
-                        : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>🎬</span>
+                        : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem' }}>🎬</span>
                       }
-                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)' }} />
-                      <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(0,0,0,0.6)', color: '#00B5AD', fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                      <span style={{
+                        position: 'absolute', top: '8px', left: '8px',
+                        background: 'rgba(0,181,173,0.85)', color: '#fff',
+                        fontSize: '9px', fontWeight: 800,
+                        padding: '2px 8px', borderRadius: '3px',
+                        textTransform: 'uppercase', letterSpacing: '0.5px',
+                      }}>
                         {v.category?.split(' & ')[0]}
                       </span>
-                      <p style={{ position: 'absolute', bottom: '10px', left: '12px', right: '12px', fontWeight: 700, fontSize: '13px', color: '#fff', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    </div>
+                    {/* Solid dark footer — identical to Articles row */}
+                    <div style={{ padding: '10px 12px 12px', height: '50px', overflow: 'hidden' }}>
+                      <p style={{
+                        fontWeight: 600, fontSize: '12px', color: '#e0e0e0',
+                        lineHeight: 1.45, margin: 0,
+                        display: '-webkit-box', WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                      }}>
                         {v.title_mn}
                       </p>
                     </div>
