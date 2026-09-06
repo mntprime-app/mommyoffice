@@ -235,6 +235,30 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-051 — Video Detail Page: No Related Videos Section (RESOLVED 2026-09-06, Session 16)
+
+**Page affected:** `/[locale]/videos/[slug]`
+
+**Symptom:** After watching a video, users had no contextual next step — no related content visible on the detail page, forcing them to navigate back to `/videos` manually. Zero retention loop.
+
+**Root cause:** `RelatedVideosRow` component did not exist; detail page made no secondary Supabase query.
+
+**Fix implemented:**
+1. `RelatedVideosRow.tsx` — new client component: horizontal snap-carousel, 16:9 cards with thumbnail/duration/free badge, hover lift effect, mobile swipe with snap, "Бүгдийг үзэх →" link
+2. `page.tsx` — two-query fetch: same category (ordered by view_count desc, limit 8) → fallback pad with newest if <3 results; current video always excluded
+3. Card click navigates to `/[locale]/videos/[slug]` — consistent with rest of platform
+
+**Standard (must not regress):**
+```
+1. Related carousel always present on detail page
+2. Same-category videos shown first, padded with newest if fewer than 3
+3. Current video never appears in its own related row
+4. Each card navigates to detail page (no modal)
+5. Mobile: snap-scroll, min 2 cards visible (clamp 200–260px width)
+```
+
+---
+
 ## BUG-049 — Admin CMS: No Mobile Poster Upload + Single Desktop Preview (RESOLVED 2026-09-05, Session 12)
 
 **Pages affected:** `/admin/videos/new`, `/admin/videos/[id]/edit`, `/admin/courses/new`, `/admin/articles/new`

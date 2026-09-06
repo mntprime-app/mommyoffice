@@ -5,6 +5,8 @@ import type { Metadata } from 'next';
 import ShareButton from './ShareButton';
 import ViewCounter from './ViewCounter';
 import VideoComments from './VideoComments';
+import RelatedVideosRow from './RelatedVideosRow';
+import type { RelatedVideo } from './RelatedVideosRow';
 
 export const revalidate = 60;
 
@@ -81,6 +83,32 @@ export default async function VideoDetailPage({
     .single();
 
   if (!video) notFound();
+
+  // Fetch related videos: same category first, fallback to newest (both exclude current)
+  const { data: sameCat } = await supabase
+    .from('mo_videos')
+    .select('id, slug, title_mn, title_en, thumbnail_url, youtube_id, duration_text, category, view_count, video_type')
+    .eq('is_published', true)
+    .eq('category', video.category)
+    .neq('id', video.id)
+    .order('view_count', { ascending: false })
+    .limit(8);
+
+  let related: RelatedVideo[] = sameCat ?? [];
+
+  // If fewer than 3 same-category results, pad with newest published videos
+  if (related.length < 3) {
+    const { data: newest } = await supabase
+      .from('mo_videos')
+      .select('id, slug, title_mn, title_en, thumbnail_url, youtube_id, duration_text, category, view_count, video_type')
+      .eq('is_published', true)
+      .neq('id', video.id)
+      .order('created_at', { ascending: false })
+      .limit(8);
+    const existingIds = new Set(related.map((v) => v.id));
+    const extra = (newest ?? []).filter((v) => !existingIds.has(v.id));
+    related = [...related, ...extra].slice(0, 8);
+  }
 
   const title = locale === 'mn' ? video.title_mn : (video.title_en || video.title_mn);
   const description = locale === 'mn' ? video.description_mn : (video.description_en || video.description_mn);
@@ -168,6 +196,13 @@ export default async function VideoDetailPage({
       <VideoComments
         videoId={video.id}
         commentsEnabled={video.comments_enabled !== false}
+        locale={locale}
+      />
+
+      {/* Related videos carousel */}
+      <RelatedVideosRow
+        videos={related}
+        category={video.category}
         locale={locale}
       />
 
