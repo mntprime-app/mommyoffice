@@ -24,41 +24,87 @@ interface Props {
 const ACCEPTED = 'image/jpeg,image/jpg,image/png,image/webp,image/avif';
 const MAX_MB   = 10;
 
+// ── Client-side compression (Canvas → WebP) ────────────────────────────────────
+// Resizes to maxW × maxH (maintaining aspect ratio) and exports as WebP at 0.85 quality.
+// Typical output: 1920×1080 hero → ~150–300 KB  |  1080×1350 mobile → ~120–250 KB
+async function compressImage(file: File, maxW: number, maxH: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      // Scale down only — never upscale
+      if (width > maxW || height > maxH) {
+        const ratio = Math.min(maxW / width, maxH / height);
+        width  = Math.round(width  * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width  = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('Canvas not supported')); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error('Compression failed')),
+        'image/webp',
+        0.85,
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+    img.src = url;
+  });
+}
+
 // ── Upload Zone ────────────────────────────────────────────────────────────────
 function UploadZone({
-  value, onChange, zoneLabel, spec, tipContent,
+  value, onChange, zoneLabel, spec, tipContent, maxW, maxH,
 }: {
   value: string;
   onChange: (url: string) => void;
   zoneLabel: string;
   spec: string;
   tipContent: React.ReactNode;
+  maxW: number;
+  maxH: number;
 }) {
   const [mode, setMode]           = useState<Mode>('url');
   const [dragging, setDragging]   = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadErr, setUploadErr] = useState('');
   const [progress, setProgress]   = useState(0);
+  const [compressed, setCompressed] = useState<{before:number;after:number}|null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const uploadFile = useCallback(async (file: File) => {
-    setUploadErr('');
+    setUploadErr(''); setCompressed(null);
     if (!file.type.startsWith('image/')) { setUploadErr('Зөвхөн зураг (JPEG, PNG, WebP).'); return; }
     if (file.size > MAX_MB * 1024 * 1024) { setUploadErr(`${MAX_MB}MB-аас ихгүй байна.`); return; }
-    setUploading(true); setProgress(10);
+    setUploading(true); setProgress(15);
+
+    // Compress before upload
+    let blob: Blob;
+    try {
+      blob = await compressImage(file, maxW, maxH);
+      setCompressed({ before: file.size, after: blob.size });
+    } catch {
+      blob = file; // fallback: upload original if compression fails
+    }
+    setProgress(40);
+
     const supabase = createClient();
-    const ext   = file.name.split('.').pop() ?? 'jpg';
-    const fname = `covers/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const tick  = setInterval(() => setProgress(p => Math.min(p + 15, 85)), 300);
+    const fname = `covers/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
+    const tick  = setInterval(() => setProgress(p => Math.min(p + 10, 88)), 300);
     const { data, error } = await supabase.storage
-      .from('media').upload(fname, file, { cacheControl: '31536000', upsert: false });
+      .from('media').upload(fname, blob, { contentType: 'image/webp', cacheControl: '31536000', upsert: false });
     clearInterval(tick); setProgress(100);
     if (error) { setUploadErr(`Upload алдаа: ${error.message}`); setUploading(false); setProgress(0); return; }
     const { data: urlData } = supabase.storage.from('media').getPublicUrl(data.path);
     onChange(urlData.publicUrl);
     setUploading(false);
     setTimeout(() => setProgress(0), 800);
-  }, [onChange]);
+  }, [onChange, maxW, maxH]);
 
   function onDragOver(e: DragEvent)  { e.preventDefault(); setDragging(true); }
   function onDragLeave()              { setDragging(false); }
@@ -109,6 +155,11 @@ function UploadZone({
               marginTop:'4px', background:'none', border:'none', color:'#6b7280',
               fontSize:'10px', cursor:'pointer', textDecoration:'underline', padding:0,
             }}>Устгах</button>
+          )}
+          {compressed && (
+            <p style={{ fontSize:'10px', color:'#10b981', marginTop:'4px' }}>
+              ✓ Шахагдсан: {(compressed.before/1024).toFixed(0)}KB → {(compressed.after/1024).toFixed(0)}KB · WebP
+            </p>
           )}
         </div>
       ) : (
@@ -291,7 +342,8 @@ export default function CoverImagePicker({
             value={value}
             onChange={onChange}
             zoneLabel="🖥️ Desktop Hero Poster (Заавал)"
-            spec="1920×1080px WebP · 16:9 · 10MB хүртэл"
+            spec="1920×1080px · 16:9 — авто WebP шахалт хийгдэнэ"
+            maxW={1920} maxH={1080}
             tipContent={
               <>
                 💡 <strong style={{ color:'#9ca3af' }}>Thumbnail Priority:</strong> Custom upload = 100% priority. YouTube / auto-thumbnails = fallback ONLY if empty.
@@ -307,7 +359,8 @@ export default function CoverImagePicker({
               value={mobileValue ?? ''}
               onChange={onMobileChange}
               zoneLabel="📱 Mobile Hero Poster (Заавал биш)"
-              spec="1080×1350px · 4:5 · subject-ийн нүүрийг дээд талд бүрэн харуулна"
+              spec="1080×1350px · 4:5 — авто WebP шахалт хийгдэнэ"
+              maxW={1080} maxH={1350}
               tipContent={
                 <>
                   💡 Хоосон үлдвэл desktop poster автоматаар ашиглагдана. 240px card-д зөвхөн зураг — text/vignette байхгүй (BUG-048).
