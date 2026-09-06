@@ -1,5 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
+import { StatusBadge } from '@/components/ui/CategoryBadge';
 
 export type RelatedVideo = {
   id: string;
@@ -146,18 +147,9 @@ export default function RelatedVideosRow({
 
               {/* Info */}
               <div style={{ padding: '10px 12px 12px' }}>
-                {/* Meta: free/paid pill */}
+                {/* Meta: free/paid + view count — inline */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px', flexWrap: 'wrap' }}>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center',
-                    background: v.video_type === 'free' ? 'rgba(16,185,129,0.10)' : 'rgba(251,191,36,0.10)',
-                    color: v.video_type === 'free' ? '#10b981' : '#f59e0b',
-                    border: v.video_type === 'free' ? '1px solid rgba(16,185,129,0.28)' : '1px solid rgba(251,191,36,0.28)',
-                    borderRadius: '20px', fontSize: '9px', fontWeight: 700,
-                    padding: '2px 7px', whiteSpace: 'nowrap',
-                  }}>
-                    {v.video_type === 'free' ? 'Үнэгүй' : 'Гишүүн'}
-                  </span>
+                  <StatusBadge type={v.video_type} />
                   <span style={{ fontSize: '11px', color: '#6b7280' }}>👁 {fmtViews(v.view_count)}</span>
                 </div>
                 <p style={{
