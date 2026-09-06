@@ -738,7 +738,7 @@ function VideoCard({ video, index, locale, onPlay, onInfo }: { video: AnyVideo; 
         <span style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', color:'#fff', fontSize:'10px', fontWeight:700, padding:'3px 9px', borderRadius:'4px', textTransform:'uppercase', letterSpacing:'0.8px' }}>{video.category.split(' & ')[0]}</span>
         {hasDuration(video.duration_text) && <span style={{ position:'absolute', bottom:'10px', right:'10px', background:'#00B5AD', color:'#fff', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'4px' }}>{video.duration_text}</span>}
         {hovered && (
-          <div onClick={(e) => { e.stopPropagation(); onPlay(); }} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.35)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div onClick={(e) => { e.stopPropagation(); handleCardClick(); }} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.35)', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <div style={{ width:'44px', height:'44px', background:'#00B5AD', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', color:'#fff' }}>▶</div>
           </div>
         )}
