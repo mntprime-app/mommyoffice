@@ -76,6 +76,10 @@ const PH: Video[] = [
   { id:'ph13', title_mn:'Гэрийн цэсний 7 хоног',           title_en:null, slug:null, description_mn:'7 хоногийн хоолны цэс гаргах, хүнсний зардлаа хэмнэх практик удирдамж.',             description_en:null, youtube_id:null, cloudflare_stream_id:null, thumbnail_url:null, duration_text:'16 мин', category:'Гэрийн менежмент & Лайфстайл',  view_count:3800,  is_featured:false, placement:'normal', video_type:'free', created_at:'2026-08-08T00:00:00Z', upvotes_count:0, downvotes_count:0, super_likes_count:0 },
 ];
 
+// Returns true only if duration has a meaningful non-zero value
+const hasDuration = (d?: string | null): boolean =>
+  !!d && !/^0\s*(мин|min)?$/i.test(d.trim());
+
 // ─── rows ─────────────────────────────────────────────────────────────────────
 
 const GENRE_LABELS = [
@@ -345,7 +349,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
         <div style={{ padding:'10px 2px 0' }}>
           <p style={{ fontSize:'10px', fontWeight:700, color:'#00B5AD', letterSpacing:'2px', textTransform:'uppercase', margin:'0 0 6px', display:'flex', gap:'6px', alignItems:'center', flexWrap:'wrap' as const }}>
             <span>🎬 КИНО & ВИДЕО</span>
-            {hero?.duration_text && <><span style={{ color:'rgba(255,255,255,0.3)' }}>•</span><span>{hero.duration_text}</span></>}
+            {hasDuration(hero?.duration_text) && <><span style={{ color:'rgba(255,255,255,0.3)' }}>•</span><span>{hero!.duration_text}</span></>}
             <span style={{ color:'rgba(255,255,255,0.3)' }}>•</span>
             <span style={{ color: hero?.video_type === 'paid' ? '#FFD93D' : '#00B5AD' }}>
               {hero?.video_type === 'paid' ? '🔒 Гишүүнчлэл' : '✓ Үнэгүй'}
@@ -428,7 +432,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               </h1>
               <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'0.75rem', fontSize:'13px', fontWeight:600, color:'#fff', textShadow:'0 2px 8px rgba(0,0,0,0.9)' }}>
                 <span>{hero?.category ?? 'Платформ'}</span>
-                {hero?.duration_text && <><span style={{ color:'rgba(255,255,255,0.5)' }}>•</span><span>{hero.duration_text}</span></>}
+                {hasDuration(hero?.duration_text) && <><span style={{ color:'rgba(255,255,255,0.5)' }}>•</span><span>{hero!.duration_text}</span></>}
                 <span style={{ color:'rgba(255,255,255,0.5)' }}>•</span>
                 <span>{hero?.video_type === 'paid' ? '🔒 Гишүүнчлэл' : '✓ Үнэгүй'}</span>
               </div>
@@ -539,7 +543,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
                   <p style={{ fontSize:'11px', fontWeight:700, color:'#00B5AD', letterSpacing:'2px', textTransform:'uppercase', marginBottom:'8px' }}>{infoVideo.category}</p>
                   <h2 style={{ fontSize:'clamp(1.4rem, 3vw, 2rem)', fontWeight:800, color:'#fff', lineHeight:1.2, marginBottom:'10px', textShadow:'0 2px 16px rgba(0,0,0,0.8)' }}>{infoVideo.title_mn}</h2>
                   <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', alignItems:'center' }}>
-                    <span style={{ background:'rgba(0,181,173,0.2)', border:'1px solid rgba(0,181,173,0.35)', color:'#00B5AD', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'4px' }}>{infoVideo.duration_text}</span>
+                    {hasDuration(infoVideo.duration_text) && <span style={{ background:'rgba(0,181,173,0.2)', border:'1px solid rgba(0,181,173,0.35)', color:'#00B5AD', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'4px' }}>{infoVideo.duration_text}</span>}
                     <span style={{ background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)', color:'#10b981', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'4px' }}>{infoVideo.video_type==='free' ? '🔓 Үнэгүй' : '🔐 Paid'}</span>
                     {infoVideo.view_count > 0 && <span style={{ color:'#9ca3af', fontSize:'12px' }}>{fmtViews(infoVideo.view_count)} үзсэн</span>}
                     {/* Dynamic match % */}
@@ -596,8 +600,10 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
             <div style={{ padding:'14px 32px 0', display:'flex', gap:'8px', flexWrap:'wrap', alignItems:'center' }}>
               <span style={{ fontSize:'12px', color:'#9ca3af' }}>Ангилал:</span>
               <span style={{ background:'rgba(0,181,173,0.12)', color:'#00B5AD', border:'1px solid rgba(0,181,173,0.25)', fontSize:'12px', fontWeight:600, padding:'3px 10px', borderRadius:'4px' }}>{infoVideo.category}</span>
-              <span style={{ fontSize:'12px', color:'#9ca3af', marginLeft:'8px' }}>Үргэлжлэх хугацаа:</span>
-              <span style={{ fontSize:'12px', color:'#e5e5e5', fontWeight:600 }}>{infoVideo.duration_text}</span>
+              {hasDuration(infoVideo.duration_text) && <>
+                <span style={{ fontSize:'12px', color:'#9ca3af', marginLeft:'8px' }}>Үргэлжлэх хугацаа:</span>
+                <span style={{ fontSize:'12px', color:'#e5e5e5', fontWeight:600 }}>{infoVideo.duration_text}</span>
+              </>}
               {/* Vote counts (only if votes exist) */}
               {(infoVideo.upvotes_count + infoVideo.downvotes_count + infoVideo.super_likes_count) > 0 && (
                 <span style={{ fontSize:'12px', color:'#6b7280', marginLeft:'8px' }}>
@@ -702,7 +708,7 @@ function VideoCard({ video, index, onPlay, onInfo }: { video: AnyVideo; index: n
       <div className="mo-video-card-thumb" style={{ width:'280px', height:'157px', background: GRADIENTS[index % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
         {thumb ? <img src={thumb} alt={video.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy" /> : <span style={{ fontSize:'3rem' }}>🎬</span>}
         <span style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', color:'#fff', fontSize:'10px', fontWeight:700, padding:'3px 9px', borderRadius:'4px', textTransform:'uppercase', letterSpacing:'0.8px' }}>{video.category.split(' & ')[0]}</span>
-        <span style={{ position:'absolute', bottom:'10px', right:'10px', background:'#00B5AD', color:'#fff', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'4px' }}>{video.duration_text}</span>
+        {hasDuration(video.duration_text) && <span style={{ position:'absolute', bottom:'10px', right:'10px', background:'#00B5AD', color:'#fff', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'4px' }}>{video.duration_text}</span>}
         {hovered && (
           <div onClick={(e) => { e.stopPropagation(); onPlay(); }} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.35)', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <div style={{ width:'44px', height:'44px', background:'#00B5AD', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', color:'#fff' }}>▶</div>
@@ -736,7 +742,7 @@ function RelatedRow({ current, all, onPlay, onInfo }: { current: AnyVideo; all: 
             <div key={v.id} onClick={() => onInfo(v)} style={{ flexShrink:0, width:'200px', borderRadius:'8px', overflow:'hidden', background:'#222', cursor:'pointer' }}>
               <div style={{ width:'200px', height:'113px', background: GRADIENTS[i % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
                 {thumb ? <img src={thumb} alt={v.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy" /> : <span style={{ fontSize:'2rem' }}>🎬</span>}
-                <span style={{ position:'absolute', bottom:'5px', right:'6px', background:'rgba(0,0,0,0.8)', color:'#e5e5e5', fontSize:'9px', padding:'1px 6px', borderRadius:'2px', fontWeight:600 }}>{v.duration_text}</span>
+                {hasDuration(v.duration_text) && <span style={{ position:'absolute', bottom:'5px', right:'6px', background:'rgba(0,0,0,0.8)', color:'#e5e5e5', fontSize:'9px', padding:'1px 6px', borderRadius:'2px', fontWeight:600 }}>{v.duration_text}</span>}
               </div>
               <div style={{ padding:'8px 10px' }}>
                 <p style={{ fontWeight:600, fontSize:'11px', color:'#e5e5e5', lineHeight:1.35, margin:'0 0 3px', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{v.title_mn}</p>
