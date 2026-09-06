@@ -26,7 +26,7 @@ const MAX_MB   = 10;
 
 // ── Client-side compression (Canvas → WebP) ────────────────────────────────────
 // Resizes to maxW × maxH (maintaining aspect ratio) and exports as WebP at 0.85 quality.
-// Typical output: 1920×1080 hero → ~150–300 KB  |  1080×1350 mobile → ~120–250 KB
+// Typical output: 1920×1080 hero → ~150–300 KB  |  1920×1080 mobile → ~150–300 KB
 async function compressImage(file: File, maxW: number, maxH: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -359,8 +359,8 @@ export default function CoverImagePicker({
               value={mobileValue ?? ''}
               onChange={onMobileChange}
               zoneLabel="📱 Mobile Hero Poster (Заавал биш)"
-              spec="1080×1350px · 4:5 — авто WebP шахалт хийгдэнэ"
-              maxW={1080} maxH={1350}
+              spec="1920×1080px · 16:9 — авто WebP шахалт хийгдэнэ"
+              maxW={1920} maxH={1080}
               tipContent={
                 <>
                   💡 Хоосон үлдвэл desktop poster автоматаар ашиглагдана. 240px card-д зөвхөн зураг — text/vignette байхгүй (BUG-048).
