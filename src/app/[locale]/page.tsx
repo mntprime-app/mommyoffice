@@ -31,7 +31,7 @@ async function getHomeVideos() {
     const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_videos')
-      .select('id, title_mn, slug, thumbnail_url, category, video_type, duration_text')
+      .select('id, title_mn, slug, thumbnail_url, youtube_id, category, video_type, duration_text')
       .eq('is_published', true)
       .order('created_at', { ascending: false })
       .limit(8);
@@ -339,8 +339,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   <div className="netflix-card" style={{ width: '220px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a' }}>
                     {/* Image area */}
                     <div style={{ height: '124px', background: '#2a2a2a', position: 'relative', overflow: 'hidden' }}>
-                      {v.thumbnail_url
-                        ? <img src={v.thumbnail_url} alt={v.title_mn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                      {(v.thumbnail_url || v.youtube_id)
+                        ? <img src={v.thumbnail_url || `https://img.youtube.com/vi/${v.youtube_id}/hqdefault.jpg`} alt={v.title_mn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
                         : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem' }}>🎬</span>
                       }
                       <span style={{
