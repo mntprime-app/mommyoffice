@@ -321,10 +321,10 @@ const lbl: React.CSSProperties = {
 };
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
       <label style={lbl}>{label}</label>
-      {hint && <p style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px' }}>{hint}</p>}
       {children}
+      {hint && <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '5px', marginBottom: 0 }}>{hint}</p>}
     </div>
   );
 }

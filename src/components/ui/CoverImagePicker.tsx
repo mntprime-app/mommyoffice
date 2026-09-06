@@ -307,7 +307,7 @@ export default function CoverImagePicker({
               value={mobileValue ?? ''}
               onChange={onMobileChange}
               zoneLabel="📱 Mobile Hero Poster (Заавал биш)"
-              spec="4:5 / 3:4 · subject нүүрийг дээд талд бүрэн харуулна"
+              spec="1080×1350px · 4:5 · subject-ийн нүүрийг дээд талд бүрэн харуулна"
               tipContent={
                 <>
                   💡 Хоосон үлдвэл desktop poster автоматаар ашиглагдана. 240px card-д зөвхөн зураг — text/vignette байхгүй (BUG-048).
