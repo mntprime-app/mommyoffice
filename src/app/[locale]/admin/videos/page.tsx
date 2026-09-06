@@ -7,6 +7,7 @@ import { listVideos, toggleVideoPublished, deleteVideoById } from '@/app/actions
 type Video = {
   id: string;
   title_mn: string;
+  slug: string | null;
   youtube_id: string | null;
   cloudflare_stream_id: string | null;
   category: string;
@@ -144,8 +145,28 @@ export default function AdminVideosPage() {
                   </div>
                   <div style={{ fontSize: '12px', color: '#6b7280' }}>
                     {v.duration_text} &nbsp;·&nbsp; {v.view_count} үзсэн
-                    {v.youtube_id && <> &nbsp;·&nbsp; ID: <code style={{ color: '#9ca3af' }}>{v.youtube_id}</code></>}
+                    {v.youtube_id && <> &nbsp;·&nbsp; YT: <code style={{ color: '#9ca3af' }}>{v.youtube_id}</code></>}
                   </div>
+                  {v.slug ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
+                      <code style={{ fontSize: '11px', color: '#6b7280' }}>/videos/{v.slug}</code>
+                      <button
+                        onClick={() => {
+                          const url = `${window.location.origin}/${locale}/videos/${v.slug}`;
+                          navigator.clipboard?.writeText(url).then(() => {
+                            const btn = document.getElementById(`copy-${v.id}`);
+                            if (btn) { btn.textContent = '✅ Хуулагдлаа'; setTimeout(() => { if (btn) btn.textContent = '🔗 Линк'; }, 2000); }
+                          });
+                        }}
+                        id={`copy-${v.id}`}
+                        style={{ fontSize: '10px', color: '#00B5AD', background: 'rgba(0,181,173,0.08)', border: '1px solid rgba(0,181,173,0.25)', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer' }}
+                      >
+                        🔗 Линк
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '3px' }}>⚠️ Slug байхгүй — засах хэсэгт нэмнэ үү</div>
+                  )}
                 </div>
 
                 {/* Actions */}

@@ -261,7 +261,7 @@ export async function listVideos() {
   const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('mo_videos')
-    .select('id, title_mn, youtube_id, cloudflare_stream_id, category, duration_text, view_count, is_published, is_featured, video_type, created_at')
+    .select('id, title_mn, slug, youtube_id, cloudflare_stream_id, category, duration_text, view_count, is_published, is_featured, video_type, created_at')
     .order('created_at', { ascending: false });
   if (error) return { data: [], error: error.message };
   return { data: data ?? [], error: null };

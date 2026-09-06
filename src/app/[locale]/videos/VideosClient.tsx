@@ -1,5 +1,6 @@
 'use client';
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import type { Video } from './page';
@@ -479,7 +480,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               <div style={{ fontSize:'16px', fontWeight:700, marginBottom:'1rem', color: row.gold ? '#f59e0b' : '#e5e5e5', display:'flex', alignItems:'center', gap:'8px' }}>{row.emoji} {row.label}</div>
               <CarouselRow count={rowVideos.length}>
                 {rowVideos.map((v, i) => (
-                  <VideoCard key={v.id} video={v} index={i} onPlay={() => openPlayer(v)} onInfo={() => openInfo(v)} />
+                  <VideoCard key={v.id} video={v} index={i} locale={locale} onPlay={() => openPlayer(v)} onInfo={() => openInfo(v)} />
                 ))}
               </CarouselRow>
             </div>
@@ -588,7 +589,12 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               {(() => { const m = matchDisplay(infoVideo); return <span style={{ marginLeft:'auto', fontSize:'13px', fontWeight:700, color: m.color }}>{m.label}</span>; })()}
 
               {/* Share */}
-              <button onClick={() => { const url = `${window.location.origin}${window.location.pathname}?v=${infoVideo.id}`; navigator.clipboard?.writeText(url).catch(()=>{}); }} title="Холбоос хуулах" style={{ width:'42px', height:'42px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'2px solid rgba(255,255,255,0.3)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>↗</button>
+              <button onClick={() => {
+                const url = infoVideo.slug
+                  ? `${window.location.origin}/${locale}/videos/${infoVideo.slug}`
+                  : `${window.location.origin}${window.location.pathname}?v=${infoVideo.id}`;
+                navigator.clipboard?.writeText(url).catch(()=>{});
+              }} title="Холбоос хуулах" style={{ width:'42px', height:'42px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'2px solid rgba(255,255,255,0.3)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>↗</button>
             </div>
 
             {/* ── DESCRIPTION ──────────────────────────────────────────────── */}
@@ -698,13 +704,22 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
 
 // ─── VideoCard ────────────────────────────────────────────────────────────────
 
-function VideoCard({ video, index, onPlay, onInfo }: { video: AnyVideo; index: number; onPlay: () => void; onInfo: () => void; }) {
+function VideoCard({ video, index, locale, onPlay, onInfo }: { video: AnyVideo; index: number; locale: string; onPlay: () => void; onInfo: () => void; }) {
+  const router = useRouter();
   const [hovered, setHovered] = useState(false);
   const thumb = getThumb(video);
   const match = matchDisplay(video);
 
+  function handleCardClick() {
+    if (video.slug) {
+      router.push(`/${locale}/videos/${video.slug}`);
+    } else {
+      onInfo();
+    }
+  }
+
   return (
-    <div className="netflix-card mo-video-card mo-snap-card" onClick={onInfo} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', position:'relative', cursor:'pointer' }}>
+    <div className="netflix-card mo-video-card mo-snap-card" onClick={handleCardClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', position:'relative', cursor:'pointer' }}>
       <div className="mo-video-card-thumb" style={{ width:'280px', height:'157px', background: GRADIENTS[index % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
         {thumb ? <img src={thumb} alt={video.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy" /> : <span style={{ fontSize:'3rem' }}>🎬</span>}
         <span style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', color:'#fff', fontSize:'10px', fontWeight:700, padding:'3px 9px', borderRadius:'4px', textTransform:'uppercase', letterSpacing:'0.8px' }}>{video.category.split(' & ')[0]}</span>
