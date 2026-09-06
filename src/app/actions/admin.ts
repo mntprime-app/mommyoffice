@@ -19,6 +19,65 @@ export async function updateSiteSetting(key: string, value: string): Promise<voi
   await supabase.from('mo_site_settings').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 }
 
+// ─── HOME PAGE CONFIG ─────────────────────────────────────────────────────────
+
+export interface HomeConfig {
+  hero_title_mn: string;
+  hero_title_en: string;
+  hero_subtitle_mn: string;
+  hero_subtitle_en: string;
+  hero_badge_text: string;
+  hero_cover_image_url: string;
+  hero_youtube_id: string;
+  hero_primary_cta_text: string;
+  hero_primary_cta_href: string;
+  hero_secondary_cta_text: string;
+  hero_secondary_cta_href: string;
+  show_courses_section: boolean;
+  show_articles_section: boolean;
+  show_videos_section: boolean;
+  show_shop_section: boolean;
+}
+
+export const HOME_CONFIG_DEFAULTS: HomeConfig = {
+  hero_title_mn: 'Монголын эмэгтэйчүүдэд зориулсан №1 платформ',
+  hero_title_en: "Mongolia's #1 Women's Platform",
+  hero_subtitle_mn: 'Мэдлэг эзэмш. Амьдралаа сайжруул. Мөрөөлдөө биелүүл.',
+  hero_subtitle_en: 'Learn. Grow. Achieve.',
+  hero_badge_text: '🇲🇳 MONGOLIA #1 PLATFORM',
+  hero_cover_image_url: '',
+  hero_youtube_id: '',
+  hero_primary_cta_text: 'Үзэх',
+  hero_primary_cta_href: '/mn/courses',
+  hero_secondary_cta_text: 'Дэлгэрэнгүй',
+  hero_secondary_cta_href: '/mn/articles',
+  show_courses_section: true,
+  show_articles_section: true,
+  show_videos_section: true,
+  show_shop_section: false,
+};
+
+export async function getHomeConfig(): Promise<HomeConfig> {
+  try {
+    const supabase = await createAdminClient();
+    const { data } = await supabase.from('mo_home_config').select('*').eq('id', 1).single();
+    if (!data) return { ...HOME_CONFIG_DEFAULTS };
+    return { ...HOME_CONFIG_DEFAULTS, ...data };
+  } catch { return { ...HOME_CONFIG_DEFAULTS }; }
+}
+
+export async function saveHomeConfig(config: Partial<HomeConfig>): Promise<{ error: string | null }> {
+  try {
+    const supabase = await createAdminClient();
+    const { error } = await supabase.from('mo_home_config').upsert(
+      { id: 1, ...config, updated_at: new Date().toISOString() },
+      { onConflict: 'id' }
+    );
+    if (error) return { error: error.message };
+    return { error: null };
+  } catch (e) { return { error: String(e) }; }
+}
+
 // ─── STORAGE UPLOAD (service role — bypasses bucket RLS) ──────────────────────
 
 const BUCKET = 'mommyoffice-media';

@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
+import { getHomeConfig } from '@/app/actions/admin';
 import UniversalHero from '@/components/shared/UniversalHero';
 import CarouselRow from '@/components/shared/CarouselRow';
 
@@ -75,7 +76,7 @@ async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations('home');
-  const [courses, articles, homeVideos] = await Promise.all([getFeaturedCourses(), getHomeArticles(), getHomeVideos()]);
+  const [courses, articles, homeVideos, homeCfg] = await Promise.all([getFeaturedCourses(), getHomeArticles(), getHomeVideos(), getHomeConfig()]);
 
   const displayCourses = courses.length > 0 ? courses : PLACEHOLDER_COURSES;
   const featuredArticle = articles.hero;
@@ -89,21 +90,22 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           HERO — UniversalHero standard
       ═══════════════════════════════════════ */}
       <UniversalHero
-        badgeText="🇲🇳 MONGOLIA #1 PLATFORM"
-        title={t('hero_title')}
-        description={t('hero_subtitle')}
-        primaryActionText="Үзэх"
-        primaryHref={`/${locale}/courses`}
-        secondaryActionText="Дэлгэрэнгүй"
-        secondaryHref={`/${locale}/articles`}
+        badgeText={homeCfg.hero_badge_text || '🇲🇳 MONGOLIA #1 PLATFORM'}
+        title={locale === 'mn' ? (homeCfg.hero_title_mn || t('hero_title')) : (homeCfg.hero_title_en || t('hero_title'))}
+        description={locale === 'mn' ? (homeCfg.hero_subtitle_mn || t('hero_subtitle')) : (homeCfg.hero_subtitle_en || t('hero_subtitle'))}
+        coverImage={homeCfg.hero_cover_image_url || undefined}
+        youtubeId={homeCfg.hero_youtube_id || undefined}
+        primaryActionText={homeCfg.hero_primary_cta_text || 'Үзэх'}
+        primaryHref={homeCfg.hero_primary_cta_href || `/${locale}/courses`}
+        secondaryActionText={homeCfg.hero_secondary_cta_text || 'Дэлгэрэнгүй'}
+        secondaryHref={homeCfg.hero_secondary_cta_href || `/${locale}/articles`}
         cornerBadge="🏆 Mongolia #1"
       />
 
       {/* ═══════════════════════════════════════
           ROW 1 — FEATURED COURSES
-          MasterClass-style large landscape cards
       ═══════════════════════════════════════ */}
-      <section className="mo-section-gap mo-courses-row" style={{ padding: '2rem 0 3rem', marginTop: '0', position: 'relative', zIndex: 2 }}>
+      {homeCfg.show_courses_section && <section className="mo-section-gap mo-courses-row" style={{ padding: '2rem 0 3rem', marginTop: '0', position: 'relative', zIndex: 2 }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title={t('featured_courses')} href={`/${locale}/courses`} />
           <CarouselRow count={displayCourses.length}>
@@ -173,13 +175,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             })}
           </CarouselRow>
         </div>
-      </section>
+      </section>}
 
       {/* ═══════════════════════════════════════
           ROW 2 — TRENDING ARTICLES
-          Refinery29-inspired editorial grid
       ═══════════════════════════════════════ */}
-      <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
+      {homeCfg.show_articles_section && <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title="Трэндинг нийтлэлүүд" href={`/${locale}/articles`} badge="TRENDING" />
 
@@ -322,13 +323,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </CarouselRow>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ═══════════════════════════════════════
           ROW 3 — КИНО & ВИДЕО
-          Real videos from mo_videos
       ═══════════════════════════════════════ */}
-      {homeVideos.length > 0 && (
+      {homeCfg.show_videos_section && homeVideos.length > 0 && (
         <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
           <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
             <RowHeader title="Кино & Видео" href={`/${locale}/videos`} />
@@ -374,9 +374,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* ═══════════════════════════════════════
           ROW 4 — ДЭЛГҮҮР / SHOP
-          Product cards
       ═══════════════════════════════════════ */}
-      <section className="mo-section-gap" style={{ padding: '0 0 5rem' }}>
+      {homeCfg.show_shop_section && <section className="mo-section-gap" style={{ padding: '0 0 5rem' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
           <RowHeader title="Дэлгүүр" href={`/${locale}/shop`} badge="ШИНЭ" />
           <CarouselRow count={PLACEHOLDER_SHOP.length}>
@@ -414,7 +413,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             ))}
           </CarouselRow>
         </div>
-      </section>
+      </section>}
 
       <style>{`
         /* ── Right-fade scroll hint — mobile carousel rows ── */

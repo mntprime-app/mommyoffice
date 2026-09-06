@@ -34,6 +34,7 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
   ];
 
   const quickActions = [
+    { label: '🏠 Нүүр хуудас', href: `/${locale}/admin/home`, bg: 'linear-gradient(135deg,#0d3730,#00B5AD22)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.4)' },
     { label: '+ Хичээл нэмэх', href: `/${locale}/admin/courses/new`, bg: '#00B5AD', color: '#fff' },
     { label: '+ Нийтлэл нэмэх', href: `/${locale}/admin/articles/new`, bg: '#6366f1', color: '#fff' },
     { label: '+ Видео нэмэх', href: `/${locale}/admin/videos/new`, bg: '#f59e0b', color: '#1a0f00' },
