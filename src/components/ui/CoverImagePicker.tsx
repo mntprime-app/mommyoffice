@@ -319,8 +319,6 @@ export default function CoverImagePicker({
   previewTitle = 'Гарчиг энд харагдана',
   previewBadge = '',
 }: Props) {
-  const hasMobile = onMobileChange !== undefined;
-
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
 
@@ -329,53 +327,27 @@ export default function CoverImagePicker({
         {label ?? '🖼️ Cover Image — Hero Poster'}
       </div>
 
-      {/* Upload zones — side by side when mobile is available, single column otherwise */}
-      <div style={{
-        display:'grid',
-        gridTemplateColumns: hasMobile ? '1fr 1fr' : '1fr',
-        gap:'10px',
-        alignItems:'stretch',
-      }}>
-        {/* Desktop upload */}
-        <div style={{ background:'#161616', border:'1px solid #2a2a2a', borderRadius:'10px', padding:'14px', display:'flex' }}>
-          <UploadZone
-            value={value}
-            onChange={onChange}
-            zoneLabel="🖥️ Desktop Hero Poster (Заавал)"
-            spec="1920×1080px · 16:9 — авто WebP шахалт хийгдэнэ"
-            maxW={1920} maxH={1080}
-            tipContent={
-              <>
-                💡 <strong style={{ color:'#9ca3af' }}>Thumbnail Priority:</strong> Custom upload = 100% priority. YouTube / auto-thumbnails = fallback ONLY if empty.
-              </>
-            }
-          />
-        </div>
-
-        {/* Mobile upload (optional) */}
-        {hasMobile && (
-          <div style={{ background:'#161616', border:'1px solid #2a2a2a', borderRadius:'10px', padding:'14px', display:'flex' }}>
-            <UploadZone
-              value={mobileValue ?? ''}
-              onChange={onMobileChange}
-              zoneLabel="📱 Mobile Hero Poster (Заавал биш)"
-              spec="1920×1080px · 16:9 — авто WebP шахалт хийгдэнэ"
-              maxW={1920} maxH={1080}
-              tipContent={
-                <>
-                  💡 Хоосон үлдвэл desktop poster автоматаар ашиглагдана. 240px card-д зөвхөн зураг — text/vignette байхгүй (BUG-048).
-                </>
-              }
-            />
-          </div>
-        )}
+      {/* Upload zone — single column (mobile uses same 1920×1080 image) */}
+      <div style={{ background:'#161616', border:'1px solid #2a2a2a', borderRadius:'10px', padding:'14px', display:'flex' }}>
+        <UploadZone
+          value={value}
+          onChange={onChange}
+          zoneLabel="🖥️ Hero Poster (Desktop & Mobile)"
+          spec="1920×1080px · 16:9 — авто WebP шахалт хийгдэнэ"
+          maxW={1920} maxH={1080}
+          tipContent={
+            <>
+              💡 <strong style={{ color:'#9ca3af' }}>Thumbnail Priority:</strong> Custom upload = 100% priority. YouTube / auto-thumbnails = fallback ONLY if empty.
+            </>
+          }
+        />
       </div>
 
       {/* Live dual preview */}
       <div style={{ background:'#161616', border:'1px solid #2a2a2a', borderRadius:'10px', padding:'14px' }}>
         <DualPreview
           desktopSrc={value}
-          mobileSrc={mobileValue ?? value}
+          mobileSrc={value}
           previewTitle={previewTitle}
           previewBadge={previewBadge}
         />
