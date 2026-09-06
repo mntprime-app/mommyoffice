@@ -1,6 +1,8 @@
 'use server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { SETTING_DEFAULTS } from '@/lib/constants';
+import { HOME_CONFIG_DEFAULTS, type HomeConfig } from '@/lib/homeConfig';
+export type { HomeConfig };
 
 // ─── SITE SETTINGS ────────────────────────────────────────────────────────────
 
@@ -20,42 +22,7 @@ export async function updateSiteSetting(key: string, value: string): Promise<voi
 }
 
 // ─── HOME PAGE CONFIG ─────────────────────────────────────────────────────────
-
-export interface HomeConfig {
-  hero_title_mn: string;
-  hero_title_en: string;
-  hero_subtitle_mn: string;
-  hero_subtitle_en: string;
-  hero_badge_text: string;
-  hero_cover_image_url: string;
-  hero_youtube_id: string;
-  hero_primary_cta_text: string;
-  hero_primary_cta_href: string;
-  hero_secondary_cta_text: string;
-  hero_secondary_cta_href: string;
-  show_courses_section: boolean;
-  show_articles_section: boolean;
-  show_videos_section: boolean;
-  show_shop_section: boolean;
-}
-
-export const HOME_CONFIG_DEFAULTS: HomeConfig = {
-  hero_title_mn: 'Монголын эмэгтэйчүүдэд зориулсан №1 платформ',
-  hero_title_en: "Mongolia's #1 Women's Platform",
-  hero_subtitle_mn: 'Мэдлэг эзэмш. Амьдралаа сайжруул. Мөрөөлдөө биелүүл.',
-  hero_subtitle_en: 'Learn. Grow. Achieve.',
-  hero_badge_text: '🇲🇳 MONGOLIA #1 PLATFORM',
-  hero_cover_image_url: '',
-  hero_youtube_id: '',
-  hero_primary_cta_text: 'Үзэх',
-  hero_primary_cta_href: '/mn/courses',
-  hero_secondary_cta_text: 'Дэлгэрэнгүй',
-  hero_secondary_cta_href: '/mn/articles',
-  show_courses_section: true,
-  show_articles_section: true,
-  show_videos_section: true,
-  show_shop_section: false,
-};
+// HomeConfig type + HOME_CONFIG_DEFAULTS live in @/lib/homeConfig (not 'use server')
 
 export async function getHomeConfig(): Promise<HomeConfig> {
   try {

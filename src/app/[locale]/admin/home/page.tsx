@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { getHomeConfig, saveHomeConfig, type HomeConfig } from '@/app/actions/admin';
+import { getHomeConfig, saveHomeConfig } from '@/app/actions/admin';
+import { type HomeConfig } from '@/lib/homeConfig';
 import CoverImagePicker from '@/components/ui/CoverImagePicker';
 
 function extractYouTubeId(input: string): string {
