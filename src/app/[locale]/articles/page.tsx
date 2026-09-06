@@ -245,18 +245,21 @@ function EditorialPickCard({ a, locale }: { a: Record<string, unknown>; locale: 
   const href    = a.slug && a.slug !== '#' ? `/${locale}/articles/${String(a.slug)}` : '#';
   return (
     <Link href={href} style={{ textDecoration: 'none', display: 'block' }}>
-      <article style={{ borderRadius: '12px', overflow: 'hidden', background: '#1a1a1a', border: `1px solid #222`, transition: 'transform 0.18s, border-color 0.18s' }}
+      <article style={{ borderRadius: '12px', overflow: 'hidden', background: '#1a1a1a', border: `1px solid #222`, transition: 'transform 0.18s, border-color 0.18s', display: 'flex', flexDirection: 'column' }}
         className="mo-ed-card">
-        <div style={{ aspectRatio: '16/9', background: grad, position: 'relative', overflow: 'hidden' }}>
+        {/* Pure image — no overlaid category text, no heavy gradient */}
+        <div style={{ aspectRatio: '16/9', background: grad, position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
           {(a.cover_image_url || a.mobile_cover_image)
             ? <img src={String(a.cover_image_url || a.mobile_cover_image)} alt={title}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0, display: 'block' }} />
             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', opacity: 0.4 }}>{String(a.emoji || '✍️')}</div>
           }
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 55%)' }} />
-          <span style={{ position: 'absolute', bottom: '10px', left: '12px', fontSize: '9px', fontWeight: 800, color: catColor, background: 'rgba(0,0,0,0.7)', padding: '2px 8px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{cat}</span>
         </div>
-        <div style={{ padding: '14px 16px 16px' }}>
+        {/* External text box */}
+        <div style={{ padding: '14px 16px 16px', borderTop: '1px solid #1f1f1f', flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '7px' }}>
+            <span style={{ fontSize: '10px', fontWeight: 800, color: catColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{cat}</span>
+          </div>
           <p style={{ fontSize: '14px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 8px', lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</p>
           {excerpt && <p style={{ fontSize: '12px', color: '#666', margin: 0, lineHeight: 1.55, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{excerpt}</p>}
           <span style={{ display: 'inline-block', marginTop: '10px', fontSize: '11px', color: catColor, fontWeight: 700 }}>Унших →</span>
@@ -273,18 +276,31 @@ function ArticleScrollCard({ a, locale }: { a: Record<string, unknown>; locale: 
   const grad  = CAT_GRADIENTS[cat] || CAT_GRADIENTS.default;
   const catColor = CAT_COLORS[cat] || CAT_COLORS.default;
   const href  = a.slug && a.slug !== '#' ? `/${locale}/articles/${String(a.slug)}` : '#';
+  const date  = formatDate(a.published_at as string | null, locale);
+  const mins  = articleReadTime(a, locale);
   return (
     <Link href={href} style={{ textDecoration: 'none', flexShrink: 0, width: '220px', display: 'flex' }}>
-      <article className="netflix-card" style={{ borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a', border: '1px solid #222', width: '100%' }}>
-        <div style={{ height: '130px', background: grad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', position: 'relative', overflow: 'hidden' }}>
+      <article className="netflix-card" style={{ borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a', border: '1px solid #222', width: '100%', display: 'flex', flexDirection: 'column', transition: 'border-color 0.18s' }}>
+        {/* Pure image — no overlaid category text */}
+        <div style={{ width: '100%', aspectRatio: '16/9', background: grad, position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
           {a.cover_image_url
-            ? <img src={String(a.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <span>{String(a.emoji || '✨')}</span>}
-          <span style={{ position: 'absolute', bottom: '8px', left: '8px', fontSize: '9px', fontWeight: 800, color: catColor, background: `rgba(0,0,0,0.7)`, padding: '2px 7px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{cat}</span>
+            ? <img src={String(a.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>{String(a.emoji || '✨')}</span>}
         </div>
-        <div style={{ padding: '10px 12px 12px' }}>
-          <p style={{ fontSize: '13px', fontWeight: 600, color: '#e5e5e5', lineHeight: 1.45, margin: '0 0 6px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '38px' }}>{title}</p>
-          <span style={{ fontSize: '11px', color: '#555' }}>⏱ {readTime(title)} мин</span>
+        {/* External text box */}
+        <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #1f1f1f', flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '10px', fontWeight: 800, color: catColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{cat}</span>
+            {date && (
+              <>
+                <span style={{ color: '#2a2a2a', fontSize: '10px' }}>·</span>
+                <span style={{ fontSize: '10px', color: '#555' }}>{date}</span>
+              </>
+            )}
+            <span style={{ color: '#2a2a2a', fontSize: '10px' }}>·</span>
+            <span style={{ fontSize: '10px', color: '#555' }}>⏱ {mins} мин</span>
+          </div>
+          <p style={{ fontSize: '13px', fontWeight: 700, color: '#e5e5e5', lineHeight: 1.4, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</p>
         </div>
       </article>
     </Link>

@@ -507,13 +507,14 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
         <div style={{ fontSize:'16px', fontWeight:700, marginBottom:'1rem', color:'#e5e5e5', display:'flex', alignItems:'center', gap:'8px' }}>🎬 Кино & Баримтат кино</div>
         <CarouselRow count={MOVIE_PLACEHOLDERS.length}>
           {MOVIE_PLACEHOLDERS.map((m, i) => (
-            <div key={m.id} className="netflix-card mo-video-card mo-snap-card" style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a' }}>
-              <div className="mo-video-card-thumb" style={{ width:'100%', height:'157px', background: GRADIENTS[i % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative' }}>
+            <div key={m.id} className="netflix-card mo-video-card mo-snap-card" style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', border:'1px solid #222', display:'flex', flexDirection:'column' }}>
+              <div className="mo-video-card-thumb" style={{ width:'100%', aspectRatio:'16/9', background: GRADIENTS[i % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
                 <span style={{ fontSize:'3rem' }}>{m.emoji}</span>
-                <span style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(239,68,68,0.85)', color:'#fff', fontSize:'10px', fontWeight:700, padding:'3px 9px', borderRadius:'4px', textTransform:'uppercase', letterSpacing:'0.8px' }}>УДАХГҮЙ</span>
+                {/* УДАХГҮЙ is a status pill — stays on image */}
+                <span style={{ position:'absolute', top:'8px', right:'8px', background:'rgba(239,68,68,0.88)', color:'#fff', fontSize:'9px', fontWeight:800, padding:'2px 7px', borderRadius:'3px', textTransform:'uppercase', letterSpacing:'0.4px' }}>УДАХГҮЙ</span>
               </div>
-              <div style={{ padding:'10px 14px 14px', height:'54px', overflow:'hidden' }}>
-                <p style={{ fontWeight:600, fontSize:'13px', color:'#9ca3af', lineHeight:1.45, margin:0, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{m.title}</p>
+              <div style={{ padding:'10px 12px 12px', borderTop:'1px solid #1f1f1f' }}>
+                <p style={{ fontWeight:600, fontSize:'13px', color:'#9ca3af', lineHeight:1.4, margin:0, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{m.title}</p>
               </div>
             </div>
           ))}
@@ -732,23 +733,53 @@ function VideoCard({ video, index, locale, onPlay, onInfo }: { video: AnyVideo; 
   }
 
   return (
-    <div className="netflix-card mo-video-card mo-snap-card" onClick={handleCardClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', position:'relative', cursor:'pointer' }}>
-      <div className="mo-video-card-thumb" style={{ width:'280px', height:'157px', background: GRADIENTS[index % GRADIENTS.length], display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
-        {thumb ? <img src={thumb} alt={video.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy" /> : <span style={{ fontSize:'3rem' }}>🎬</span>}
-        <span style={{ position:'absolute', top:'10px', left:'10px', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', color:'#fff', fontSize:'10px', fontWeight:700, padding:'3px 9px', borderRadius:'4px', textTransform:'uppercase', letterSpacing:'0.8px' }}>{video.category.split(' & ')[0]}</span>
-        {hasDuration(video.duration_text) && <span style={{ position:'absolute', bottom:'10px', right:'10px', background:'#00B5AD', color:'#fff', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'4px' }}>{video.duration_text}</span>}
+    <div
+      className="netflix-card mo-video-card mo-snap-card"
+      onClick={handleCardClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ flexShrink:0, width:'280px', borderRadius:'10px', overflow:'hidden', background:'#1a1a1a', border:'1px solid #222', position:'relative', cursor:'pointer', display:'flex', flexDirection:'column', transition:'border-color 0.18s' }}
+    >
+      {/* ── 1. PURE THUMBNAIL — no category text, no heavy overlays ─── */}
+      <div
+        className="mo-video-card-thumb"
+        style={{ width:'100%', aspectRatio:'16/9', background: GRADIENTS[index % GRADIENTS.length], position:'relative', overflow:'hidden', flexShrink:0 }}
+      >
+        {thumb
+          ? <img src={thumb} alt={video.title_mn} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} loading="lazy" />
+          : <span style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'2.5rem' }}>🎬</span>
+        }
+        {/* Small free/paid status pill — allowed because it's a status, not a category label */}
+        <span style={{ position:'absolute', top:'8px', right:'8px', background: video.video_type === 'free' ? 'rgba(16,185,129,0.88)' : 'rgba(251,191,36,0.88)', color:'#fff', fontSize:'9px', fontWeight:800, padding:'2px 7px', borderRadius:'3px', letterSpacing:'0.4px', textTransform:'uppercase' }}>
+          {video.video_type === 'free' ? 'ҮНЭГҮЙ' : 'ГИШҮҮН'}
+        </span>
+        {/* Hover play overlay */}
         {hovered && (
-          <div onClick={(e) => { e.stopPropagation(); handleCardClick(); }} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.35)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div onClick={(e) => { e.stopPropagation(); handleCardClick(); }} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.32)', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <div style={{ width:'44px', height:'44px', background:'#00B5AD', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', color:'#fff' }}>▶</div>
           </div>
         )}
       </div>
-      <div style={{ padding:'10px 14px 4px' }}>
-        <p style={{ fontWeight:600, fontSize:'13px', color:'#e5e5e5', lineHeight:1.45, margin:0, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{video.title_mn}</p>
-      </div>
-      {/* Match % below title */}
-      <div style={{ padding:'2px 14px 10px' }}>
-        <span style={{ fontSize:'11px', fontWeight:600, color: match.color }}>{match.label}</span>
+
+      {/* ── 2. EXTERNAL TEXT BOX — category + duration on one line, title below ── */}
+      <div style={{ padding:'10px 12px 12px', borderTop:'1px solid #1f1f1f', flex:1, display:'flex', flexDirection:'column', gap:'4px' }}>
+        {/* Meta line */}
+        <div style={{ display:'flex', alignItems:'center', gap:'5px', flexWrap:'wrap' }}>
+          <span style={{ fontSize:'10px', fontWeight:800, color:'#00B5AD', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+            {video.category.split(' & ')[0]}
+          </span>
+          {hasDuration(video.duration_text) && (
+            <>
+              <span style={{ color:'#2a2a2a', fontSize:'10px' }}>·</span>
+              <span style={{ fontSize:'10px', color:'#555' }}>{video.duration_text}</span>
+            </>
+          )}
+          <span style={{ marginLeft:'auto', fontSize:'10px', fontWeight:600, color: match.color }}>{match.label}</span>
+        </div>
+        {/* Title */}
+        <p style={{ fontWeight:700, fontSize:'13px', color:'#e5e5e5', lineHeight:1.4, margin:0, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+          {video.title_mn}
+        </p>
       </div>
     </div>
   );

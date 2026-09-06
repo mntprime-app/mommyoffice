@@ -126,43 +126,39 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <Link key={String(c.id || i)} href={slug} className="mo-snap-card" style={{ textDecoration: 'none', flexShrink: 0 }}>
                   <div className="netflix-card mo-home-course-card" style={{
                     width: '280px', borderRadius: '10px', overflow: 'hidden',
-                    background: '#1a1a1a', position: 'relative',
+                    background: '#1a1a1a', border: '1px solid #222',
+                    display: 'flex', flexDirection: 'column', transition: 'border-color 0.18s',
                   }}>
-                    {/* Thumbnail — 16:9 */}
+                    {/* Thumbnail — pure 16:9, no overlaid text */}
                     <div className="mo-home-course-thumb" style={{
-                      width: '280px', height: '157px',
+                      width: '100%', aspectRatio: '16/9',
                       background: gradients[i % gradients.length],
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      position: 'relative', overflow: 'hidden',
+                      position: 'relative', overflow: 'hidden', flexShrink: 0,
                     }}>
                       {c.cover_image_url
-                        ? <img src={String(c.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <span style={{ fontSize: '3rem' }}>{String(c.emoji || '📚')}</span>
+                        ? <img src={String(c.cover_image_url)} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>{String(c.emoji || '📚')}</span>
                       }
-                      {/* Category tag */}
+                      {/* Price pill — status badge, stays on image */}
                       <span style={{
-                        position: 'absolute', top: '10px', left: '10px',
-                        background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
-                        color: '#fff', fontSize: '10px', fontWeight: 700,
-                        padding: '3px 9px', borderRadius: '4px',
-                        textTransform: 'uppercase', letterSpacing: '0.8px',
+                        position: 'absolute', top: '8px', right: '8px',
+                        background: price === 0 ? 'rgba(16,185,129,0.88)' : 'rgba(0,181,173,0.88)',
+                        color: '#fff', fontSize: '9px', fontWeight: 800,
+                        padding: '2px 7px', borderRadius: '3px', letterSpacing: '0.4px',
                       }}>
-                        {String(c.category || c.cat || '')}
-                      </span>
-                      {/* Price badge */}
-                      <span style={{
-                        position: 'absolute', bottom: '10px', right: '10px',
-                        background: price === 0 ? '#10b981' : '#00B5AD',
-                        color: '#fff', fontSize: '11px', fontWeight: 700,
-                        padding: '3px 10px', borderRadius: '4px',
-                      }}>
-                        {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
+                        {price === 0 ? 'ҮНЭГҮЙ' : `${price.toLocaleString()}₮`}
                       </span>
                     </div>
-                    <div style={{ padding: '10px 14px 14px', height: '54px', overflow: 'hidden' }}>
+                    {/* External text box */}
+                    <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #1f1f1f', flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#00B5AD', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {String(c.category || c.cat || 'Сургалт')}
+                        </span>
+                      </div>
                       <p style={{
-                        fontWeight: 600, fontSize: '13px', color: '#e5e5e5',
-                        lineHeight: 1.45, margin: 0,
+                        fontWeight: 700, fontSize: '13px', color: '#e5e5e5',
+                        lineHeight: 1.4, margin: 0,
                         display: '-webkit-box', WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical', overflow: 'hidden',
                       }}>
@@ -285,31 +281,37 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <Link key={String(a.id || i)} href={href} className="mo-snap-card" style={{ textDecoration: 'none', flexShrink: 0 }}>
                   <div className="netflix-card" style={{
                     width: '220px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a',
+                    border: '1px solid #222', display: 'flex', flexDirection: 'column', transition: 'border-color 0.18s',
                   }}>
+                    {/* Pure image — no overlaid category text */}
                     <div style={{
-                      height: '130px',
+                      width: '100%', aspectRatio: '16/9',
                       background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      overflow: 'hidden', position: 'relative',
+                      overflow: 'hidden', position: 'relative', flexShrink: 0,
                     }}>
                       {a.cover_image_url
-                        ? <img src={String(a.cover_image_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <span style={{ fontSize: '2.2rem' }}>{String(a.emoji || '✨')}</span>
+                        ? <img src={String(a.cover_image_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem' }}>{String(a.emoji || '✨')}</span>
                       }
-                      <span style={{
-                        position: 'absolute', top: '8px', left: '8px',
-                        background: 'rgba(0,181,173,0.85)', color: '#fff',
-                        fontSize: '9px', fontWeight: 800,
-                        padding: '2px 8px', borderRadius: '3px',
-                        textTransform: 'uppercase', letterSpacing: '0.5px',
-                      }}>
-                        {String(a.category || a.cat || 'Lifestyle')}
-                      </span>
                     </div>
-                    <div style={{ padding: '10px 12px 12px', height: '50px', overflow: 'hidden' }}>
+                    {/* External text box */}
+                    <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #1f1f1f', flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#00B5AD', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {String(a.category || a.cat || 'Lifestyle')}
+                        </span>
+                        {a.published_at && (
+                          <>
+                            <span style={{ color: '#2a2a2a', fontSize: '10px' }}>·</span>
+                            <span style={{ fontSize: '10px', color: '#555' }}>
+                              {new Date(String(a.published_at)).toLocaleDateString('mn-MN', { month: 'short', day: 'numeric' })}
+                            </span>
+                          </>
+                        )}
+                      </div>
                       <p style={{
-                        fontWeight: 600, fontSize: '12px', color: '#e0e0e0',
-                        lineHeight: 1.45, margin: 0,
+                        fontWeight: 700, fontSize: '12px', color: '#e0e0e0',
+                        lineHeight: 1.4, margin: 0,
                         display: '-webkit-box', WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical', overflow: 'hidden',
                       }}>
@@ -335,29 +337,35 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <CarouselRow count={homeVideos.length}>
               {homeVideos.map((v) => (
                 <Link key={v.id} href={`/${locale}/videos/${v.slug}`} className="mo-snap-card" style={{ textDecoration: 'none', flexShrink: 0 }}>
-                  {/* Card — matches Articles row: image top, solid footer bottom */}
-                  <div className="netflix-card" style={{ width: '220px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a' }}>
-                    {/* Image area */}
-                    <div style={{ height: '124px', background: '#2a2a2a', position: 'relative', overflow: 'hidden' }}>
+                  {/* Card — pure image top, external text box below */}
+                  <div className="netflix-card" style={{ width: '220px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a', border: '1px solid #222', display: 'flex', flexDirection: 'column', transition: 'border-color 0.18s' }}>
+                    {/* Pure image — no overlaid category text */}
+                    <div style={{ width: '100%', aspectRatio: '16/9', background: '#2a2a2a', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
                       {(v.thumbnail_url || v.youtube_id)
-                        ? <img src={v.thumbnail_url || `https://img.youtube.com/vi/${v.youtube_id}/hqdefault.jpg`} alt={v.title_mn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                        ? <img src={v.thumbnail_url || `https://img.youtube.com/vi/${v.youtube_id}/hqdefault.jpg`} alt={v.title_mn} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
                         : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem' }}>🎬</span>
                       }
-                      <span style={{
-                        position: 'absolute', top: '8px', left: '8px',
-                        background: 'rgba(0,181,173,0.85)', color: '#fff',
-                        fontSize: '9px', fontWeight: 800,
-                        padding: '2px 8px', borderRadius: '3px',
-                        textTransform: 'uppercase', letterSpacing: '0.5px',
-                      }}>
-                        {v.category?.split(' & ')[0]}
+                      {/* Free/paid status pill */}
+                      <span style={{ position: 'absolute', top: '8px', right: '8px', background: v.video_type === 'free' ? 'rgba(16,185,129,0.88)' : 'rgba(251,191,36,0.88)', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                        {v.video_type === 'free' ? 'ҮНЭГҮЙ' : 'ГИШҮҮН'}
                       </span>
                     </div>
-                    {/* Solid dark footer — identical to Articles row */}
-                    <div style={{ padding: '10px 12px 12px', height: '50px', overflow: 'hidden' }}>
+                    {/* External text box */}
+                    <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #1f1f1f', flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#00B5AD', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {v.category?.split(' & ')[0]}
+                        </span>
+                        {v.duration_text && v.duration_text !== '0 мин' && (
+                          <>
+                            <span style={{ color: '#2a2a2a', fontSize: '10px' }}>·</span>
+                            <span style={{ fontSize: '10px', color: '#555' }}>{v.duration_text}</span>
+                          </>
+                        )}
+                      </div>
                       <p style={{
-                        fontWeight: 600, fontSize: '12px', color: '#e0e0e0',
-                        lineHeight: 1.45, margin: 0,
+                        fontWeight: 700, fontSize: '12px', color: '#e0e0e0',
+                        lineHeight: 1.4, margin: 0,
                         display: '-webkit-box', WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical', overflow: 'hidden',
                       }}>
