@@ -26,6 +26,19 @@ async function getFeaturedCourses() {
   } catch { return []; }
 }
 
+async function getHomeVideos() {
+  try {
+    const supabase = await createAdminClient();
+    const { data } = await supabase
+      .from('mo_videos')
+      .select('id, title_mn, slug, thumbnail_url, category, video_type, duration_text')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false })
+      .limit(8);
+    return data || [];
+  } catch { return []; }
+}
+
 const ARTICLE_FIELDS = 'id, title_mn, title_en, cover_image_url, slug, category, published_at, placement, pin_rank';
 
 async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null; trending: Record<string, unknown>[]; more: Record<string, unknown>[] }> {
@@ -62,7 +75,7 @@ async function getHomeArticles(): Promise<{ hero: Record<string, unknown> | null
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations('home');
-  const [courses, articles] = await Promise.all([getFeaturedCourses(), getHomeArticles()]);
+  const [courses, articles, homeVideos] = await Promise.all([getFeaturedCourses(), getHomeArticles(), getHomeVideos()]);
 
   const displayCourses = courses.length > 0 ? courses : PLACEHOLDER_COURSES;
   const featuredArticle = articles.hero;
@@ -313,50 +326,36 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* ═══════════════════════════════════════
           ROW 3 — КИНО & ВИДЕО
-          Disney+-style landscape row
+          Real videos from mo_videos
       ═══════════════════════════════════════ */}
-      <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
-          <RowHeader title="Кино & Видео" href={`/${locale}/videos`} badge="УДАХГҮЙ" />
-          <CarouselRow count={PLACEHOLDER_VIDEOS.length}>
-            {PLACEHOLDER_VIDEOS.map((v, i) => (
-              <Link key={i} href={`/${locale}/videos`} className="mo-snap-card" style={{ textDecoration: 'none', flexShrink: 0 }}>
-                <div className="netflix-card" style={{
-                  width: '280px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a',
-                }}>
-                  <div style={{
-                    width: '280px', height: '157px',
-                    background: v.gradient,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative', overflow: 'hidden',
-                  }}>
-                    <span style={{ fontSize: '3rem' }}>{v.emoji}</span>
-                    <div style={{
-                      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                      background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 55%)',
-                    }} />
-                    <span style={{
-                      position: 'absolute', top: '10px', right: '10px',
-                      background: 'rgba(255,217,61,0.2)', border: '1px solid rgba(255,217,61,0.4)',
-                      color: '#FFD93D', fontSize: '9px', fontWeight: 800,
-                      padding: '2px 8px', borderRadius: '4px', letterSpacing: '1px',
-                    }}>
-                      УДАХГҮЙ
-                    </span>
-                    <p style={{
-                      position: 'absolute', bottom: '10px', left: '12px', right: '12px',
-                      fontWeight: 700, fontSize: '13px', color: '#fff', margin: 0,
-                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    }}>
-                      {v.title}
-                    </p>
+      {homeVideos.length > 0 && (
+        <section className="mo-section-gap" style={{ padding: '0 0 3rem' }}>
+          <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
+            <RowHeader title="Кино & Видео" href={`/${locale}/videos`} />
+            <CarouselRow count={homeVideos.length}>
+              {homeVideos.map((v) => (
+                <Link key={v.id} href={`/${locale}/videos/${v.slug}`} className="mo-snap-card" style={{ textDecoration: 'none', flexShrink: 0 }}>
+                  <div style={{ width: '280px', borderRadius: '10px', overflow: 'hidden', background: '#1a1a1a' }}>
+                    <div style={{ width: '280px', height: '157px', background: '#2a2a2a', position: 'relative', overflow: 'hidden' }}>
+                      {v.thumbnail_url
+                        ? <img src={v.thumbnail_url} alt={v.title_mn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                        : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>🎬</span>
+                      }
+                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)' }} />
+                      <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(0,0,0,0.6)', color: '#00B5AD', fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                        {v.category?.split(' & ')[0]}
+                      </span>
+                      <p style={{ position: 'absolute', bottom: '10px', left: '12px', right: '12px', fontWeight: 700, fontSize: '13px', color: '#fff', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {v.title_mn}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </CarouselRow>
-        </div>
-      </section>
+                </Link>
+              ))}
+            </CarouselRow>
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════════════════════════════
           ROW 4 — ДЭЛГҮҮР / SHOP
