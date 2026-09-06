@@ -28,6 +28,30 @@
   - Video cards: added `right: 12px`, `whiteSpace: nowrap`, `textOverflow: ellipsis`, `overflow: hidden` + parent `overflow: hidden`
   - Article/course scroll row cards: fixed-height text containers (50px / 54px)
 
+### Session 11 (continued) — 2026-09-05 — BUG-046: 260px Overlay Hero + Mobile Grid Fixes
+
+**Commits pushed:**
+- `f93940c` — Session 11 log update only (code was staged but not committed due to HEAD.lock)
+- `86991b9` — BUG-046: 260px fixed mobile hero with overlay — title+buttons inside card (actual code push)
+
+**Root cause fixed (BUG-046):**
+- Session 11's first fix used `aspectRatio: 4/5` → 468px tall on 375px phone, filling entire viewport with cover photo. No title or buttons visible.
+- Fix: `height: '260px'` fixed card + **Option A overlay** — strong vignette (rgba 0→0.92, 70%) + title (15px w800 2-line) + CTA buttons overlaid inside card at bottom.
+
+**Files changed:**
+- `UniversalHero.tsx` — mobile section: 260px overlay, category badge above, title+buttons inside card
+- `VideosClient.tsx` — same mobile hero fix; one-line meta (category·duration·free) below card
+- `courses/page.tsx` — `mo-card-grid` class + 2-col CSS on `<768px`; padding tightened to `1rem`
+- `page.tsx` (home) — `mo-row-wrap` right-fade scroll hint on carousel rows; `mo-home-course-card` 45vw on mobile
+- `registry.md` — BUG-046 documented; Option A overlay spec + mobile CSS classes standardized
+
+**Mobile CSS classes added to platform standard:**
+- `.mo-row-wrap` — right-fade scroll hint wrapper for any carousel row
+- `.mo-card-grid` — 2-col grid on `<768px`
+- `.mo-home-course-card` — 45vw course card on mobile
+
+---
+
 ### Session 11 — 2026-09-05 — MOBILE-001: Netflix Mobile Native Layout Standard
 
 **Commits pushed today:**
@@ -278,13 +302,42 @@ default           → blue-navy
 
 ---
 
-## Next Session Start Command
+### Session 14 — 2026-09-06 — UX Fixes + Home Page Videos + YouTube Thumbnail Fallback
 
-```
-Read F:\MNT\Workspace\GLink Strategic Projects\mommyoffice\PROJECT_LOG.md and registry.md. Confirm you have read Session 11 (2026-09-05). Next priority: verify MOBILE-001 on real device after Vercel deploy, then move to 🔴 High revenue blockers — checkout page /checkout/[slug], cart page /cart, and entering the 5 remaining videos in admin.
-```
+**Commits pushed:**
+- `bdd2090` — fix: title field alignment + CoverImagePicker mobile spec 1920×1080
+- `5b49a9a` — UX: remove separate mobile hero upload zone (same spec as desktop)
+- `a4246d9` — fix: remove mobile_cover_image from all admin forms (no DB column)
+- `5d6ec92` — fix: hero placement priority + edit form radio UI + trending filter
+- `efe1eec` — fix: hasDuration helper — hide "0 мин" badges everywhere
+- `35b55b6` — feat: home page Кино & Видео — real videos from mo_videos
+- `30f3093` — fix: add youtube_id to getHomeVideos SELECT + YouTube thumbnail fallback
+
+**Fixes shipped:**
+- Title field МН/EN alignment (removed `justifyContent: flex-end`)
+- Mobile hero spec corrected to 1920×1080 · 16:9; separate mobile upload zone removed
+- `mobile_cover_image` removed from all admin forms (column doesn't exist in DB)
+- Hero banner now respects `placement` field: `hero` → `is_featured` → first video
+- Edit form now has same card-style radio buttons for Байршил as `/new` form
+- "Санал болгох" row now only shows `placement === 'trending'` videos
+- `hasDuration()` helper hides "0 мин" / empty duration badges platform-wide
+- Home page Кино & Видео row now fetches real data from `mo_videos` (was hardcoded placeholders)
+- Video cards standardized to 220px + solid dark footer (matches Articles row)
+- YouTube thumbnail fallback working on home page (`youtube_id` added to SELECT)
+
+**Obsolete:** `mobile_cover_image` DB migration removed from pre-launch checklist — field dropped from all forms.
 
 ---
 
-*Last updated: 2026-08-22 — Session 6*
+## Next Session Start Command
+
+```
+Alex, resume MommyOffice
+```
+
+Read `PROJECT_LOG.md`, `registry.md`, and `docs/sessions/SESSION_NOTES_2026_09_06.md`. Session 14 done (commit 30f3093, Vercel deployed). Next priorities: 🔴 Checkout page `/checkout/[slug]`, Cart page `/cart`. Also: fill `duration_text` for all 5 uploaded videos via admin edit form.
+
+---
+
+*Last updated: 2026-09-06 — Session 14*
 *Project code: MO | Differentiated from: M10, MNT Prime*
