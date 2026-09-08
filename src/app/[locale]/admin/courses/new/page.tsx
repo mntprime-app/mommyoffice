@@ -435,13 +435,15 @@ export default function NewCoursePage() {
 
             {/* Pricing */}
             <SideCard title="Үнэ">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                <Field label="Борлуулах үнэ (₮)">
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#9ca3af', display: 'block', marginBottom: '0.25rem' }}>Борлуулах үнэ (₮)</label>
                   <input type="number" value={form.price} onChange={(e) => set('price', e.target.value)} style={inp} min="0" />
-                </Field>
-                <Field label="Эх үнэ (₮)" hint="Strike-through">
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#9ca3af', display: 'block', marginBottom: '0.25rem' }}>Эх үнэ <span style={{ fontWeight: 400, color: '#6b7280' }}>(үнийн зураас)</span></label>
                   <input type="number" value={form.original_price} onChange={(e) => set('original_price', e.target.value)} style={inp} min="0" />
-                </Field>
+                </div>
               </div>
               <Field label="Хандалтын хугацаа (өдөр)" hint="0 = насан туршийн">
                 <input type="number" value={form.access_duration_days} onChange={(e) => set('access_duration_days', e.target.value)} style={inp} min="0" />
