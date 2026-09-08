@@ -78,13 +78,16 @@ export default function VideoUploader({ onSuccess, onError, instructorId, title,
         headers: {
           'Content-Type': 'application/offset+octet-stream',
           'Upload-Offset': String(offset),
+          'Upload-Length': String(totalSize), // TUS required — total file size (NOT chunk size)
           'Tus-Resumable': '1.0.0',
+          // Content-Length is omitted — browser sets it automatically for the chunk
         },
         body: chunk,
       });
 
       if (!res.ok && res.status !== 204) {
-        throw new Error(`Upload chunk failed (status ${res.status})`);
+        const errText = await res.text().catch(() => '');
+        throw new Error(`Upload chunk failed (HTTP ${res.status}${errText ? ': ' + errText.slice(0, 120) : ''})`);
       }
 
       offset += chunkSize;

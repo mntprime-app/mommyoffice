@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getCourseById, updateCourse, deleteCourseById, getInstructors } from '@/app/actions/admin';
-import CoverImagePicker, { CoverImagePreview } from '@/components/ui/CoverImagePicker';
+import { CoverImageSection } from '@/components/ui/CoverImagePicker';
 import VideoUploader from '@/components/ui/VideoUploader';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
@@ -467,15 +467,6 @@ export default function EditCoursePage() {
               </Field>
             </SideCard>
 
-            {/* Cover Image */}
-            <SideCard title="Cover Image">
-              <CoverImagePicker
-                value={form.cover_image_url}
-                onChange={(url) => set('cover_image_url', url)}
-                previewTitle={form.title_mn || 'Гарчиг энд харагдана'}
-                previewBadge="Сургалт"
-              />
-            </SideCard>
 
             {/* Video */}
             <SideCard title="Видео">

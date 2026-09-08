@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
 import { createCourse, uploadImage, getInstructors } from '@/app/actions/admin';
-import CoverImagePicker, { CoverImagePreview } from '@/components/ui/CoverImagePicker';
+import { CoverImageSection } from '@/components/ui/CoverImagePicker';
 import VideoUploader from '@/components/ui/VideoUploader';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
@@ -450,16 +450,6 @@ export default function NewCoursePage() {
               </Field>
             </SideCard>
 
-            {/* Cover Image */}
-            <SideCard title="Cover Image">
-              <CoverImagePicker
-                value={form.cover_image_url}
-                onChange={(url) => { set('cover_image_url', url); setImgPreview(url); }}
-
-                previewTitle={form.title_mn || 'Гарчиг энд харагдана'}
-                previewBadge="Сургалт"
-              />
-            </SideCard>
 
             {/* Video */}
             <SideCard title="Видео">
@@ -476,9 +466,10 @@ export default function NewCoursePage() {
           </div>
         </div>
 
-        {/* Full-width live preview — below both columns */}
-        <CoverImagePreview
-          src={form.cover_image_url}
+        {/* Cover image upload + live preview */}
+        <CoverImageSection
+          value={form.cover_image_url}
+          onChange={(url) => { set('cover_image_url', url); setImgPreview(url); }}
           title={form.title_mn || 'Гарчиг энд харагдана'}
           badge="Сургалт"
         />
