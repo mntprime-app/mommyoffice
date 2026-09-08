@@ -233,6 +233,47 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-059 — Duplicate Course Slug Shows Raw Postgres Error to Admin (RESOLVED 2026-09-08)
+
+**Pages affected:** `/admin/courses/new`
+
+**Symptom:** Saving a course whose slug already exists in `mo_courses` shows the raw DB error `duplicate key value violates unique constraint "mo_courses_slug_key"` in the form error banner — no actionable guidance.
+
+**Root cause:** `createCourse` server action returned `error.message` verbatim. Postgres unique-violation code `23505` was never intercepted.
+
+**Fix:** In `src/app/actions/admin.ts` → `createCourse`, check `error.code === '23505'` and return `"${slug}" slug аль хэдийн ашиглагдаж байна. Өөр slug оруулна уу.` instead.
+
+**Commits:** `8e7982d`
+
+**Regression standard:** Any DB insert/upsert that has a unique constraint must catch `23505` and return a Mongolian user-friendly message, never raw Postgres text.
+
+---
+
+## BUG-058 — Cloudflare Stream TUS Upload: Wrong Endpoint (direct_upload vs TUS creation) (RESOLVED 2026-09-08)
+
+**Pages affected:** All pages using `VideoUploader.tsx`
+
+**Symptom:** Video upload immediately failed with `Upload chunk failed (HTTP 400: Basic uploads must be made using POST method)` — appeared as `Байршуулах явцад алдаа гарлаа. Дахин оролдоно уу.` (generic, before error-surfacing fix in BUG-058a).
+
+**Root cause (two-layer):**
+1. `/api/video/request-upload` called `POST /accounts/{id}/stream/direct_upload` which returns a **basic one-shot POST URL** — not a TUS endpoint. The browser then sent TUS `PATCH` to it, which Cloudflare rejected.
+2. The `catch {}` block in `VideoUploader.handleFile` discarded the real error and replaced it with the generic Mongolian string, hiding the diagnosis entirely.
+
+**Fix:**
+- Changed API route to `POST /accounts/{id}/stream?direct_user=true` with TUS creation headers (`Tus-Resumable: 1.0.0`, `Upload-Length: {fileSize}`, `Upload-Metadata`). CF responds with `Location` (TUS upload URL) + `Stream-Media-Id` (video UID).
+- Client now sends `fileSize` in the request-upload body so the server knows `Upload-Length` at creation time.
+- Changed `catch {}` → `catch (err)` and surfaces `err.message` so future errors are visible.
+- Removed unnecessary `HEAD` request before first PATCH (fresh URLs always start at offset 0).
+
+**Commits:** `a2d8f43` (error surfacing), `de951a1` (TUS endpoint fix)
+
+**Regression standard:**
+- Never use `stream/direct_upload` for chunked TUS uploads — that endpoint is for simple single-POST browser uploads (≤200 MB). Use `/stream?direct_user=true` for TUS.
+- Always send `fileSize` from the client before requesting an upload URL.
+- Never use bare `catch {}` in upload flows — always surface the error for diagnosis.
+
+---
+
 ## BUG-057 — CoverImagePicker: Dual Upload Complexity + Broken Live Preview (RESOLVED 2026-09-08)
 
 **Pages affected:** All admin forms using `CoverImagePicker` (`/admin/courses/new`, `/admin/courses/[id]/edit`, `/admin/videos/new`, `/admin/videos/[id]/edit`, `/admin/articles/new`, `/admin/articles/[id]/edit`)
