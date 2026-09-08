@@ -233,6 +233,16 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-057 — CoverImagePicker: Dual Upload Complexity + Broken Live Preview (RESOLVED 2026-09-08)
+
+**Pages affected:** All admin forms using `CoverImagePicker` (`/admin/courses/new`, `/admin/courses/[id]/edit`, `/admin/videos/new`, `/admin/videos/[id]/edit`, `/admin/articles/new`, `/admin/articles/[id]/edit`)
+
+**Root cause:** `CoverImagePicker` had two upload zones ("Desktop" and "Mobile") despite the front-end using a single `cover_image_url` with `object-cover` CSS for responsive rendering. The "Mobile" zone was vestigial and added unnecessary cognitive load. The live `DualPreview` component had overlapping text on the desktop hero card due to z-index/positioning issues on the blacked-out state before image loads.
+
+**Fix:** Simplified to a single upload zone labeled "Үндсэн нүүр зураг (16:9)". Rewrote `DualPreview` — desktop hero uses proper aspect-ratio padding trick with clean gradient overlay and CTA buttons; mobile shows a realistic 2-column card (image + title below, no text overlay). `mobileValue`/`onMobileChange` props kept as deprecated no-ops for backward compatibility. Migration: `20260908_courses_cloudflare_stream_id.sql` adds missing `cloudflare_stream_id` column to `mo_courses`.
+
+**Commits:** `155905b`
+
 ---
 
 ## BUG-056 — content_type Selector Omitted from /admin/videos/new (RESOLVED 2026-09-08)
