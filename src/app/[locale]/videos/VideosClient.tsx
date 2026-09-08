@@ -6,6 +6,8 @@ import { CategoryBadge, StatusBadge } from '@/components/ui/CategoryBadge';
 import { createClient } from '@/lib/supabase/client';
 import type { Video } from './page';
 import CarouselRow from '@/components/shared/CarouselRow';
+import { getPublicVideoEpisodes, type PublicEpisode } from '@/app/actions/videos';
+import type { ModalEpisode } from '@/components/ui/HeroDetailModal';
 
 // ─── types ───────────────────────────────────────────────────────────────────
 
@@ -136,6 +138,10 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
   const [isPlaying, setIsPlaying]   = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [watchlist, setWatchlist]   = useState<string[]>([]);
+  // Series episode data — fetched client-side when a series modal is opened
+  const [seriesEpisodes, setSeriesEpisodes] = useState<ModalEpisode[]>([]);
+  const [seriesEpSeason, setSeriesEpSeason] = useState(1);
+  const [playingSeriesEp, setPlayingSeriesEp] = useState<ModalEpisode | null>(null);
   // ── Hybrid hero: poster → muted autoplay after 2.5s (desktop only) ───────
   const [heroVideoActive, setHeroVideoActive] = useState(false);
   const [heroMuted, setHeroMuted]             = useState(true);
@@ -265,10 +271,30 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
     setModalVisible(false);
     requestAnimationFrame(() => requestAnimationFrame(() => setModalVisible(true)));
   }
-  function openInfo(video: AnyVideo) {
+  async function openInfo(video: AnyVideo) {
     savedScrollY.current = window.scrollY;
     openInfoRaw(video);
     history.replaceState(null, '', `${window.location.pathname}?v=${video.id}`);
+    // For series: fetch episodes so the modal can show the Ангиуд section
+    setSeriesEpisodes([]);
+    setSeriesEpSeason(1);
+    setPlayingSeriesEp(null);
+    if (video.content_type === 'series') {
+      const rawEps: PublicEpisode[] = await getPublicVideoEpisodes(video.id);
+      setSeriesEpisodes(rawEps.map((ep) => ({
+        id: ep.id,
+        season_number: ep.season_number,
+        episode_number: ep.episode_number,
+        title: ep.title || '',
+        duration: ep.duration || '',
+        video_url: ep.video_url || '',
+        video_provider: ep.video_provider || 'youtube',
+        youtube_id: ep.youtube_id || '',
+        cloudflare_stream_id: ep.cloudflare_stream_id || '',
+        thumbnail_url: ep.thumbnail_url || '',
+        description: ep.description || '',
+      })));
+    }
   }
   function openPlayer(video: AnyVideo) {
     savedScrollY.current = window.scrollY;
@@ -633,6 +659,85 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
                 </span>
               )}
             </div>
+
+            {/* ── SERIES EPISODES (Ангиуд) — shown only when content_type === 'series' ── */}
+            {infoVideo.content_type === 'series' && (
+              <div style={{ padding: '16px 32px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#e5e5e5' }}>
+                    📺 Ангиуд {seriesEpisodes.length === 0 ? '(ачааллаж байна...)' : `(${seriesEpisodes.length})`}
+                  </h3>
+                  {infoVideo.season_count > 1 && seriesEpisodes.length > 0 && (
+                    <select
+                      value={seriesEpSeason}
+                      onChange={(e) => { setSeriesEpSeason(Number(e.target.value)); setPlayingSeriesEp(null); }}
+                      style={{ background: '#333', color: '#e5e5e5', border: '1px solid #555', borderRadius: '6px', padding: '6px 14px', fontSize: '13px', cursor: 'pointer', outline: 'none' }}
+                    >
+                      {Array.from({ length: infoVideo.season_count }, (_, i) => i + 1).map((s) => (
+                        <option key={s} value={s} style={{ background: '#222' }}>Сезон {s}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                {/* Inline episode player */}
+                {playingSeriesEp && (() => {
+                  const ep = playingSeriesEp;
+                  const src = ep.video_provider === 'cloudflare' && ep.cloudflare_stream_id
+                    ? `https://iframe.cloudflarestream.com/${ep.cloudflare_stream_id}?autoplay=true&controls=true`
+                    : ep.youtube_id
+                    ? `https://www.youtube-nocookie.com/embed/${ep.youtube_id}?autoplay=1&rel=0&controls=1`
+                    : null;
+                  return src ? (
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: '#000', borderRadius: '8px', overflow: 'hidden', marginBottom: '16px' }}>
+                      <button onClick={() => setPlayingSeriesEp(null)}
+                        style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10, background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', color: '#fff', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                      <iframe src={src} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }} allow="autoplay; fullscreen; encrypted-media" allowFullScreen />
+                    </div>
+                  ) : null;
+                })()}
+
+                {/* Episode rows */}
+                {seriesEpisodes
+                  .filter((ep) => infoVideo.season_count <= 1 || ep.season_number === seriesEpSeason)
+                  .map((ep, idx, arr) => (
+                    <div
+                      key={ep.id}
+                      onClick={() => setPlayingSeriesEp(ep)}
+                      style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 0', borderBottom: idx < arr.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none', cursor: 'pointer', borderRadius: '6px' }}
+                      className="mo-episode-row"
+                    >
+                      <div style={{ width: '24px', flexShrink: 0, textAlign: 'center', paddingTop: '26px', fontSize: '14px', fontWeight: 700, color: '#888' }}>
+                        {ep.episode_number}
+                      </div>
+                      <div style={{ width: '120px', flexShrink: 0, aspectRatio: '16/9', borderRadius: '4px', overflow: 'hidden', background: '#2a2a2a', position: 'relative' }}>
+                        {ep.thumbnail_url ? (
+                          <img src={ep.thumbnail_url} alt={ep.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                        ) : (
+                          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#1a1a2e,#0d2137)' }}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)"><path d="M8 5v14l11-7z"/></svg>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0, paddingTop: '2px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+                          <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#e5e5e5', lineHeight: 1.3 }}>{ep.title}</p>
+                          {ep.duration && <span style={{ fontSize: '12px', color: '#888', flexShrink: 0 }}>{ep.duration}</span>}
+                        </div>
+                        {ep.description && (
+                          <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {ep.description}
+                          </p>
+                        )}
+                        <span style={{ fontSize: '10px', fontWeight: 600, marginTop: '4px', display: 'inline-block', color: ep.video_provider === 'cloudflare' ? '#f59e0b' : '#00B5AD' }}>
+                          {ep.video_provider === 'cloudflare' ? '🔐 Premium' : '▶ Үнэгүй'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            )}
 
             {/* ── RELATED VIDEOS ─────────────────────────────────────────────── */}
             <RelatedRow current={infoVideo} all={displayVideos} onPlay={openPlayer} locale={locale} />

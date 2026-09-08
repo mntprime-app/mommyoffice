@@ -368,7 +368,14 @@ export interface VideoEpisode {
   episode_number: number;
   title: string;
   duration: string;
+  /** @deprecated use youtube_id or cloudflare_stream_id + video_provider */
   video_url: string;
+  /** 'youtube' | 'cloudflare' */
+  video_provider: string;
+  /** 11-char YouTube video ID — set when video_provider = 'youtube' */
+  youtube_id: string;
+  /** Cloudflare Stream video UID — set when video_provider = 'cloudflare' */
+  cloudflare_stream_id: string;
   thumbnail_url: string;
   description: string;
   is_published: boolean;

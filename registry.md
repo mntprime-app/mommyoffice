@@ -235,6 +235,38 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-055 — Dual-Provider Episode Architecture + Platform-Wide Modal Parity (RESOLVED 2026-09-08)
+
+**Pages affected:** `/admin/videos/[id]/edit`, `HeroDetailModal`, `/videos` hub, `videos.ts`, `admin.ts`
+
+**Root cause:** Episodes had only a generic `video_url` field — no per-episode provider differentiation (YouTube vs Cloudflare Stream). The Videos hub modal also had no series/episode display at all, violating the "same modal logic everywhere" requirement.
+
+**5-layer fix applied:**
+
+1. **DB** (`docs/sql/mo_video_episodes_provider.sql`) — `ALTER TABLE mo_video_episodes ADD COLUMN video_provider TEXT DEFAULT 'youtube'`, `youtube_id VARCHAR(30)`, `cloudflare_stream_id VARCHAR(200)`. Run in Supabase SQL Editor.
+
+2. **Interfaces** — `VideoEpisode` (admin.ts), `PublicEpisode` (videos.ts), `ModalEpisode` (HeroDetailModal.tsx) all extended with `video_provider`, `youtube_id`, `cloudflare_stream_id`.
+
+3. **Admin episode builder** (`/admin/videos/[id]/edit`) — per-episode provider toggle: `[🔓 YouTube]` | `[🔐 Cloudflare Stream]`. YouTube episodes show YouTube URL input + 11-char ID detection. CF episodes show Stream UID input with amber "Premium" indicator.
+
+4. **HeroDetailModal** — episode rows no longer navigate away on click; they set `playingEpisode` state → inline 16:9 player renders above the list. YouTube: `youtube-nocookie.com` embed. Cloudflare: `iframe.cloudflarestream.com` embed. Provider badge (▶ Үнэгүй / 🔐 Premium) shown per row.
+
+5. **Videos hub parity** (`VideosClient.tsx`) — `Video` type + select query include `content_type`, `season_count`. `openInfo()` is now async; when called for a series, it client-fetches `getPublicVideoEpisodes()` and sets `seriesEpisodes[]`. Modal renders an "📺 Ангиуд" section with season selector + episode rows + inline player, matching Home modal behavior exactly.
+
+**Files changed:**
+- `docs/sql/mo_video_episodes_provider.sql` (NEW)
+- `src/app/actions/admin.ts`
+- `src/app/actions/videos.ts`
+- `src/components/ui/HeroDetailModal.tsx`
+- `src/app/[locale]/admin/videos/[id]/edit/page.tsx`
+- `src/app/[locale]/videos/page.tsx`
+- `src/app/[locale]/videos/VideosClient.tsx`
+- `src/app/[locale]/page.tsx`
+
+⚠️ **DB migration required:** run `docs/sql/mo_video_episodes_provider.sql` in Supabase SQL Editor before testing episodes.
+
+---
+
 ## BUG-054 — Series & Multi-Episode Drama Architecture Missing (RESOLVED 2026-09-08)
 
 **Pages affected:** `/admin/videos/[id]/edit`, Home hero detail modal

@@ -42,10 +42,23 @@ function mkEpisode(n: number, season = 1): EpRow {
     title: `${n}-р анги`,
     duration: '',
     video_url: '',
+    video_provider: 'youtube',
+    youtube_id: '',
+    cloudflare_stream_id: '',
     thumbnail_url: '',
     description: '',
     is_published: true,
   };
+}
+
+function extractYouTubeIdFromEp(input: string): string {
+  const clean = input.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(clean)) return clean;
+  const short = clean.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (short) return short[1];
+  const long = clean.match(/(?:v=|\/embed\/|\/v\/)([a-zA-Z0-9_-]{11})/);
+  if (long) return long[1];
+  return clean.slice(0, 30); // fallback — keep raw but truncate
 }
 
 export default function EditVideoPage() {
@@ -110,6 +123,9 @@ export default function EditVideoPage() {
           title: ep.title || '',
           duration: ep.duration || '',
           video_url: ep.video_url || '',
+          video_provider: ep.video_provider || 'youtube',
+          youtube_id: ep.youtube_id || '',
+          cloudflare_stream_id: ep.cloudflare_stream_id || '',
           thumbnail_url: ep.thumbnail_url || '',
           description: ep.description || '',
           is_published: ep.is_published !== false,
@@ -516,21 +532,81 @@ export default function EditVideoPage() {
                 </div>
               </div>
 
-              {/* Season selector + video URL + thumbnail */}
-              <div style={{ display: 'grid', gridTemplateColumns: form.season_count > 1 ? '80px 1fr 1fr' : '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                {form.season_count > 1 && (
-                  <div>
-                    <label style={lbl}>Сезон</label>
-                    <input type="number" min={1} max={form.season_count} value={ep.season_number}
-                      onChange={(e) => setEp(ep._key, 'season_number', Number(e.target.value))}
-                      style={inp} />
-                  </div>
-                )}
+              {/* Season selector */}
+              {form.season_count > 1 && (
+                <div style={{ marginBottom: '8px', width: '80px' }}>
+                  <label style={lbl}>Сезон</label>
+                  <input type="number" min={1} max={form.season_count} value={ep.season_number}
+                    onChange={(e) => setEp(ep._key, 'season_number', Number(e.target.value))}
+                    style={inp} />
+                </div>
+              )}
+
+              {/* Video Provider Toggle */}
+              <div style={{ marginBottom: '8px' }}>
+                <label style={lbl}>Видео эх үүсвэр (энэ ангид)</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {[
+                    { val: 'youtube',    label: '🔓 YouTube',         desc: 'Үнэгүй' },
+                    { val: 'cloudflare', label: '🔐 Cloudflare Stream', desc: 'Төлбөртэй / HLS' },
+                  ].map((opt) => (
+                    <label key={opt.val} style={{
+                      flex: 1, padding: '8px 12px', borderRadius: '8px', cursor: 'pointer',
+                      border: `2px solid ${ep.video_provider === opt.val ? (opt.val === 'cloudflare' ? '#f59e0b' : '#00B5AD') : '#2a2a2a'}`,
+                      background: ep.video_provider === opt.val
+                        ? (opt.val === 'cloudflare' ? 'rgba(245,158,11,0.08)' : 'rgba(0,181,173,0.08)')
+                        : '#111',
+                    }}>
+                      <input type="radio" name={`ep_provider_${ep._key}`}
+                        value={opt.val} checked={ep.video_provider === opt.val}
+                        onChange={() => setEp(ep._key, 'video_provider', opt.val)}
+                        style={{ display: 'none' }} />
+                      <div style={{ fontWeight: 700, fontSize: '12px', color: '#e5e5e5' }}>{opt.label}</div>
+                      <div style={{ fontSize: '10px', color: '#6b7280' }}>{opt.desc}</div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Provider-specific video source input */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                 <div>
-                  <label style={lbl}>Видео URL (YouTube / HLS / CF)</label>
-                  <input value={ep.video_url}
-                    onChange={(e) => setEp(ep._key, 'video_url', e.target.value)}
-                    style={inp} placeholder="https://youtube.com/watch?v=..." />
+                  {ep.video_provider === 'youtube' ? (
+                    <>
+                      <label style={lbl}>YouTube URL эсвэл Video ID</label>
+                      <input
+                        value={ep.youtube_id}
+                        onChange={(e) => {
+                          const yid = extractYouTubeIdFromEp(e.target.value);
+                          setEp(ep._key, 'youtube_id', yid);
+                          setEp(ep._key, 'video_url', e.target.value); // backward compat
+                        }}
+                        style={inp}
+                        placeholder="dQw4w9WgXcQ эсвэл youtube.com/watch?v=..."
+                      />
+                      {ep.youtube_id?.length === 11 && (
+                        <p style={{ fontSize: '10px', color: '#00B5AD', margin: '3px 0 0' }}>
+                          ✓ YouTube ID: {ep.youtube_id}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <label style={lbl}>Cloudflare Stream ID</label>
+                      <input
+                        value={ep.cloudflare_stream_id}
+                        onChange={(e) => {
+                          setEp(ep._key, 'cloudflare_stream_id', e.target.value.trim());
+                          setEp(ep._key, 'video_url', e.target.value.trim()); // backward compat
+                        }}
+                        style={inp}
+                        placeholder="abc123def456... (CF Stream UID)"
+                      />
+                      <p style={{ fontSize: '10px', color: '#f59e0b', margin: '3px 0 0' }}>
+                        🔐 HLS stream — гишүүнчлэлтэй хэрэглэгчид үзнэ
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div>
                   <label style={lbl}>Thumbnail URL (заавал биш)</label>

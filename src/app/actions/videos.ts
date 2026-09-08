@@ -100,7 +100,12 @@ export interface PublicEpisode {
   episode_number: number;
   title: string;
   duration: string;
+  /** @deprecated prefer youtube_id or cloudflare_stream_id */
   video_url: string;
+  /** 'youtube' | 'cloudflare' */
+  video_provider: string;
+  youtube_id: string;
+  cloudflare_stream_id: string;
   thumbnail_url: string;
   description: string;
 }
@@ -111,7 +116,7 @@ export async function getPublicVideoEpisodes(videoId: string): Promise<PublicEpi
     const supabase = anonClient();
     const { data } = await supabase
       .from('mo_video_episodes')
-      .select('id, season_number, episode_number, title, duration, video_url, thumbnail_url, description')
+      .select('id, season_number, episode_number, title, duration, video_url, video_provider, youtube_id, cloudflare_stream_id, thumbnail_url, description')
       .eq('video_id', videoId)
       .eq('is_published', true)
       .order('season_number', { ascending: true })

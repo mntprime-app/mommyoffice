@@ -41,7 +41,14 @@ export interface ModalEpisode {
   episode_number: number;
   title: string;
   duration: string;
+  /** @deprecated prefer youtube_id or cloudflare_stream_id */
   video_url: string;
+  /** 'youtube' | 'cloudflare' */
+  video_provider: string;
+  /** 11-char YouTube video ID */
+  youtube_id: string;
+  /** Cloudflare Stream video UID */
+  cloudflare_stream_id: string;
   thumbnail_url: string;
   description: string;
 }
@@ -93,6 +100,7 @@ export default function HeroDetailModal({
   const [muted, setMuted]               = useState(true);
   const [videoActive, setVideoActive]   = useState(false);
   const [selectedSeason, setSelectedSeason] = useState(1);
+  const [playingEpisode, setPlayingEpisode] = useState<ModalEpisode | null>(null);
 
   const isSeries      = contentType === 'series';
   const hasEpisodes   = isSeries && episodes.length > 0;
@@ -424,22 +432,49 @@ export default function HeroDetailModal({
               )}
             </div>
 
+            {/* Inline episode player — shown when an episode row is clicked */}
+            {playingEpisode && (() => {
+              const src = playingEpisode.video_provider === 'cloudflare' && playingEpisode.cloudflare_stream_id
+                ? `https://iframe.cloudflarestream.com/${playingEpisode.cloudflare_stream_id}?autoplay=true&controls=true`
+                : playingEpisode.youtube_id
+                ? `https://www.youtube-nocookie.com/embed/${playingEpisode.youtube_id}?autoplay=1&rel=0&controls=1&modestbranding=1`
+                : null;
+              return src ? (
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: '#000', borderRadius: '8px', overflow: 'hidden', marginBottom: '16px' }}>
+                  <button
+                    onClick={() => setPlayingEpisode(null)}
+                    style={{
+                      position: 'absolute', top: '8px', right: '8px', zIndex: 10,
+                      background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%',
+                      width: '32px', height: '32px', color: '#fff', fontSize: '16px',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                    title="Хаах"
+                  >✕</button>
+                  <iframe
+                    src={src}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
+                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                    allowFullScreen
+                  />
+                </div>
+              ) : null;
+            })()}
+
             {/* Episode rows — Netflix Tudors style */}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {filteredEps.map((ep, idx) => {
-                const epHref = ep.video_url || primaryHref || '#';
                 return (
-                  <a
+                  <div
                     key={ep.id}
-                    href={epHref}
-                    onClick={onClose}
+                    onClick={() => setPlayingEpisode(ep)}
                     style={{
                       display: 'flex', alignItems: 'flex-start', gap: '14px',
                       padding: '14px 0',
                       borderBottom: idx < filteredEps.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none',
-                      textDecoration: 'none',
                       cursor: 'pointer',
                       transition: 'background 0.15s',
+                      borderRadius: '6px',
                     }}
                     className="mo-episode-row"
                   >
@@ -500,8 +535,16 @@ export default function HeroDetailModal({
                           {ep.description}
                         </p>
                       )}
+                      {/* Provider badge */}
+                      <div style={{ marginTop: '6px' }}>
+                        {ep.video_provider === 'cloudflare' ? (
+                          <span style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 600 }}>🔐 Premium</span>
+                        ) : (
+                          <span style={{ fontSize: '10px', color: '#00B5AD', fontWeight: 600 }}>▶ Үнэгүй</span>
+                        )}
+                      </div>
                     </div>
-                  </a>
+                  </div>
                 );
               })}
             </div>

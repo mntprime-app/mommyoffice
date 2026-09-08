@@ -95,6 +95,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         title: ep.title || '',
         duration: ep.duration || '',
         video_url: ep.video_url || '',
+        video_provider: ep.video_provider || 'youtube',
+        youtube_id: ep.youtube_id || '',
+        cloudflare_stream_id: ep.cloudflare_stream_id || '',
         thumbnail_url: ep.thumbnail_url || '',
         description: ep.description || '',
       }));
