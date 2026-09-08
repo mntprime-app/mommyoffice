@@ -1,9 +1,13 @@
 'use client';
 /**
- * CoverImagePicker — MommyOffice Admin (BUG-049 upgrade)
+ * CoverImagePicker — MommyOffice Admin
  *
- * Two upload zones side-by-side (Desktop | Mobile) + Live Dual Preview below.
- * BUG-048: Mobile card = pure image only, no text/vignette inside.
+ * Single upload zone (16:9 hero image) + Live Dual Preview.
+ * Desktop preview: hero banner with gradient overlay + CTA buttons.
+ * Mobile preview: realistic 2-col card mockup — pure image, title below (no overlay text).
+ *
+ * BUG-057: Simplified from dual Desktop/Mobile upload to single image.
+ * Front-end CSS handles responsive cropping via object-cover automatically.
  */
 
 import { useRef, useState, useCallback, DragEvent, ChangeEvent } from 'react';
@@ -15,7 +19,9 @@ interface Props {
   value: string;
   onChange: (url: string) => void;
   label?: string;
+  /** @deprecated — kept for backward compat, ignored; same image used for mobile */
   mobileValue?: string;
+  /** @deprecated — kept for backward compat, no-op */
   onMobileChange?: (url: string) => void;
   previewTitle?: string;
   previewBadge?: string;
@@ -24,9 +30,7 @@ interface Props {
 const ACCEPTED = 'image/jpeg,image/jpg,image/png,image/webp,image/avif';
 const MAX_MB   = 10;
 
-// ── Client-side compression (Canvas → WebP) ────────────────────────────────────
-// Resizes to maxW × maxH (maintaining aspect ratio) and exports as WebP at 0.85 quality.
-// Typical output: 1920×1080 hero → ~150–300 KB  |  1920×1080 mobile → ~150–300 KB
+// ── Client-side compression (Canvas → WebP) ───────────────────────────────────
 async function compressImage(file: File, maxW: number, maxH: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -34,7 +38,6 @@ async function compressImage(file: File, maxW: number, maxH: number): Promise<Bl
     img.onload = () => {
       URL.revokeObjectURL(url);
       let { width, height } = img;
-      // Scale down only — never upscale
       if (width > maxW || height > maxH) {
         const ratio = Math.min(maxW / width, maxH / height);
         width  = Math.round(width  * ratio);
@@ -57,17 +60,12 @@ async function compressImage(file: File, maxW: number, maxH: number): Promise<Bl
   });
 }
 
-// ── Upload Zone ────────────────────────────────────────────────────────────────
+// ── Upload Zone ───────────────────────────────────────────────────────────────
 function UploadZone({
-  value, onChange, zoneLabel, spec, tipContent, maxW, maxH,
+  value, onChange,
 }: {
   value: string;
   onChange: (url: string) => void;
-  zoneLabel: string;
-  spec: string;
-  tipContent: React.ReactNode;
-  maxW: number;
-  maxH: number;
 }) {
   const [mode, setMode]           = useState<Mode>('url');
   const [dragging, setDragging]   = useState(false);
@@ -83,13 +81,12 @@ function UploadZone({
     if (file.size > MAX_MB * 1024 * 1024) { setUploadErr(`${MAX_MB}MB-аас ихгүй байна.`); return; }
     setUploading(true); setProgress(15);
 
-    // Compress before upload
     let blob: Blob;
     try {
-      blob = await compressImage(file, maxW, maxH);
+      blob = await compressImage(file, 1920, 1080);
       setCompressed({ before: file.size, after: blob.size });
     } catch {
-      blob = file; // fallback: upload original if compression fails
+      blob = file;
     }
     setProgress(40);
 
@@ -104,7 +101,7 @@ function UploadZone({
     onChange(urlData.publicUrl);
     setUploading(false);
     setTimeout(() => setProgress(0), 800);
-  }, [onChange, maxW, maxH]);
+  }, [onChange]);
 
   function onDragOver(e: DragEvent)  { e.preventDefault(); setDragging(true); }
   function onDragLeave()              { setDragging(false); }
@@ -112,13 +109,13 @@ function UploadZone({
   function onFileChange(e: ChangeEvent<HTMLInputElement>) { const f = e.target.files?.[0]; if (f) uploadFile(f); }
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:'8px', height:'100%' }}>
+    <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
 
-      {/* Header row: label + spec + mode tabs */}
+      {/* Header: label + spec + mode tabs */}
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px' }}>
         <div>
-          <div style={{ fontSize:'12px', fontWeight:700, color:'#9ca3af' }}>{zoneLabel}</div>
-          <div style={{ fontSize:'10px', color:'#6b7280', marginTop:'2px' }}>{spec}</div>
+          <div style={{ fontSize:'12px', fontWeight:700, color:'#9ca3af' }}>Үндсэн нүүр зураг (16:9)</div>
+          <div style={{ fontSize:'10px', color:'#6b7280', marginTop:'2px' }}>1920×1080px — авто WebP шахалт хийгдэнэ</div>
         </div>
         <div style={{
           display:'flex', gap:'2px', background:'#111', padding:'2px',
@@ -202,109 +199,108 @@ function UploadZone({
       )}
 
       {/* Tip */}
-      <div style={{ fontSize:'10px', color:'#6b7280', padding:'6px 8px', background:'rgba(0,181,173,0.04)', borderRadius:'6px', border:'1px solid rgba(0,181,173,0.08)', marginTop:'auto' }}>
-        {tipContent}
+      <div style={{ fontSize:'10px', color:'#6b7280', padding:'6px 8px', background:'rgba(0,181,173,0.04)', borderRadius:'6px', border:'1px solid rgba(0,181,173,0.08)' }}>
+        💡 <strong style={{ color:'#9ca3af' }}>Thumbnail Priority:</strong> Custom upload = 100% priority. YouTube / auto-thumbnails = fallback ONLY if empty.
       </div>
 
     </div>
   );
 }
 
-// ── Dual live preview ──────────────────────────────────────────────────────────
+// ── Live Dual Preview ─────────────────────────────────────────────────────────
 function DualPreview({
-  desktopSrc, mobileSrc, previewTitle, previewBadge,
+  src, previewTitle, previewBadge,
 }: {
-  desktopSrc: string; mobileSrc: string; previewTitle: string; previewBadge: string;
+  src: string; previewTitle: string; previewBadge: string;
 }) {
-  const effective = desktopSrc || mobileSrc;
-  const mobileImg = mobileSrc || desktopSrc;
-
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+    <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
       <div style={{ fontSize:'10px', fontWeight:700, color:'#4b5563', letterSpacing:'1px' }}>
         ◀ LIVE DUAL PREVIEW ▶
       </div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 130px', gap:'10px', alignItems:'start' }}>
 
-        {/* Desktop 16:9 */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 120px', gap:'12px', alignItems:'start' }}>
+
+        {/* ── Desktop hero 16:9 ── */}
         <div>
           <div style={{ fontSize:'9px', fontWeight:700, color:'#6b7280', marginBottom:'5px' }}>🖥️ DESKTOP HERO (16:9)</div>
-          <div style={{
-            position:'relative', width:'100%', paddingBottom:'56.25%',
-            borderRadius:'8px', overflow:'hidden',
-            background:'#0d0d0d', border:'1px solid #2a2a2a',
-          }}>
-            {effective ? (
+          {/* Aspect-ratio wrapper using intrinsic padding trick */}
+          <div style={{ position:'relative', width:'100%', paddingBottom:'56.25%', borderRadius:'8px', overflow:'hidden', background:'#1a1a1a', border:'1px solid #2a2a2a' }}>
+            {src ? (
               <>
-                <img src={effective} alt="Desktop preview" style={{
-                  position:'absolute', inset:0, width:'100%', height:'100%',
-                  objectFit:'cover', objectPosition:'center top',
-                }} onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
-                <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.4) 35%, rgba(0,0,0,0.1) 55%, transparent 70%)' }} />
-                <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'25%', background:'linear-gradient(to bottom, transparent, rgba(0,0,0,0.4))' }} />
+                {/* Image */}
+                <img
+                  src={src}
+                  alt=""
+                  style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }}
+                  onError={e => { (e.target as HTMLImageElement).style.opacity = '0'; }}
+                />
+                {/* Left gradient for text legibility */}
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 40%, transparent 65%)' }} />
+                {/* Bottom gradient */}
+                <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'40%', background:'linear-gradient(to top, rgba(0,0,0,0.55), transparent)' }} />
+                {/* Category badge */}
                 {previewBadge && (
-                  <div style={{ position:'absolute', top:'7px', left:'8px', fontSize:'6px', fontWeight:800, color:'#00B5AD', letterSpacing:'1.5px', background:'rgba(0,181,173,0.15)', border:'1px solid rgba(0,181,173,0.4)', padding:'1px 5px', borderRadius:'3px' }}>
-                    {previewBadge.toUpperCase()}
+                  <div style={{ position:'absolute', top:'8px', left:'8px', fontSize:'6px', fontWeight:800, color:'#00B5AD', letterSpacing:'1.5px', background:'rgba(0,0,0,0.6)', border:'1px solid rgba(0,181,173,0.5)', padding:'2px 6px', borderRadius:'3px', textTransform:'uppercase' }}>
+                    {previewBadge}
                   </div>
                 )}
-                <div style={{ position:'absolute', bottom:'8px', left:'10px', zIndex:2 }}>
-                  <div style={{ fontSize:'8px', fontWeight:800, color:'#fff', lineHeight:1.2, textShadow:'0 1px 4px rgba(0,0,0,0.9)', maxWidth:'55%', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
-                    {previewTitle}
+                {/* Title + CTA buttons */}
+                <div style={{ position:'absolute', bottom:'10px', left:'10px', maxWidth:'55%' }}>
+                  <div style={{ fontSize:'8px', fontWeight:800, color:'#fff', lineHeight:1.3, textShadow:'0 1px 3px rgba(0,0,0,0.9)', marginBottom:'5px', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+                    {previewTitle || 'Гарчиг'}
                   </div>
-                  <div style={{ display:'flex', gap:'4px', marginTop:'4px' }}>
-                    <div style={{ background:'rgba(255,255,255,0.92)', color:'#000', fontSize:'6px', fontWeight:700, padding:'2px 6px', borderRadius:'3px' }}>▶ ҮЗЭХ</div>
-                    <div style={{ background:'rgba(109,109,110,0.55)', color:'#fff', fontSize:'6px', fontWeight:700, padding:'2px 6px', borderRadius:'3px' }}>ⓘ ДЭЛГЭРЭНГҮЙ</div>
+                  <div style={{ display:'flex', gap:'4px' }}>
+                    <div style={{ background:'rgba(255,255,255,0.95)', color:'#000', fontSize:'6px', fontWeight:700, padding:'2px 7px', borderRadius:'3px' }}>▶ ҮЗЭХ</div>
+                    <div style={{ background:'rgba(90,90,90,0.7)', color:'#fff', fontSize:'6px', fontWeight:700, padding:'2px 7px', borderRadius:'3px' }}>ⓘ ДЭЛГЭРЭНГҮЙ</div>
                   </div>
                 </div>
-                <div style={{ position:'absolute', top:'5px', right:'6px', fontSize:'7px', background:'rgba(0,181,173,0.85)', color:'#fff', padding:'1px 5px', borderRadius:'2px', fontWeight:600 }}>↑ top</div>
               </>
             ) : (
+              /* Empty state */
               <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'6px' }}>
-                <div style={{ fontSize:'22px', opacity:0.15 }}>🖼️</div>
-                <p style={{ fontSize:'9px', color:'#374151', margin:0 }}>Зурагний preview энд харагдана</p>
+                <div style={{ fontSize:'24px', opacity:0.12 }}>🖼️</div>
+                <p style={{ fontSize:'9px', color:'#4b5563', margin:0, textAlign:'center' }}>Зурагний preview<br />энд харагдана</p>
               </div>
             )}
           </div>
-          {effective && <p style={{ fontSize:'9px', color:'#4b5563', marginTop:'3px' }}>✓ objectFit:cover · objectPosition:top</p>}
+          {src && <p style={{ fontSize:'9px', color:'#4b5563', margin:'3px 0 0' }}>✓ object-fit: cover · position: top</p>}
         </div>
 
-        {/* Mobile 240px pure card */}
+        {/* ── Mobile 2-col card ── */}
         <div>
-          <div style={{ fontSize:'9px', fontWeight:700, color:'#6b7280', marginBottom:'5px' }}>📱 MOBILE (240px)</div>
-          <div style={{
-            position:'relative', width:'100%', height:'120px',
-            borderRadius:'8px', overflow:'hidden',
-            background:'#0d0d0d', border:'1px solid rgba(255,255,255,0.06)',
-          }}>
-            {mobileImg ? (
-              <img src={mobileImg} alt="Mobile preview" style={{
-                position:'absolute', inset:0, width:'100%', height:'100%',
-                objectFit:'cover', objectPosition:'center top',
-              }} onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
-            ) : (
-              <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <div style={{ fontSize:'18px', opacity:0.15 }}>📱</div>
-              </div>
-            )}
-          </div>
-          {/* External text stack — BUG-048 */}
-          <div style={{ marginTop:'5px' }}>
-            {previewBadge && (
-              <p style={{ fontSize:'7px', fontWeight:800, color:'#00B5AD', letterSpacing:'1px', margin:'0 0 2px', textTransform:'uppercase' }}>
-                {previewBadge}
+          <div style={{ fontSize:'9px', fontWeight:700, color:'#6b7280', marginBottom:'5px' }}>📱 MOBILE CARD</div>
+          {/* Card: image + text below, no overlay */}
+          <div style={{ borderRadius:'8px', overflow:'hidden', background:'#1a1a1a', border:'1px solid rgba(255,255,255,0.07)' }}>
+            {/* Image area — 16:9 */}
+            <div style={{ position:'relative', width:'100%', paddingBottom:'56.25%', background:'#0d0d0d' }}>
+              {src ? (
+                <img
+                  src={src}
+                  alt=""
+                  style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }}
+                  onError={e => { (e.target as HTMLImageElement).style.opacity = '0'; }}
+                />
+              ) : (
+                <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <div style={{ fontSize:'18px', opacity:0.1 }}>📱</div>
+                </div>
+              )}
+            </div>
+            {/* Card text below image */}
+            <div style={{ padding:'6px 7px 7px' }}>
+              {previewBadge && (
+                <p style={{ fontSize:'6px', fontWeight:800, color:'#00B5AD', letterSpacing:'1px', margin:'0 0 2px', textTransform:'uppercase' }}>
+                  {previewBadge}
+                </p>
+              )}
+              <p style={{ fontSize:'8px', fontWeight:700, color:'#e5e5e5', margin:'0 0 5px', lineHeight:1.3, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+                {previewTitle || 'Гарчиг энд харагдана'}
               </p>
-            )}
-            <p style={{ fontSize:'8px', fontWeight:900, color:'#fff', margin:'0 0 3px', lineHeight:1.25, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
-              {previewTitle || 'Гарчиг энд харагдана'}
-            </p>
-            <div style={{ display:'flex', flexDirection:'column', gap:'3px' }}>
-              <div style={{ background:'#fff', color:'#000', fontSize:'7px', fontWeight:700, padding:'3px 0', borderRadius:'4px', textAlign:'center' }}>▶ ҮЗЭХ</div>
-              <div style={{ background:'rgba(30,30,30,0.9)', color:'#fff', fontSize:'7px', fontWeight:700, padding:'3px 0', borderRadius:'4px', textAlign:'center', border:'1px solid rgba(255,255,255,0.12)' }}>ⓘ ДЭЛГЭРЭНГҮЙ</div>
+              <div style={{ background:'#fff', color:'#000', fontSize:'6px', fontWeight:700, padding:'3px 0', borderRadius:'3px', textAlign:'center' }}>▶ ҮЗЭХ</div>
             </div>
           </div>
-          {mobileSrc && mobileSrc !== desktopSrc && (
-            <p style={{ fontSize:'8px', color:'#00B5AD', marginTop:'4px' }}>✓ Тусгай mobile зураг</p>
-          )}
+          <p style={{ fontSize:'8px', color:'#4b5563', margin:'4px 0 0' }}>2-col grid · same image</p>
         </div>
 
       </div>
@@ -312,45 +308,27 @@ function DualPreview({
   );
 }
 
-// ── Main export ────────────────────────────────────────────────────────────────
+// ── Main export ───────────────────────────────────────────────────────────────
 export default function CoverImagePicker({
   value, onChange, label,
-  mobileValue, onMobileChange,
   previewTitle = 'Гарчиг энд харагдана',
   previewBadge = '',
 }: Props) {
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
 
-      {/* Section header */}
-      <div style={{ fontSize:'13px', fontWeight:700, color:'#9ca3af' }}>
-        {label ?? '🖼️ Cover Image — Hero Poster'}
-      </div>
+      {label && (
+        <div style={{ fontSize:'13px', fontWeight:700, color:'#9ca3af' }}>{label}</div>
+      )}
 
-      {/* Upload zone — single column (mobile uses same 1920×1080 image) */}
-      <div style={{ background:'#161616', border:'1px solid #2a2a2a', borderRadius:'10px', padding:'14px', display:'flex' }}>
-        <UploadZone
-          value={value}
-          onChange={onChange}
-          zoneLabel="🖥️ Hero Poster (Desktop & Mobile)"
-          spec="1920×1080px · 16:9 — авто WebP шахалт хийгдэнэ"
-          maxW={1920} maxH={1080}
-          tipContent={
-            <>
-              💡 <strong style={{ color:'#9ca3af' }}>Thumbnail Priority:</strong> Custom upload = 100% priority. YouTube / auto-thumbnails = fallback ONLY if empty.
-            </>
-          }
-        />
-      </div>
-
-      {/* Live dual preview */}
+      {/* Upload zone */}
       <div style={{ background:'#161616', border:'1px solid #2a2a2a', borderRadius:'10px', padding:'14px' }}>
-        <DualPreview
-          desktopSrc={value}
-          mobileSrc={value}
-          previewTitle={previewTitle}
-          previewBadge={previewBadge}
-        />
+        <UploadZone value={value} onChange={onChange} />
+      </div>
+
+      {/* Live preview */}
+      <div style={{ background:'#161616', border:'1px solid #2a2a2a', borderRadius:'10px', padding:'14px' }}>
+        <DualPreview src={value} previewTitle={previewTitle} previewBadge={previewBadge} />
       </div>
 
     </div>
