@@ -109,7 +109,37 @@ This is the **single source of truth** for:
 
 ---
 
-## 3. GIT COMMIT STANDARDS
+## 3. END-TO-END SYSTEM ARCHITECTURE — FULL LIFECYCLE MINDSET (Mandatory)
+
+> **Violation of this section is a P0 engineering failure.**
+
+### 3.1 — Admin Feature Lifecycle Rule
+
+Before writing any code for an Admin feature, Alex must trace it across the **full lifecycle**:
+
+| Layer | Check |
+|---|---|
+| **Creation** | `/admin/[resource]/new` — does the field exist here? |
+| **Edit** | `/admin/[resource]/[id]/edit` — does the field exist here? |
+| **DB** | Supabase schema + server actions — is it stored and returned? |
+| **Home rendering** | `/mn` (Home page) — does the front-end read it? |
+| **Hub rendering** | `/videos`, `/courses`, `/articles` hubs — does each hub read it? |
+| **Modals** | `HeroDetailModal` + any hub modals — do all modals handle it? |
+
+**Rule:** Never release an Admin feature on an `edit` page without verifying that the `new` page fully supports it. A feature that can only be set on edit — but not at creation — is an incomplete feature.
+
+### 3.2 — Mandatory Bug Logging
+
+Every bug, regression, or omission discovered must be formally logged in `registry.md` before the session ends, with:
+
+- **ID & Title** (e.g., `BUG-056: Omission of content_type on /admin/videos/new`)
+- **Root cause** — the reasoning gap that produced it
+- **Full-stack resolution** — changes across Admin, DB, and Front-End layers
+- **Commit hash(es)**
+
+---
+
+## 4. GIT COMMIT STANDARDS
 
 ### Format
 ```
@@ -136,7 +166,7 @@ This is the **single source of truth** for:
 
 ---
 
-## 4. SECURITY RULES — NON-NEGOTIABLE
+## 5. SECURITY RULES — NON-NEGOTIABLE
 
 | Rule | Detail |
 |------|--------|
@@ -149,7 +179,7 @@ This is the **single source of truth** for:
 
 ---
 
-## 5. MOBILE LAYOUT STANDARD (BUG-048)
+## 6. MOBILE LAYOUT STANDARD (BUG-048)
 
 **Platform rule for all mobile hero cards (`<768px`):**
 

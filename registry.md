@@ -235,6 +235,31 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-056 — content_type Selector Omitted from /admin/videos/new (RESOLVED 2026-09-08)
+
+**Pages affected:** `/admin/videos/new`, `src/app/actions/admin.ts`
+
+**Root cause:** Engineering failure — Full Lifecycle Mindset not applied. The `🎭 Агуулгын төрөл` (Movie vs Series) selector was built only on the edit page (`/admin/videos/[id]/edit`) without tracing the feature back through the creation flow. Result: any video created via `/admin/videos/new` was silently saved as `content_type = null`, breaking the series/episode architecture downstream.
+
+**Resolution (commit `2325525`):**
+
+1. **`src/app/actions/admin.ts`** — `createVideo()` extended to accept `content_type?: string` and `season_count?: number`. Return type updated to include `id: string | null` (needed for smart redirect).
+
+2. **`src/app/[locale]/admin/videos/new/page.tsx`:**
+   - Added `content_type: 'movie'` and `season_count: 1` to form state.
+   - Added `🎭 Агуулгын төрөл` card (purple accent, Movie vs Series radio) positioned after the video source selector.
+   - Season count input shown when Series is selected.
+   - Validation relaxed for series: video-level source (youtube_id / cloudflare_stream_id) is optional — episodes hold the real content; video-level source serves as trailer only.
+   - Smart redirect: after saving a **series**, redirects to `edit/[newId]` so admin can add episodes immediately. After saving a **movie**, redirects to `/admin/videos` list as before.
+
+**Lifecycle gap this exposed:** The following checklist is now mandatory (MASTER_POLICY.md §3):
+- Creation page (`new`) ✓
+- Edit page (`edit`) ✓
+- DB + server actions ✓
+- Front-end rendering (Home, hubs, modals) ✓
+
+---
+
 ## BUG-055 — Dual-Provider Episode Architecture + Platform-Wide Modal Parity (RESOLVED 2026-09-08)
 
 **Pages affected:** `/admin/videos/[id]/edit`, `HeroDetailModal`, `/videos` hub, `videos.ts`, `admin.ts`
