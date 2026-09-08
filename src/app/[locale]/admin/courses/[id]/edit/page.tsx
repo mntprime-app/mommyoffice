@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getCourseById, updateCourse, deleteCourseById, getInstructors } from '@/app/actions/admin';
+import CoverImagePicker from '@/components/ui/CoverImagePicker';
+import VideoUploader from '@/components/ui/VideoUploader';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 const LEVELS = ['', 'Анхан шат', 'Дунд шат', 'Ахисан шат'];
@@ -98,6 +100,16 @@ export default function EditCoursePage() {
 
   function set(key: string, val: string | boolean) {
     setForm((f) => ({ ...f, [key]: val }));
+  }
+
+  // Track which lesson upload panels are open, keyed by "moduleIndex-lessonIndex"
+  const [openUploaders, setOpenUploaders] = useState<Set<string>>(new Set());
+  function toggleUploader(key: string) {
+    setOpenUploaders((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
   }
 
   const addModule = () => setOutline((o) => [...o, { title: '', lessons: [{ title: '', stream_id: '' }] }]);
@@ -333,11 +345,34 @@ export default function EditCoursePage() {
                                 style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '13px', padding: '0 4px' }}>✕</button>
                             )}
                           </div>
-                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', paddingLeft: '22px' }}>
-                            <span style={{ fontSize: '11px', color: '#4b5563' }}>🎬</span>
-                            <input value={lesson.stream_id || ''} onChange={(e) => setLessonField(mi, li, 'stream_id', e.target.value)}
-                              placeholder="Cloudflare Stream ID"
-                              style={{ ...inp, flex: 1, fontSize: '12px', padding: '5px 10px', fontFamily: 'monospace', color: lesson.stream_id ? '#10b981' : '#6b7280' }} />
+                          <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <span style={{ fontSize: '11px', color: '#4b5563', whiteSpace: 'nowrap' }}>🎬</span>
+                              <input value={lesson.stream_id || ''} onChange={(e) => setLessonField(mi, li, 'stream_id', e.target.value)}
+                                placeholder="Stream ID (paste эсвэл доор Upload дарна уу)"
+                                style={{ ...inp, flex: 1, fontSize: '12px', padding: '5px 10px', fontFamily: 'monospace', color: lesson.stream_id ? '#10b981' : '#6b7280' }} />
+                              <button type="button" onClick={() => toggleUploader(`${mi}-${li}`)} style={{
+                                background: openUploaders.has(`${mi}-${li}`) ? '#374151' : 'rgba(0,181,173,0.1)',
+                                color: '#00B5AD', border: '1px solid rgba(0,181,173,0.25)',
+                                borderRadius: '6px', padding: '5px 10px', cursor: 'pointer',
+                                fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap',
+                              }}>
+                                {openUploaders.has(`${mi}-${li}`) ? '✕ Хаах' : '📤 Upload'}
+                              </button>
+                            </div>
+                            {openUploaders.has(`${mi}-${li}`) && (
+                              <div style={{ marginTop: '4px' }}>
+                                <VideoUploader
+                                  title={lesson.title || `Хичээл ${li + 1}`}
+                                  minDurationSec={30}
+                                  onSuccess={(uid) => {
+                                    setLessonField(mi, li, 'stream_id', uid);
+                                    setOpenUploaders((prev) => { const next = new Set(prev); next.delete(`${mi}-${li}`); return next; });
+                                  }}
+                                  onError={(msg) => setError(msg)}
+                                />
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -430,12 +465,12 @@ export default function EditCoursePage() {
 
             {/* Cover Image */}
             <SideCard title="Cover Image">
-              <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>1280×720px · 16:9</p>
-              {form.cover_image_url && (
-                <img src={form.cover_image_url} alt="cover" style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: '7px' }} />
-              )}
-              <input value={form.cover_image_url} onChange={(e) => set('cover_image_url', e.target.value)}
-                style={{ ...inp, fontSize: '12px' }} placeholder="https://..." />
+              <CoverImagePicker
+                value={form.cover_image_url}
+                onChange={(url) => set('cover_image_url', url)}
+                previewTitle={form.title_mn || 'Гарчиг энд харагдана'}
+                previewBadge="Сургалт"
+              />
             </SideCard>
 
             {/* Video */}

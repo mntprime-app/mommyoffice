@@ -40,9 +40,11 @@ interface Props {
   instructorId?: string;
   title?: string;
   disabled?: boolean;
+  /** Override minimum duration in seconds (default: 180 = 3 min). Set to 30 for short intro/preview lessons. */
+  minDurationSec?: number;
 }
 
-export default function VideoUploader({ onSuccess, onError, instructorId, title, disabled }: Props) {
+export default function VideoUploader({ onSuccess, onError, instructorId, title, disabled, minDurationSec = MIN_DURATION_S }: Props) {
   const inputRef   = useRef<HTMLInputElement>(null);
   const [status, setStatus]     = useState<UploadStatus>('idle');
   const [progress, setProgress] = useState(0);
@@ -67,8 +69,9 @@ export default function VideoUploader({ onSuccess, onError, instructorId, title,
       video.preload = 'metadata';
       video.onloadedmetadata = () => {
         URL.revokeObjectURL(url);
-        if (video.duration < MIN_DURATION_S) {
-          return resolve(`Видео дор хаяж 3 минут байх ёстой (одоогийн: ${Math.round(video.duration)}с)`);
+        if (video.duration < minDurationSec) {
+          const minLabel = minDurationSec >= 60 ? `${Math.round(minDurationSec / 60)} минут` : `${minDurationSec} секунд`;
+          return resolve(`Видео дор хаяж ${minLabel} байх ёстой (одоогийн: ${Math.round(video.duration)}с)`);
         }
         if (video.videoHeight < MIN_HEIGHT_PX && video.videoHeight > 0) {
           return resolve(`Видеоны нарийвчлал дор хаяж 720p байх ёстой (одоогийн: ${video.videoHeight}p)`);
