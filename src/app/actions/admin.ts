@@ -299,13 +299,15 @@ export async function createVideo(data: {
   is_featured: boolean;
   placement: string;
   comments_enabled: boolean;
+  content_type?: string;
+  season_count?: number;
 }) {
   const supabase = await createAdminClient();
   // Auto-generate slug server-side if admin left it blank
   const payload = { ...data, slug: data.slug?.trim() || autoSlug(data.title_mn) };
-  const { error } = await supabase.from('mo_videos').insert(payload);
-  if (error) return { error: error.message };
-  return { error: null };
+  const { data: row, error } = await supabase.from('mo_videos').insert(payload).select('id').single();
+  if (error) return { error: error.message, id: null };
+  return { error: null, id: row?.id ?? null };
 }
 
 export async function toggleVideoPublished(id: string, current: boolean) {

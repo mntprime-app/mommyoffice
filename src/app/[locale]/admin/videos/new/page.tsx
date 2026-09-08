@@ -59,7 +59,11 @@ export default function NewVideoPage() {
     is_featured: false,
     placement: 'normal',      // 'hero' | 'trending' | 'normal'
     comments_enabled: true,
+    content_type: 'movie',    // 'movie' | 'series'
+    season_count: 1,
   });
+
+  const isSeries = form.content_type === 'series';
 
   function set(key: string, val: string | boolean) {
     setForm((f) => {
@@ -79,12 +83,15 @@ export default function NewVideoPage() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title_mn) { setError('Монгол нэр заавал бөглөнө үү.'); return; }
-    if (form.video_type === 'free' && !form.youtube_id) { setError('YouTube URL эсвэл Video ID оруулна уу.'); return; }
-    if (form.video_type === 'paid' && !form.cloudflare_stream_id) { setError('CF Stream ID оруулна уу.'); return; }
+    // For movies, a video source is required. For series, episodes hold the videos — source is optional (trailer).
+    if (!isSeries) {
+      if (form.video_type === 'free' && !form.youtube_id) { setError('YouTube URL эсвэл Video ID оруулна уу.'); return; }
+      if (form.video_type === 'paid' && !form.cloudflare_stream_id) { setError('CF Stream ID оруулна уу.'); return; }
+    }
 
     setSaving(true); setError('');
 
-    const { error: err } = await createVideo({
+    const { error: err, id: newId } = await createVideo({
       title_mn:             form.title_mn,
       title_en:             form.title_en || null,
       slug:                 form.slug || slugify(form.title_mn),
@@ -100,10 +107,17 @@ export default function NewVideoPage() {
       is_featured:          form.is_featured,
       placement:            form.placement,
       comments_enabled:     form.comments_enabled,
+      content_type:         form.content_type,
+      season_count:         isSeries ? form.season_count : 1,
     });
 
     if (err) { setError(err); setSaving(false); return; }
-    router.push(`/${locale}/admin/videos`);
+    // Series → go to edit page to add episodes immediately
+    if (isSeries && newId) {
+      router.push(`/${locale}/admin/videos/${newId}/edit`);
+    } else {
+      router.push(`/${locale}/admin/videos`);
+    }
   }
 
   return (
@@ -123,7 +137,7 @@ export default function NewVideoPage() {
 
         {/* Video type selector */}
         <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.25rem' }}>
-          <label style={lbl}>📡 Видео эх үүсвэр</label>
+          <label style={lbl}>📡 Видео эх үүсвэр{isSeries ? <span style={{ fontWeight: 400, color: '#6b7280', marginLeft: '8px' }}>(Цуврал бол заавал биш — трейлер)</span> : ''}</label>
           <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
             {[
               { val: 'free', icon: '🔓', title: 'YouTube (Үнэгүй)', desc: 'Modestbranding + rel=0 тохиргоотойгоор site-д шигтгэнэ' },
@@ -144,6 +158,47 @@ export default function NewVideoPage() {
               </label>
             ))}
           </div>
+        </div>
+
+        {/* Content type selector */}
+        <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.25rem' }}>
+          <label style={lbl}>🎭 Агуулгын төрөл</label>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+            {[
+              { val: 'movie',  icon: '🎬', title: 'Кино / Нэг бүлэг', desc: 'Ганц эпизодтой видео — кино, нэвтрүүлэг, лекц' },
+              { val: 'series', icon: '📺', title: 'Цуврал (Series)',    desc: 'Олон анги, улирал бүхий цуврал' },
+            ].map((t) => (
+              <label key={t.val} style={{
+                flex: 1, display: 'flex', flexDirection: 'column', gap: '4px',
+                padding: '12px 14px', borderRadius: '8px', cursor: 'pointer',
+                background: form.content_type === t.val ? 'rgba(139,92,246,0.1)' : 'transparent',
+                border: `1px solid ${form.content_type === t.val ? 'rgba(139,92,246,0.4)' : '#333'}`,
+                transition: 'all 0.15s',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input type="radio" name="content_type" value={t.val} checked={form.content_type === t.val}
+                    onChange={(e) => setForm((f) => ({ ...f, content_type: e.target.value }))}
+                    style={{ accentColor: '#8b5cf6' }} />
+                  <span style={{ fontWeight: 700, fontSize: '14px', color: '#e5e5e5' }}>{t.icon} {t.title}</span>
+                </div>
+                <span style={{ fontSize: '11px', color: '#6b7280', paddingLeft: '20px' }}>{t.desc}</span>
+              </label>
+            ))}
+          </div>
+          {isSeries && (
+            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label style={{ fontSize: '13px', color: '#9ca3af', whiteSpace: 'nowrap' }}>Улирлын тоо:</label>
+              <input
+                type="number" min={1} max={20}
+                value={form.season_count}
+                onChange={(e) => setForm((f) => ({ ...f, season_count: Math.max(1, parseInt(e.target.value) || 1) }))}
+                style={{ ...inp, width: '80px' }}
+              />
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                💡 Хадгалсны дараа Edit хуудас руу шилжиж ангиудаа нэмнэ үү
+              </span>
+            </div>
+          )}
         </div>
 
         {/* YouTube source */}
