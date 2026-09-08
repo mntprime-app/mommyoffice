@@ -178,7 +178,7 @@ export default function NewCoursePage() {
                     {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                   </select>
                 </Field>
-                <Field label="Түвшин" hint="Бэйж болно">
+                <Field label="Түвшин">
                   <select value={form.level_mn} onChange={(e) => set('level_mn', e.target.value)} style={inp}>
                     {LEVELS.map((l) => <option key={l} value={l}>{l || '— Сонгох —'}</option>)}
                   </select>
@@ -195,9 +195,9 @@ export default function NewCoursePage() {
             {/* Descriptions */}
             <Card title="Тайлбар">
               <div style={grid2}>
-                <Field label="Богино тайлбар (МН)" hint="Хайлтад харагдах">
+                <Field label="Богино тайлбар (МН)">
                   <textarea value={form.description_mn} onChange={(e) => set('description_mn', e.target.value)}
-                    style={{ ...inp, height: '100px', resize: 'vertical' }} placeholder="Хичээлийн товч агуулга..." />
+                    style={{ ...inp, height: '100px', resize: 'vertical' }} placeholder="Хичээлийн товч агуулга... (хайлтад харагдана)" />
                 </Field>
                 <Field label="Богино тайлбар (EN)">
                   <textarea value={form.description_en} onChange={(e) => set('description_en', e.target.value)}
