@@ -205,7 +205,12 @@ export async function createCourse(data: {
 }) {
   const supabase = await createAdminClient();
   const { error } = await supabase.from('mo_courses').insert(data);
-  if (error) return { error: error.message };
+  if (error) {
+    if (error.code === '23505') {
+      return { error: `"${data.slug}" slug аль хэдийн ашиглагдаж байна. Өөр slug оруулна уу.` };
+    }
+    return { error: error.message };
+  }
   return { error: null };
 }
 
