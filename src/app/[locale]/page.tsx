@@ -100,6 +100,18 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         primaryHref={homeCfg.hero_primary_cta_href || `/${locale}/courses`}
         secondaryActionText={homeCfg.hero_secondary_cta_text || undefined}
         cornerBadge="🏆 Mongolia #1"
+        isMostLiked={homeCfg.hero_is_popular || false}
+        year={homeCfg.hero_year || String(new Date().getFullYear())}
+        durationText={homeCfg.hero_duration_text || undefined}
+        relatedItems={homeVideos.slice(0, 6).map((v) => ({
+          id: v.id,
+          title: v.title_mn,
+          href: `/${locale}/videos/${v.slug}`,
+          coverImage: v.thumbnail_url || undefined,
+          youtubeId: v.youtube_id || undefined,
+          durationText: (v.duration_text && v.duration_text !== '0 мин') ? v.duration_text : undefined,
+          category: v.category || undefined,
+        }))}
       />
 
       {/* ═══════════════════════════════════════

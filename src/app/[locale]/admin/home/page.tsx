@@ -92,6 +92,9 @@ export default function AdminHomePage() {
     show_articles_section: true,
     show_videos_section: true,
     show_shop_section: false,
+    hero_is_popular: false,
+    hero_duration_text: '',
+    hero_year: '',
   });
 
   useEffect(() => {
@@ -229,6 +232,62 @@ export default function AdminHomePage() {
               placeholder="Дэлгэрэнгүй"
             />
           </Field>
+
+          {/* Netflix modal metadata — only relevant when secondary CTA is set */}
+          {cfg.hero_secondary_cta_text?.trim() && (
+            <div style={{ marginTop: '1rem', padding: '14px', background: 'rgba(0,181,173,0.04)', border: '1px solid rgba(0,181,173,0.15)', borderRadius: '8px' }}>
+              <p style={{ fontSize: '12px', fontWeight: 700, color: '#00B5AD', margin: '0 0 0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                🎬 Netflix маягийн цонхны мэдээлэл
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <Field label="Жил" hint='Жишээ: 2026'>
+                  <input
+                    style={inp}
+                    value={cfg.hero_year || ''}
+                    onChange={(e) => set('hero_year', e.target.value)}
+                    placeholder={String(new Date().getFullYear())}
+                  />
+                </Field>
+                <Field label="Үргэлжлэх хугацаа" hint='Жишээ: 45 мин — эсвэл 3 цуврал (цуврал бол)'>
+                  <input
+                    style={inp}
+                    value={cfg.hero_duration_text || ''}
+                    onChange={(e) => set('hero_duration_text', e.target.value)}
+                    placeholder="45 мин"
+                  />
+                </Field>
+              </div>
+
+              {/* Most Liked toggle */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid #222' }}>
+                <div>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#e5e5e5' }}>
+                    🔴 Хамгийн их үзэгдсэн
+                  </p>
+                  <p style={{ margin: 0, fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
+                    Асаавал Netflix-ийн "Most Liked" шиг улаан тэмдэглэгээ гарна
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => set('hero_is_popular', !cfg.hero_is_popular)}
+                  style={{
+                    width: '48px', height: '26px', borderRadius: '13px', border: 'none', cursor: 'pointer',
+                    background: cfg.hero_is_popular ? '#e50914' : '#374151',
+                    position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+                  }}
+                >
+                  <span style={{
+                    position: 'absolute', top: '3px',
+                    left: cfg.hero_is_popular ? '25px' : '3px',
+                    width: '20px', height: '20px', borderRadius: '50%', background: 'white',
+                    transition: 'left 0.2s', display: 'block',
+                  }} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── SECTION VISIBILITY ── */}

@@ -17,6 +17,12 @@ export interface HomeConfig {
   show_articles_section: boolean;
   show_videos_section: boolean;
   show_shop_section: boolean;
+  /** Shows 🔴 "Хамгийн их үзэгдсэн" badge in the detail modal */
+  hero_is_popular?: boolean;
+  /** e.g. "45 мин" or "3 цуврал" — shown in modal metadata row */
+  hero_duration_text?: string;
+  /** e.g. "2026" — shown in modal metadata row */
+  hero_year?: string;
 }
 
 export const HOME_CONFIG_DEFAULTS: HomeConfig = {

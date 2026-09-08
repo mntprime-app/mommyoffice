@@ -7,28 +7,41 @@
  *   <HeroWithModal
  *     {...heroProps}
  *     secondaryActionText={cfg.hero_secondary_cta_text || undefined}
+ *     relatedItems={homeVideos.slice(0,6).map(v => ({ ... }))}
+ *     isMostLiked={cfg.hero_is_popular}
+ *     year={cfg.hero_year}
+ *     durationText={cfg.hero_duration_text}
  *   />
  *
  * Behaviour:
  *   - secondaryActionText is set   → button renders; click opens modal
  *   - secondaryActionText is empty → button does NOT render (no modal)
- *
- * The modal receives all the same data as the hero (title, description,
- * coverImage, youtubeId, badgeText, primaryHref, primaryActionText).
- * No extra DB fetch needed — data comes from mo_home_config via props.
  */
 
 import { useState } from 'react';
 import UniversalHero, { type UniversalHeroProps } from '@/components/shared/UniversalHero';
-import HeroDetailModal from '@/components/ui/HeroDetailModal';
+import HeroDetailModal, { type RelatedItem } from '@/components/ui/HeroDetailModal';
 
-type HeroWithModalProps = UniversalHeroProps;
+type HeroWithModalProps = UniversalHeroProps & {
+  /** Shows 🔴 "Хамгийн их үзэгдсэн" badge in the modal */
+  isMostLiked?: boolean;
+  /** e.g. "2026" */
+  year?: string;
+  /** e.g. "45 мин" or "3 цуврал" */
+  durationText?: string;
+  /** "More Like This" grid — pass related videos or courses */
+  relatedItems?: RelatedItem[];
+};
 
 export default function HeroWithModal({
   secondaryActionText,
   // strip secondaryHref and onSecondaryClick — we always intercept with modal
   secondaryHref: _secondaryHref,
   onSecondaryClick: _onSecondaryClick,
+  isMostLiked,
+  year,
+  durationText,
+  relatedItems,
   ...heroProps
 }: HeroWithModalProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,6 +68,10 @@ export default function HeroWithModal({
           badgeText={heroProps.badgeText}
           primaryHref={heroProps.primaryHref}
           primaryActionText={heroProps.primaryActionText || 'ҮЗЭХ'}
+          isMostLiked={isMostLiked}
+          year={year}
+          durationText={durationText}
+          relatedItems={relatedItems}
         />
       )}
     </>
