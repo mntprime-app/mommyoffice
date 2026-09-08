@@ -107,6 +107,7 @@ export default function CoverImagePicker({ value, onChange, label }: PickerProps
     const { data: urlData } = supabase.storage.from('media').getPublicUrl(data.path);
     onChange(urlData.publicUrl);
     setUploading(false);
+    setMode('url'); // switch to URL tab so user sees the filled URL + preview activates
     setTimeout(() => setProgress(0), 800);
   }, [onChange]);
 
@@ -230,91 +231,45 @@ export function CoverImagePreview({ src, title, badge }: PreviewProps) {
         <span style={{ fontSize: '11px', color: '#6b7280' }}>— 1:1 production layout match</span>
       </div>
 
-      {/* Desktop hero + Mobile card side by side */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: '24px', alignItems: 'start' }}>
-
-        {/* ── Desktop hero 16:9 ── */}
-        <div>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#6b7280', letterSpacing: '0.5px', marginBottom: '8px' }}>💻 DESKTOP HERO BANNER (16:9)</div>
-          <div style={{
-            position: 'relative', width: '100%', paddingBottom: '56.25%',
-            borderRadius: '12px', overflow: 'hidden',
-            background: '#0d0d0d', border: '1px solid #2a2a2a',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-          }}>
-            {src ? (
-              <>
-                <img
-                  src={src} alt=""
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
-                  onError={e => { (e.target as HTMLImageElement).style.opacity = '0'; }}
-                />
-                {/* Left gradient for text legibility */}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.1) 55%, transparent 70%)' }} />
-                {/* Bottom fade */}
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to top, rgba(0,0,0,0.55), transparent)' }} />
-                {/* Category badge */}
-                {badge && (
-                  <div style={{ position: 'absolute', top: '14px', left: '14px', fontSize: '9px', fontWeight: 800, color: '#00B5AD', background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(0,181,173,0.5)', padding: '3px 8px', borderRadius: '4px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
-                    {badge}
-                  </div>
-                )}
-                {/* Title + buttons */}
-                <div style={{ position: 'absolute', bottom: '18px', left: '18px', maxWidth: '50%' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', lineHeight: 1.3, textShadow: '0 1px 4px rgba(0,0,0,0.9)', marginBottom: '10px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
-                    {title || 'Гарчиг энд харагдана'}
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <div style={{ background: 'rgba(255,255,255,0.95)', color: '#000', fontSize: '10px', fontWeight: 700, padding: '5px 14px', borderRadius: '4px' }}>▶ ҮЗЭХ</div>
-                    <div style={{ background: 'rgba(90,90,90,0.8)', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '5px 14px', borderRadius: '4px' }}>ⓘ ДЭЛГЭРЭНГҮЙ</div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                <div style={{ fontSize: '36px', opacity: 0.08 }}>🖼️</div>
-                <p style={{ fontSize: '12px', color: '#374151', margin: 0, textAlign: 'center' }}>Зурагний preview энд том харагдана<br /><span style={{ fontSize: '10px', color: '#1f2937' }}>Зурагны URL эсвэл файл нэмнэ үү</span></p>
+      {/* Full-width desktop hero preview */}
+      <div style={{
+        position: 'relative', width: '100%', paddingBottom: '56.25%',
+        borderRadius: '12px', overflow: 'hidden',
+        background: '#0d0d0d', border: '1px solid #2a2a2a',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+      }}>
+        {src ? (
+          <>
+            <img
+              src={src} alt=""
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
+              onError={e => { (e.target as HTMLImageElement).style.opacity = '0'; }}
+            />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.1) 55%, transparent 70%)' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to top, rgba(0,0,0,0.55), transparent)' }} />
+            {badge && (
+              <div style={{ position: 'absolute', top: '14px', left: '14px', fontSize: '9px', fontWeight: 800, color: '#00B5AD', background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(0,181,173,0.5)', padding: '3px 8px', borderRadius: '4px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+                {badge}
               </div>
             )}
-          </div>
-          {src && <p style={{ fontSize: '10px', color: '#4b5563', margin: '6px 0 0' }}>✓ object-fit: cover · object-position: center top</p>}
-        </div>
-
-        {/* ── Mobile card ── */}
-        <div>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#6b7280', letterSpacing: '0.5px', marginBottom: '8px' }}>📱 MOBILE CARD (2-Col Grid)</div>
-          <div style={{ borderRadius: '12px', overflow: 'hidden', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
-            {/* Image area */}
-            <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', background: '#0d0d0d' }}>
-              {src ? (
-                <img
-                  src={src} alt=""
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
-                  onError={e => { (e.target as HTMLImageElement).style.opacity = '0'; }}
-                />
-              ) : (
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ fontSize: '28px', opacity: 0.08 }}>📱</div>
-                </div>
-              )}
-            </div>
-            {/* Card text */}
-            <div style={{ padding: '10px 12px 12px' }}>
-              {badge && (
-                <p style={{ fontSize: '8px', fontWeight: 800, color: '#00B5AD', letterSpacing: '1.5px', margin: '0 0 4px', textTransform: 'uppercase' }}>{badge}</p>
-              )}
-              <p style={{ fontSize: '12px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 8px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
+            <div style={{ position: 'absolute', bottom: '18px', left: '18px', maxWidth: '50%' }}>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', lineHeight: 1.3, textShadow: '0 1px 4px rgba(0,0,0,0.9)', marginBottom: '10px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
                 {title || 'Гарчиг энд харагдана'}
-              </p>
+              </div>
               <div style={{ display: 'flex', gap: '6px' }}>
-                <div style={{ flex: 1, background: '#fff', color: '#000', fontSize: '10px', fontWeight: 700, padding: '5px 0', borderRadius: '5px', textAlign: 'center' }}>▶ ҮЗЭХ</div>
-                <div style={{ flex: 1, background: 'rgba(40,40,40,0.9)', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '5px 0', borderRadius: '5px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>ⓘ ДЭЛГЭРЭНГҮЙ</div>
+                <div style={{ background: 'rgba(255,255,255,0.95)', color: '#000', fontSize: '10px', fontWeight: 700, padding: '5px 14px', borderRadius: '4px' }}>▶ ҮЗЭХ</div>
+                <div style={{ background: 'rgba(90,90,90,0.8)', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '5px 14px', borderRadius: '4px' }}>ⓘ ДЭЛГЭРЭНГҮЙ</div>
               </div>
             </div>
+          </>
+        ) : (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+            <div style={{ fontSize: '36px', opacity: 0.08 }}>🖼️</div>
+            <p style={{ fontSize: '12px', color: '#374151', margin: 0, textAlign: 'center' }}>Зурагний preview энд том харагдана<br /><span style={{ fontSize: '10px', color: '#1f2937' }}>Зурагны URL эсвэл файл нэмнэ үү</span></p>
           </div>
-          <p style={{ fontSize: '9px', color: '#4b5563', margin: '6px 0 0' }}>Same image · object-cover · no overlay text</p>
-        </div>
+        )}
       </div>
+      {src && <p style={{ fontSize: '10px', color: '#4b5563', margin: '8px 0 0' }}>✓ object-fit: cover · object-position: center top</p>}
     </div>
   );
 }
