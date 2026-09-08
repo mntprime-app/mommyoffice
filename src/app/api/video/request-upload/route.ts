@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     const err = await cfRes.text();
     console.error('[request-upload] Cloudflare error:', err);
     return NextResponse.json(
-      { error: 'Failed to create upload URL. Please try again.' },
+      { error: 'Failed to create upload URL. Please try again.', _debug: err, _cfStatus: cfRes.status },
       { status: 500 },
     );
   }
