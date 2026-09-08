@@ -218,14 +218,17 @@ export default function AdminHomePage() {
               <input style={inp} value={cfg.hero_primary_cta_href} onChange={(e) => set('hero_primary_cta_href', e.target.value)} placeholder="/mn/courses" />
             </Field>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <Field label="Хоёрдогч товч — текст">
-              <input style={inp} value={cfg.hero_secondary_cta_text} onChange={(e) => set('hero_secondary_cta_text', e.target.value)} placeholder="Дэлгэрэнгүй" />
-            </Field>
-            <Field label="Хоёрдогч товч — холбоос">
-              <input style={inp} value={cfg.hero_secondary_cta_href} onChange={(e) => set('hero_secondary_cta_href', e.target.value)} placeholder="/mn/articles" />
-            </Field>
-          </div>
+          <Field
+            label="Хоёрдогч товч — текст"
+            hint='Бөглөвөл "Дэлгэрэнгүй" маягийн товч гарч ирнэ — дарахад Netflix шиг дэлгэрэнгүй мэдээллийн цонх нээгдэнэ. Хоосон үлдээвэл товч харагдахгүй.'
+          >
+            <input
+              style={inp}
+              value={cfg.hero_secondary_cta_text}
+              onChange={(e) => set('hero_secondary_cta_text', e.target.value)}
+              placeholder="Дэлгэрэнгүй"
+            />
+          </Field>
         </div>
 
         {/* ── SECTION VISIBILITY ── */}

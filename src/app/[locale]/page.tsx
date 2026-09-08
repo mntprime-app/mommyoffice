@@ -4,7 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getHomeConfig } from '@/app/actions/admin';
-import UniversalHero from '@/components/shared/UniversalHero';
+import HeroWithModal from '@/components/shared/HeroWithModal';
 import CarouselRow from '@/components/shared/CarouselRow';
 import { CategoryBadge, StatusBadge, PriceBadge } from '@/components/ui/CategoryBadge';
 
@@ -90,7 +90,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* ═══════════════════════════════════════
           HERO — UniversalHero standard
       ═══════════════════════════════════════ */}
-      <UniversalHero
+      <HeroWithModal
         badgeText={homeCfg.hero_badge_text || '🇲🇳 MONGOLIA #1 PLATFORM'}
         title={locale === 'mn' ? (homeCfg.hero_title_mn || t('hero_title')) : (homeCfg.hero_title_en || t('hero_title'))}
         description={locale === 'mn' ? (homeCfg.hero_subtitle_mn || t('hero_subtitle')) : (homeCfg.hero_subtitle_en || t('hero_subtitle'))}
@@ -98,8 +98,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         youtubeId={homeCfg.hero_youtube_id || undefined}
         primaryActionText={homeCfg.hero_primary_cta_text || 'Үзэх'}
         primaryHref={homeCfg.hero_primary_cta_href || `/${locale}/courses`}
-        secondaryActionText={homeCfg.hero_secondary_cta_text || 'Дэлгэрэнгүй'}
-        secondaryHref={homeCfg.hero_secondary_cta_href || `/${locale}/articles`}
+        secondaryActionText={homeCfg.hero_secondary_cta_text || undefined}
         cornerBadge="🏆 Mongolia #1"
       />
 
