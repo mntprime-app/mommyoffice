@@ -33,3 +33,6 @@ Thumbs.db
 SESSION_NOTES_*.md
 LOCAL_PASSWORDS_DO_NOT_COMMIT.md
 UPGRADE_PLAN.md
+
+# Windows reserved device name — cannot be deleted; exclude from git index
+/nul
