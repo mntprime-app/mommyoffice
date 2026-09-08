@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getHomeConfig, saveHomeConfig } from '@/app/actions/admin';
 import { type HomeConfig } from '@/lib/homeConfig';
-import CoverImagePicker from '@/components/ui/CoverImagePicker';
+import CoverImagePicker, { CoverImagePreview } from '@/components/ui/CoverImagePicker';
 
 function extractYouTubeId(input: string): string {
   const clean = input.trim();
@@ -379,6 +379,12 @@ export default function AdminHomePage() {
           </Link>
         </div>
 
+        {/* Full-width live preview — below both columns */}
+        <CoverImagePreview
+          src={cfg.hero_cover_image_url}
+          title={cfg.hero_title_mn || 'Гарчиг энд харагдана'}
+          badge={cfg.hero_badge_text || 'MommyOffice'}
+        />
       </form>
     </div>
   );

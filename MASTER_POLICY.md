@@ -240,14 +240,16 @@ Session note must include:
 Before going live on `mommyoffice.com`:
 
 - [ ] `mobile_cover_image` DB migration run on Supabase (`mo_videos`, `mo_courses` tables)
-- [ ] Checkout page `/checkout/[slug]` complete
+- [x] Checkout page `/checkout/[slug]` complete — commit `51ad26f` (2026-08-24)
 - [ ] Cart page `/cart` complete
-- [ ] QPay integration tested end-to-end
+- [x] QPay integration tested end-to-end — QR → payment → enrollment → Brevo email confirmed live (2026-08-24, re-verified 2026-09-08)
+- [x] QPAY_USERNAME, QPAY_PASSWORD, QPAY_INVOICE_CODE, QPAY_SANDBOX in Vercel Production — confirmed (2026-08-24)
+- [x] BREVO_API_KEY in Vercel Production — confirmed working (email delivery verified 2026-09-08)
 - [ ] Domain `mommyoffice.com` connected in Vercel
 - [ ] `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` set in Vercel env vars
 - [ ] All 5 pending videos entered in admin CMS
 - [ ] Supabase `media` bucket permissions verified (public read)
-- [ ] `/admin/courses/[id]/edit` upgraded with CoverImagePicker
+- [x] `/admin/courses/[id]/edit` upgraded with CoverImagePicker — commit `1951490` (2026-09-08)
 - [ ] `/admin/articles/[id]/edit` upgraded with Thumbnail Priority tooltip
 - [ ] Full mobile QA at 375px, 390px, 430px viewports
 - [ ] Audit clearance report signed off

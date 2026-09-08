@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
 import { createCourse, uploadImage, getInstructors } from '@/app/actions/admin';
-import CoverImagePicker from '@/components/ui/CoverImagePicker';
+import CoverImagePicker, { CoverImagePreview } from '@/components/ui/CoverImagePicker';
 import VideoUploader from '@/components/ui/VideoUploader';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
@@ -475,6 +475,13 @@ export default function NewCoursePage() {
             </SideCard>
           </div>
         </div>
+
+        {/* Full-width live preview — below both columns */}
+        <CoverImagePreview
+          src={form.cover_image_url}
+          title={form.title_mn || 'Гарчиг энд харагдана'}
+          badge="Сургалт"
+        />
       </form>
     </div>
   );

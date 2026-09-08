@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createVideo } from '@/app/actions/admin';
 import VideoUploader from '@/components/ui/VideoUploader';
-import CoverImagePicker from '@/components/ui/CoverImagePicker';
+import CoverImagePicker, { CoverImagePreview } from '@/components/ui/CoverImagePicker';
 
 const CATEGORIES = [
   'Амжилтын эзэд',
@@ -361,6 +361,13 @@ export default function NewVideoPage() {
             Буцах
           </button>
         </div>
+
+        {/* Full-width live preview */}
+        <CoverImagePreview
+          src={form.thumbnail_url}
+          title={form.title_mn || 'Гарчиг энд харагдана'}
+          badge="Кино & Видео"
+        />
       </form>
     </div>
   );

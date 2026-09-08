@@ -7,7 +7,7 @@ import {
   getVideoEpisodes, saveEpisodesBatch,
   type VideoEpisode,
 } from '@/app/actions/admin';
-import CoverImagePicker from '@/components/ui/CoverImagePicker';
+import CoverImagePicker, { CoverImagePreview } from '@/components/ui/CoverImagePicker';
 
 const CATEGORIES = [
   'Амжилтын эзэд',
@@ -442,6 +442,13 @@ export default function EditVideoPage() {
           </button>
           <Link href={`/${locale}/admin/videos`} style={backLinkStyle}>Буцах</Link>
         </div>
+
+        {/* Full-width live preview — below both columns */}
+        <CoverImagePreview
+          src={form.thumbnail_url}
+          title={form.title_mn || 'Гарчиг энд харагдана'}
+          badge="Кино & Видео"
+        />
       </form>
 
       {/* ══════════════════════════════════════════════════════════════════════
