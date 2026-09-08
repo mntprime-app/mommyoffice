@@ -22,9 +22,7 @@
 
 import { useRef, useState, useCallback } from 'react';
 
-// ── Quality standards (must match server-side webhook) ────────────────────────
-const MIN_HEIGHT_PX  = 720;
-const MIN_DURATION_S = 180;  // 3 minutes
+// ── Quality standards ─────────────────────────────────────────────────────────
 const MAX_FILE_BYTES = 10 * 1024 * 1024 * 1024; // 10 GB
 const ACCEPTED_TYPES = ['video/mp4', 'video/quicktime', 'video/x-matroska', 'video/webm'];
 const ACCEPTED_EXT   = '.mp4, .mov, .mkv, .webm';
@@ -40,11 +38,9 @@ interface Props {
   instructorId?: string;
   title?: string;
   disabled?: boolean;
-  /** Override minimum duration in seconds (default: 180 = 3 min). Set to 30 for short intro/preview lessons. */
-  minDurationSec?: number;
 }
 
-export default function VideoUploader({ onSuccess, onError, instructorId, title, disabled, minDurationSec = MIN_DURATION_S }: Props) {
+export default function VideoUploader({ onSuccess, onError, instructorId, title, disabled }: Props) {
   const inputRef   = useRef<HTMLInputElement>(null);
   const [status, setStatus]     = useState<UploadStatus>('idle');
   const [progress, setProgress] = useState(0);
@@ -62,27 +58,7 @@ export default function VideoUploader({ onSuccess, onError, instructorId, title,
       if (file.size > MAX_FILE_BYTES) {
         return resolve('Файлын хэмжээ 10 GB-аас бага байх ёстой');
       }
-
-      // Resolution + duration check via video element
-      const url = URL.createObjectURL(file);
-      const video = document.createElement('video');
-      video.preload = 'metadata';
-      video.onloadedmetadata = () => {
-        URL.revokeObjectURL(url);
-        if (video.duration < minDurationSec) {
-          const minLabel = minDurationSec >= 60 ? `${Math.round(minDurationSec / 60)} минут` : `${minDurationSec} секунд`;
-          return resolve(`Видео дор хаяж ${minLabel} байх ёстой (одоогийн: ${Math.round(video.duration)}с)`);
-        }
-        if (video.videoHeight < MIN_HEIGHT_PX && video.videoHeight > 0) {
-          return resolve(`Видеоны нарийвчлал дор хаяж 720p байх ёстой (одоогийн: ${video.videoHeight}p)`);
-        }
-        resolve(null); // all good
-      };
-      video.onerror = () => {
-        URL.revokeObjectURL(url);
-        resolve('Видео файлыг уншиж чадсангүй. Файлаа шалгана уу.');
-      };
-      video.src = url;
+      resolve(null); // all good
     });
   }
 
@@ -103,7 +79,6 @@ export default function VideoUploader({ onSuccess, onError, instructorId, title,
           'Content-Type': 'application/offset+octet-stream',
           'Upload-Offset': String(offset),
           'Tus-Resumable': '1.0.0',
-          'Content-Length': String(chunkSize),
         },
         body: chunk,
       });
@@ -310,7 +285,7 @@ export default function VideoUploader({ onSuccess, onError, instructorId, title,
       <div style={s.title}>Видео байршуулах</div>
       <div style={s.sub}>
         Файлаа энд чирж тавих эсвэл сонгох<br />
-        MP4, MOV, MKV · Дор хаяж 720p · Дор хаяж 3 минут · Хамгийн ихдээ 10 GB
+        MP4, MOV, MKV, WebM · Хамгийн ихдээ 10 GB
       </div>
       <button style={s.btn} onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}>
         Файл сонгох
