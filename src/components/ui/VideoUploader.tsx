@@ -42,9 +42,10 @@ interface Props {
 
 export default function VideoUploader({ onSuccess, onError, instructorId, title, disabled }: Props) {
   const inputRef   = useRef<HTMLInputElement>(null);
-  const [status, setStatus]     = useState<UploadStatus>('idle');
-  const [progress, setProgress] = useState(0);
-  const [message, setMessage]   = useState('');
+  const [status, setStatus]       = useState<UploadStatus>('idle');
+  const [progress, setProgress]   = useState(0);
+  const [message, setMessage]     = useState('');
+  const [errorTitle, setErrorTitle] = useState('Алдаа гарлаа');
   const [isDragOver, setIsDragOver] = useState(false);
 
   // ── Client-side pre-check ──────────────────────────────────────────────────
@@ -105,6 +106,7 @@ export default function VideoUploader({ onSuccess, onError, instructorId, title,
     // 1. Pre-check
     const err = await preCheck(file);
     if (err) {
+      setErrorTitle('Видео шаардлага хангахгүй байна');
       setStatus('error');
       setMessage(err);
       onError?.(err);
@@ -133,30 +135,22 @@ export default function VideoUploader({ onSuccess, onError, instructorId, title,
       videoUid  = data.videoUid;
     } catch {
       const msg = 'Сервертэй холбогдоход алдаа гарлаа. Дахин оролдоно уу.';
+      setErrorTitle('Байршуулах хаяг авахад алдаа гарлаа');
       setStatus('error');
       setMessage(msg);
       onError?.(msg);
       return;
     }
 
-    // 3. TUS upload
+    // 3. TUS upload — PATCH directly from offset 0 (fresh CF URL, no HEAD needed)
     setMessage('Видео байршуулж байна...');
     try {
-      // First, initiate TUS upload with HEAD to get any existing offset
-      const headRes = await fetch(uploadUrl, {
-        method: 'HEAD',
-        headers: { 'Tus-Resumable': '1.0.0' },
-      });
-      const existingOffset = parseInt(headRes.headers.get('Upload-Offset') ?? '0', 10);
-      if (!isNaN(existingOffset) && existingOffset > 0) {
-        // Resume from existing offset
-        const partialFile = file.slice(existingOffset);
-        await tusUpload(partialFile, uploadUrl);
-      } else {
-        await tusUpload(file, uploadUrl);
-      }
-    } catch {
-      const msg = 'Байршуулах явцад алдаа гарлаа. Дахин оролдоно уу.';
+      await tusUpload(file, uploadUrl);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      const msg = detail || 'Байршуулах явцад алдаа гарлаа. Дахин оролдоно уу.';
+      console.error('[VideoUploader] TUS upload failed:', detail);
+      setErrorTitle('Байршуулах явцад алдаа гарлаа');
       setStatus('error');
       setMessage(msg);
       onError?.(msg);
@@ -189,6 +183,7 @@ export default function VideoUploader({ onSuccess, onError, instructorId, title,
     setStatus('idle');
     setProgress(0);
     setMessage('');
+    setErrorTitle('Алдаа гарлаа');
   }
 
   // ── Styles ─────────────────────────────────────────────────────────────────
@@ -258,7 +253,7 @@ export default function VideoUploader({ onSuccess, onError, instructorId, title,
     return (
       <div style={{ ...s.wrap, borderColor: '#ef4444', borderStyle: 'solid' }}>
         <div style={s.icon}>❌</div>
-        <div style={{ ...s.title, color: '#f87171' }}>Видео шаардлага хангахгүй байна</div>
+        <div style={{ ...s.title, color: '#f87171' }}>{errorTitle}</div>
         <div style={{ ...s.sub, color: '#f87171', marginTop: '6px' }}>{message}</div>
         <button style={{ ...s.btn, background: '#374151', marginTop: '12px' }} onClick={reset}>
           Дахин оролдох
