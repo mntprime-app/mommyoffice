@@ -20,7 +20,7 @@
 
 import { useState } from 'react';
 import UniversalHero, { type UniversalHeroProps } from '@/components/shared/UniversalHero';
-import HeroDetailModal, { type RelatedItem } from '@/components/ui/HeroDetailModal';
+import HeroDetailModal, { type RelatedItem, type ModalEpisode } from '@/components/ui/HeroDetailModal';
 
 type HeroWithModalProps = UniversalHeroProps & {
   /** Shows 🔴 "Хамгийн их үзэгдсэн" badge in the modal */
@@ -31,6 +31,12 @@ type HeroWithModalProps = UniversalHeroProps & {
   durationText?: string;
   /** "More Like This" grid — pass related videos or courses */
   relatedItems?: RelatedItem[];
+  /** 'movie' | 'series' */
+  contentType?: string;
+  /** Episodes for series content */
+  episodes?: ModalEpisode[];
+  /** Number of seasons (shows season selector when > 1) */
+  seasonCount?: number;
 };
 
 export default function HeroWithModal({
@@ -42,6 +48,9 @@ export default function HeroWithModal({
   year,
   durationText,
   relatedItems,
+  contentType,
+  episodes,
+  seasonCount,
   ...heroProps
 }: HeroWithModalProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -72,6 +81,9 @@ export default function HeroWithModal({
           year={year}
           durationText={durationText}
           relatedItems={relatedItems}
+          contentType={contentType}
+          episodes={episodes}
+          seasonCount={seasonCount}
         />
       )}
     </>

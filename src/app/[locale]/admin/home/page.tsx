@@ -95,6 +95,7 @@ export default function AdminHomePage() {
     hero_is_popular: false,
     hero_duration_text: '',
     hero_year: '',
+    hero_content_slug: '',
   });
 
   useEffect(() => {
@@ -255,6 +256,21 @@ export default function AdminHomePage() {
                     value={cfg.hero_duration_text || ''}
                     onChange={(e) => set('hero_duration_text', e.target.value)}
                     placeholder="45 мин"
+                  />
+                </Field>
+              </div>
+
+              {/* Hero content slug — for fetching episodes */}
+              <div style={{ marginBottom: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid #222' }}>
+                <Field
+                  label="Видеоны Slug (цуврал бол)"
+                  hint='Цуврал видеоны slug оруулна. Жишээ: tinder-iin-esreg — энэ тохиолдолд Дэлгэрэнгүй цонхонд ангиудын жагсаалт харагдана.'
+                >
+                  <input
+                    style={inp}
+                    value={cfg.hero_content_slug || ''}
+                    onChange={(e) => set('hero_content_slug', e.target.value.trim())}
+                    placeholder="tinder-iin-esreg"
                   />
                 </Field>
               </div>

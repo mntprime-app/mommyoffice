@@ -235,6 +235,27 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-054 — Series & Multi-Episode Drama Architecture Missing (RESOLVED 2026-09-08)
+
+**Pages affected:** `/admin/videos/[id]/edit`, Home hero detail modal
+
+**Symptom:** The Кино & Видео section had no distinction between single movies and multi-episode series/dramas. Admins could not add episode lists. The Netflix-style "Дэлгэрэнгүй" modal had no "Ангиуд" (Episodes) section for series content.
+
+**Root cause:** `mo_videos` table lacked `content_type` + `season_count` columns. No `mo_video_episodes` table existed. Admin edit page had no episode manager. `HeroDetailModal` had no episode section.
+
+**Fix:** Full 5-layer architecture implemented:
+1. **SQL** — `ALTER TABLE mo_videos ADD content_type, season_count` + `CREATE TABLE mo_video_episodes` (with FK cascade, RLS, indexes). Migration: `docs/sql/mo_video_episodes.sql`.
+2. **Server actions** — `getVideoEpisodes`, `saveEpisodesBatch` in `admin.ts`; `getPublicVideoEpisodes`, `getPublicVideoBySlug` in `videos.ts`; `updateVideo` now accepts `content_type` + `season_count`.
+3. **Admin CMS** — `/admin/videos/[id]/edit` gets: (a) Content Type selector (Movie vs Series, red border); (b) Season count field; (c) Episode Manager — add/delete episode rows with #, title, duration, video URL, thumbnail, description, published toggle, separate "💾 Ангиуд хадгалах" button.
+4. **HeroDetailModal** — new "Ангиуд" section (Netflix The Tudors style): episode number + 16:9 thumb + title + duration right-aligned + description, season selector dropdown when >1 season. CTA changes to "▶ 1-р анги үзэх" for series. Section appears between description and "Үүнтэй төстэй".
+5. **Home page** — `hero_content_slug` in admin/home config: admin pastes video slug → page.tsx fetches that video's content_type + episodes → passes to modal.
+
+**Files changed:** `docs/sql/mo_video_episodes.sql`, `src/app/actions/admin.ts`, `src/app/actions/videos.ts`, `src/app/[locale]/admin/videos/[id]/edit/page.tsx`, `src/components/ui/HeroDetailModal.tsx`, `src/components/shared/HeroWithModal.tsx`, `src/app/[locale]/page.tsx`, `src/lib/homeConfig.ts`, `src/app/[locale]/admin/home/page.tsx`.
+
+**⚠️ DB migration required:** Run `docs/sql/mo_video_episodes.sql` in Supabase SQL Editor before testing.
+
+---
+
 ## BUG-051 — Video Detail Page: No Related Videos Section (RESOLVED 2026-09-06, Session 16)
 
 **Page affected:** `/[locale]/videos/[slug]`

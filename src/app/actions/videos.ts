@@ -92,6 +92,48 @@ export async function deleteVideoComment(
   }
 }
 
+// ─── PUBLIC EPISODE FETCH ────────────────────────────────────────────────────
+
+export interface PublicEpisode {
+  id: string;
+  season_number: number;
+  episode_number: number;
+  title: string;
+  duration: string;
+  video_url: string;
+  thumbnail_url: string;
+  description: string;
+}
+
+/** Fetch published episodes for a video — used by the detail modal */
+export async function getPublicVideoEpisodes(videoId: string): Promise<PublicEpisode[]> {
+  try {
+    const supabase = anonClient();
+    const { data } = await supabase
+      .from('mo_video_episodes')
+      .select('id, season_number, episode_number, title, duration, video_url, thumbnail_url, description')
+      .eq('video_id', videoId)
+      .eq('is_published', true)
+      .order('season_number', { ascending: true })
+      .order('episode_number', { ascending: true });
+    return (data || []) as PublicEpisode[];
+  } catch { return []; }
+}
+
+/** Fetch a public video record by slug (for home hero modal episodes) */
+export async function getPublicVideoBySlug(slug: string) {
+  try {
+    const supabase = anonClient();
+    const { data } = await supabase
+      .from('mo_videos')
+      .select('id, title_mn, slug, content_type, season_count, youtube_id, thumbnail_url, description_mn, category, duration_text')
+      .eq('slug', slug)
+      .eq('is_published', true)
+      .single();
+    return data || null;
+  } catch { return null; }
+}
+
 // ─── INCREMENT VIEW COUNT (client-triggered) ──────────────────────────────────
 
 export async function incrementVideoView(videoId: string): Promise<void> {

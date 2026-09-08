@@ -4,7 +4,9 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getHomeConfig } from '@/app/actions/admin';
+import { getPublicVideoBySlug, getPublicVideoEpisodes, type PublicEpisode } from '@/app/actions/videos';
 import HeroWithModal from '@/components/shared/HeroWithModal';
+import { type ModalEpisode } from '@/components/ui/HeroDetailModal';
 import CarouselRow from '@/components/shared/CarouselRow';
 import { CategoryBadge, StatusBadge, PriceBadge } from '@/components/ui/CategoryBadge';
 
@@ -79,6 +81,26 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const t = await getTranslations('home');
   const [courses, articles, homeVideos, homeCfg] = await Promise.all([getFeaturedCourses(), getHomeArticles(), getHomeVideos(), getHomeConfig()]);
 
+  // If admin pinned a specific video to the hero, fetch its episodes for the detail modal
+  let heroVideo: Awaited<ReturnType<typeof getPublicVideoBySlug>> = null;
+  let heroEpisodes: ModalEpisode[] = [];
+  if (homeCfg.hero_content_slug?.trim()) {
+    heroVideo = await getPublicVideoBySlug(homeCfg.hero_content_slug.trim());
+    if (heroVideo?.id && heroVideo.content_type === 'series') {
+      const rawEps: PublicEpisode[] = await getPublicVideoEpisodes(heroVideo.id);
+      heroEpisodes = rawEps.map((ep) => ({
+        id: ep.id,
+        season_number: ep.season_number,
+        episode_number: ep.episode_number,
+        title: ep.title || '',
+        duration: ep.duration || '',
+        video_url: ep.video_url || '',
+        thumbnail_url: ep.thumbnail_url || '',
+        description: ep.description || '',
+      }));
+    }
+  }
+
   const displayCourses = courses.length > 0 ? courses : PLACEHOLDER_COURSES;
   const featuredArticle = articles.hero;
   const sideArticles = articles.trending;
@@ -103,6 +125,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         isMostLiked={homeCfg.hero_is_popular || false}
         year={homeCfg.hero_year || String(new Date().getFullYear())}
         durationText={homeCfg.hero_duration_text || undefined}
+        contentType={heroVideo?.content_type || 'movie'}
+        episodes={heroEpisodes}
+        seasonCount={heroVideo?.season_count || 1}
         relatedItems={homeVideos.slice(0, 6).map((v) => ({
           id: v.id,
           title: v.title_mn,

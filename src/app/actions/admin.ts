@@ -345,6 +345,8 @@ export async function updateVideo(id: string, data: {
   is_featured: boolean;
   placement: string;
   comments_enabled: boolean;
+  content_type?: string;
+  season_count?: number;
 }) {
   const supabase = await createAdminClient();
   // Auto-generate slug server-side if admin left it blank; fall back to record id
@@ -354,5 +356,58 @@ export async function updateVideo(id: string, data: {
     .update({ ...payload, updated_at: new Date().toISOString() })
     .eq('id', id);
   if (error) return { error: error.message };
+  return { error: null };
+}
+
+// ─── VIDEO EPISODES ───────────────────────────────────────────────────────────
+
+export interface VideoEpisode {
+  id?: string;
+  video_id: string;
+  season_number: number;
+  episode_number: number;
+  title: string;
+  duration: string;
+  video_url: string;
+  thumbnail_url: string;
+  description: string;
+  is_published: boolean;
+}
+
+export async function getVideoEpisodes(videoId: string): Promise<VideoEpisode[]> {
+  try {
+    const supabase = await createAdminClient();
+    const { data } = await supabase
+      .from('mo_video_episodes')
+      .select('*')
+      .eq('video_id', videoId)
+      .order('season_number', { ascending: true })
+      .order('episode_number', { ascending: true });
+    return (data || []) as VideoEpisode[];
+  } catch { return []; }
+}
+
+/** Replace all episodes for a video atomically (delete existing → insert new) */
+export async function saveEpisodesBatch(
+  videoId: string,
+  episodes: Omit<VideoEpisode, 'id'>[],
+): Promise<{ error: string | null }> {
+  const supabase = await createAdminClient();
+  const { error: delErr } = await supabase
+    .from('mo_video_episodes')
+    .delete()
+    .eq('video_id', videoId);
+  if (delErr) return { error: delErr.message };
+  if (episodes.length === 0) return { error: null };
+  const rows = episodes.map((ep, i) => ({
+    ...ep,
+    video_id: videoId,
+    sort_order: i,
+    updated_at: new Date().toISOString(),
+  }));
+  const { error: insErr } = await supabase
+    .from('mo_video_episodes')
+    .insert(rows);
+  if (insErr) return { error: insErr.message };
   return { error: null };
 }

@@ -35,6 +35,17 @@ export interface RelatedItem {
   category?: string;
 }
 
+export interface ModalEpisode {
+  id: string;
+  season_number: number;
+  episode_number: number;
+  title: string;
+  duration: string;
+  video_url: string;
+  thumbnail_url: string;
+  description: string;
+}
+
 export interface HeroDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -53,6 +64,12 @@ export interface HeroDetailModalProps {
   isMostLiked?: boolean;
   /** "More Like This" grid — pass related videos / courses */
   relatedItems?: RelatedItem[];
+  /** 'movie' | 'series' — controls episode section and CTA text */
+  contentType?: string;
+  /** Episodes list — shown for series content */
+  episodes?: ModalEpisode[];
+  /** Number of seasons — shows season selector when > 1 */
+  seasonCount?: number;
 }
 
 export default function HeroDetailModal({
@@ -69,9 +86,19 @@ export default function HeroDetailModal({
   durationText,
   isMostLiked,
   relatedItems = [],
+  contentType = 'movie',
+  episodes = [],
+  seasonCount = 1,
 }: HeroDetailModalProps) {
-  const [muted, setMuted]             = useState(true);
-  const [videoActive, setVideoActive] = useState(false);
+  const [muted, setMuted]               = useState(true);
+  const [videoActive, setVideoActive]   = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState(1);
+
+  const isSeries      = contentType === 'series';
+  const hasEpisodes   = isSeries && episodes.length > 0;
+  const filteredEps   = hasEpisodes
+    ? (seasonCount > 1 ? episodes.filter((e) => e.season_number === selectedSeason) : episodes)
+    : [];
 
   // Delay YouTube autoplay 1 second so modal animation finishes first
   useEffect(() => {
@@ -261,7 +288,7 @@ export default function HeroDetailModal({
         }}>
           {primaryHref && (
             <Link
-              href={primaryHref}
+              href={hasEpisodes ? (episodes[0]?.video_url || primaryHref) : primaryHref}
               onClick={onClose}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -272,7 +299,7 @@ export default function HeroDetailModal({
               }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              {primaryActionText}
+              {hasEpisodes ? '1-р анги үзэх' : primaryActionText}
             </Link>
           )}
           {/* + Хадгалах (watchlist — visual only for now) */}
@@ -368,7 +395,121 @@ export default function HeroDetailModal({
         </div>
 
         {/* ══════════════════════════════════════════════════════
-            4. "ҮҮНТЭЙ ТӨСТЭЙ"  (More Like This)
+            4. АНГИУД (Episodes) — series content only
+        ══════════════════════════════════════════════════════ */}
+        {hasEpisodes && (
+          <div style={{ padding: '24px 24px 0' }}>
+            {/* Section header + season selector */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginBottom: '12px', flexWrap: 'wrap', gap: '8px',
+            }}>
+              <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#e5e5e5' }}>
+                Ангиуд
+              </h3>
+              {seasonCount > 1 && (
+                <select
+                  value={selectedSeason}
+                  onChange={(e) => setSelectedSeason(Number(e.target.value))}
+                  style={{
+                    background: '#333', color: '#e5e5e5',
+                    border: '1px solid #555', borderRadius: '6px',
+                    padding: '6px 14px', fontSize: '13px', cursor: 'pointer', outline: 'none',
+                  }}
+                >
+                  {Array.from({ length: seasonCount }, (_, i) => i + 1).map((s) => (
+                    <option key={s} value={s} style={{ background: '#222' }}>Сезон {s}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Episode rows — Netflix Tudors style */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {filteredEps.map((ep, idx) => {
+                const epHref = ep.video_url || primaryHref || '#';
+                return (
+                  <a
+                    key={ep.id}
+                    href={epHref}
+                    onClick={onClose}
+                    style={{
+                      display: 'flex', alignItems: 'flex-start', gap: '14px',
+                      padding: '14px 0',
+                      borderBottom: idx < filteredEps.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none',
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s',
+                    }}
+                    className="mo-episode-row"
+                  >
+                    {/* Episode number */}
+                    <div style={{
+                      width: '28px', flexShrink: 0, textAlign: 'center',
+                      paddingTop: '30px',
+                      fontSize: '16px', fontWeight: 700, color: '#888',
+                    }}>
+                      {ep.episode_number}
+                    </div>
+
+                    {/* Thumbnail — 16:9 */}
+                    <div style={{
+                      width: '130px', flexShrink: 0,
+                      aspectRatio: '16/9', borderRadius: '4px',
+                      overflow: 'hidden', background: '#2a2a2a', position: 'relative',
+                    }}>
+                      {ep.thumbnail_url ? (
+                        <img
+                          src={ep.thumbnail_url}
+                          alt={ep.title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div style={{
+                          position: 'absolute', inset: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: 'linear-gradient(135deg,#1a1a2e,#0d2137)',
+                        }}>
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Text */}
+                    <div style={{ flex: 1, minWidth: 0, paddingTop: '2px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '5px' }}>
+                        <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#e5e5e5', lineHeight: 1.3 }}>
+                          {ep.title}
+                        </p>
+                        {ep.duration && (
+                          <span style={{ fontSize: '13px', color: '#888', flexShrink: 0, paddingTop: '1px' }}>
+                            {ep.duration}
+                          </span>
+                        )}
+                      </div>
+                      {ep.description && (
+                        <p style={{
+                          margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.45)',
+                          lineHeight: 1.55,
+                          display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}>
+                          {ep.description}
+                        </p>
+                      )}
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            5. "ҮҮНТЭЙ ТӨСТЭЙ"  (More Like This)
         ══════════════════════════════════════════════════════ */}
         {hasRelated && (
           <div style={{ padding: '28px 24px 32px' }}>
@@ -520,6 +661,7 @@ export default function HeroDetailModal({
           from { opacity: 0 } to { opacity: 1 }
         }
         .mo-related-card:hover { transform: scale(1.03); }
+        .mo-episode-row:hover { background: rgba(255,255,255,0.04); border-radius: 6px; }
         @media (max-width: 600px) {
           .mo-related-card { border-radius: 6px; }
         }

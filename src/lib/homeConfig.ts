@@ -23,6 +23,8 @@ export interface HomeConfig {
   hero_duration_text?: string;
   /** e.g. "2026" — shown in modal metadata row */
   hero_year?: string;
+  /** Video slug to fetch content_type + episodes for the hero detail modal */
+  hero_content_slug?: string;
 }
 
 export const HOME_CONFIG_DEFAULTS: HomeConfig = {
