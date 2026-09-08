@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createVideo } from '@/app/actions/admin';
 import VideoUploader from '@/components/ui/VideoUploader';
-import CoverImagePicker, { CoverImagePreview } from '@/components/ui/CoverImagePicker';
+import { CoverImageSection } from '@/components/ui/CoverImagePicker';
 
 const CATEGORIES = [
   'Амжилтын эзэд',
@@ -267,16 +267,6 @@ export default function NewVideoPage() {
           </Field>
         </div>
 
-        {/* Cover Image Picker */}
-        <div style={{ background:'#1a1a1a', border:'1px solid #2a2a2a', borderRadius:'12px', padding:'1.25rem' }}>
-          <CoverImagePicker
-            value={form.thumbnail_url}
-            onChange={(url) => set('thumbnail_url', url)}
-
-            previewTitle={form.title_mn || 'Гарчиг энд харагдана'}
-            previewBadge="Кино & Видео"
-          />
-        </div>
 
         {/* Descriptions */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -362,9 +352,10 @@ export default function NewVideoPage() {
           </button>
         </div>
 
-        {/* Full-width live preview */}
-        <CoverImagePreview
-          src={form.thumbnail_url}
+        {/* Cover image upload + live preview */}
+        <CoverImageSection
+          value={form.thumbnail_url}
+          onChange={(url) => set('thumbnail_url', url)}
           title={form.title_mn || 'Гарчиг энд харагдана'}
           badge="Кино & Видео"
         />

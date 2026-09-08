@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getHomeConfig, saveHomeConfig } from '@/app/actions/admin';
 import { type HomeConfig } from '@/lib/homeConfig';
-import CoverImagePicker, { CoverImagePreview } from '@/components/ui/CoverImagePicker';
+import { CoverImageSection } from '@/components/ui/CoverImagePicker';
 
 function extractYouTubeId(input: string): string {
   const clean = input.trim();
@@ -157,10 +157,6 @@ export default function AdminHomePage() {
         <div style={card}>
           <p style={{ fontSize: '15px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 1rem' }}>🎬 Hero зураг / видео</p>
 
-          <CoverImagePicker
-            value={cfg.hero_cover_image_url}
-            onChange={(url) => set('hero_cover_image_url', url)}
-          />
 
           {/* YouTube ID */}
           <div style={{ marginTop: '1rem' }}>
@@ -379,9 +375,10 @@ export default function AdminHomePage() {
           </Link>
         </div>
 
-        {/* Full-width live preview — below both columns */}
-        <CoverImagePreview
-          src={cfg.hero_cover_image_url}
+        {/* Cover image upload + live preview */}
+        <CoverImageSection
+          value={cfg.hero_cover_image_url}
+          onChange={(url) => set('hero_cover_image_url', url)}
           title={cfg.hero_title_mn || 'Гарчиг энд харагдана'}
           badge={cfg.hero_badge_text || 'MommyOffice'}
         />

@@ -7,7 +7,7 @@ import {
   getVideoEpisodes, saveEpisodesBatch,
   type VideoEpisode,
 } from '@/app/actions/admin';
-import CoverImagePicker, { CoverImagePreview } from '@/components/ui/CoverImagePicker';
+import { CoverImageSection } from '@/components/ui/CoverImagePicker';
 
 const CATEGORIES = [
   'Амжилтын эзэд',
@@ -342,15 +342,6 @@ export default function EditVideoPage() {
           <input value={form.slug} onChange={(e) => set('slug', e.target.value)} style={inp} placeholder="biznes-ehleh-5-alkham" />
         </div>
 
-        {/* Cover Image */}
-        <div style={card}>
-          <CoverImagePicker
-            value={form.thumbnail_url}
-            onChange={(url) => set('thumbnail_url', url)}
-            previewTitle={form.title_mn || 'Гарчиг энд харагдана'}
-            previewBadge="Кино & Видео"
-          />
-        </div>
 
         {/* Meta */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
@@ -443,9 +434,10 @@ export default function EditVideoPage() {
           <Link href={`/${locale}/admin/videos`} style={backLinkStyle}>Буцах</Link>
         </div>
 
-        {/* Full-width live preview — below both columns */}
-        <CoverImagePreview
-          src={form.thumbnail_url}
+        {/* Cover image upload + live preview */}
+        <CoverImageSection
+          value={form.thumbnail_url}
+          onChange={(url) => set('thumbnail_url', url)}
           title={form.title_mn || 'Гарчиг энд харагдана'}
           badge="Кино & Видео"
         />
