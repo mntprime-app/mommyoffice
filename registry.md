@@ -233,6 +233,26 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-060 — mo_courses Missing updated_at Column Crashes Course Save (RESOLVED 2026-09-08)
+
+**Pages affected:** `/admin/courses/[id]/edit`
+
+**Symptom:** Saving an edited course returned `Could not find the 'updated_at' column of 'mo_courses' in the schema cache` — the edit page appeared to save but the record was never updated.
+
+**Root cause:** `updateCourse` server action included `updated_at: new Date().toISOString()` in its Supabase `.update()` payload, but the `mo_courses` table was never given an `updated_at` column. The column existed in the TypeScript payload but not in the DB schema.
+
+**Fix:** Run in Supabase SQL Editor:
+```sql
+ALTER TABLE mo_courses ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+```
+No code change required — `updateCourse` was already correct; the DB schema was simply missing the column.
+
+**Commits:** n/a (SQL run directly; no migration file)
+
+**Regression standard:** Any server action that writes `updated_at` to a table must have a corresponding DB column. When adding `updated_at` to a server action payload, always check that the column exists first, or add the migration in the same commit.
+
+---
+
 ## BUG-059 — Duplicate Course Slug Shows Raw Postgres Error to Admin (RESOLVED 2026-09-08)
 
 **Pages affected:** `/admin/courses/new`
