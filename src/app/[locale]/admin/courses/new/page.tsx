@@ -345,7 +345,6 @@ export default function NewCoursePage() {
                               <div style={{ marginTop: '4px' }}>
                                 <VideoUploader
                                   title={lesson.title || `Хичээл ${li + 1}`}
-                                  minDurationSec={30}
                                   onSuccess={(uid) => {
                                     setLessonField(mi, li, 'stream_id', uid);
                                     setOpenUploaders((prev) => { const next = new Set(prev); next.delete(`${mi}-${li}`); return next; });
@@ -400,7 +399,7 @@ export default function NewCoursePage() {
             <SideCard title="Нийтлэх тохиргоо">
               <button type="button" onClick={() => set('is_published', !form.is_published)} style={{
                 width: '100%', padding: '10px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '14px',
-                border: 'none', cursor: 'pointer',
+                cursor: 'pointer',
                 background: form.is_published ? 'rgba(16,185,129,0.15)' : '#2a2a2a',
                 color: form.is_published ? '#6ee7b7' : '#9ca3af',
                 border: `1px solid ${form.is_published ? 'rgba(16,185,129,0.3)' : '#333'}`,

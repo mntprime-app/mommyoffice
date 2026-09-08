@@ -364,7 +364,6 @@ export default function EditCoursePage() {
                               <div style={{ marginTop: '4px' }}>
                                 <VideoUploader
                                   title={lesson.title || `Хичээл ${li + 1}`}
-                                  minDurationSec={30}
                                   onSuccess={(uid) => {
                                     setLessonField(mi, li, 'stream_id', uid);
                                     setOpenUploaders((prev) => { const next = new Set(prev); next.delete(`${mi}-${li}`); return next; });
@@ -486,9 +485,10 @@ export default function EditCoursePage() {
           </div>
         </div>
 
-        {/* Full-width live preview — below both columns */}
-        <CoverImagePreview
-          src={form.cover_image_url}
+        {/* Full-width cover image upload + live preview */}
+        <CoverImageSection
+          value={form.cover_image_url}
+          onChange={(url) => set('cover_image_url', url)}
           title={form.title_mn || 'Гарчиг энд харагдана'}
           badge="Сургалт"
         />
