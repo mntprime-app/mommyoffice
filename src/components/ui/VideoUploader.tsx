@@ -127,6 +127,7 @@ export default function VideoUploader({ onSuccess, onError, instructorId, title,
         body: JSON.stringify({
           title: title ?? file.name,
           instructorId,
+          fileSize: file.size, // required for TUS creation (Upload-Length)
         }),
       });
       if (!res.ok) throw new Error('Upload URL request failed');

@@ -36,57 +36,60 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { title?: string; instructorId?: string; maxDurationSeconds?: number } = {};
+  let body: { title?: string; instructorId?: string; fileSize?: number } = {};
   try {
     body = await req.json();
   } catch {
     // body is optional
   }
 
-  const maxDurationSeconds = body.maxDurationSeconds ?? 7200; // default 2 hours max
-  const expiry = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // URL expires in 1 hour
+  const fileSize = body.fileSize;
+  if (!fileSize || fileSize <= 0) {
+    return NextResponse.json({ error: 'fileSize is required for TUS upload' }, { status: 400 });
+  }
+
+  const title = body.title ?? 'MommyOffice Video';
+
+  // TUS creation: POST to /stream?direct_user=true — CF returns Location (TUS upload URL)
+  // and Stream-Media-Id (the video UID). No JSON body — metadata goes in headers.
+  const metadata = [
+    `name ${Buffer.from(title).toString('base64')}`,
+    `maxdurationseconds ${Buffer.from('7200').toString('base64')}`,
+    'requiresignedurls',
+  ].join(',');
 
   const cfRes = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/stream/direct_upload`,
+    `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/stream?direct_user=true`,
     {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${CF_STREAM_API_TOKEN}`,
-        'Content-Type': 'application/json',
+        'Tus-Resumable': '1.0.0',
+        'Upload-Length': String(fileSize),
+        'Upload-Metadata': metadata,
       },
-      body: JSON.stringify({
-        maxDurationSeconds,
-        expiry,
-        meta: {
-          name: body.title ?? 'MommyOffice Video',
-          ...(body.instructorId ? { instructorId: body.instructorId } : {}),
-        },
-        requireSignedURLs: true,
-        allowedOrigins: ALLOWED_ORIGINS,
-      }),
     },
   );
 
   if (!cfRes.ok) {
     const err = await cfRes.text();
-    console.error('[request-upload] Cloudflare error:', err);
+    console.error('[request-upload] Cloudflare TUS creation error:', cfRes.status, err);
     return NextResponse.json(
-      { error: 'Failed to create upload URL. Please try again.' },
+      { error: `Failed to create TUS upload (${cfRes.status}). Please try again.` },
       { status: 500 },
     );
   }
 
-  const cfData = await cfRes.json() as {
-    result: { uid: string; uploadURL: string };
-    success: boolean;
-  };
+  const uploadUrl = cfRes.headers.get('Location');
+  const videoUid  = cfRes.headers.get('Stream-Media-Id');
 
-  if (!cfData.success) {
-    return NextResponse.json({ error: 'Cloudflare returned an error' }, { status: 500 });
+  if (!uploadUrl || !videoUid) {
+    console.error('[request-upload] Missing Location or Stream-Media-Id headers', {
+      location: uploadUrl,
+      uid: videoUid,
+    });
+    return NextResponse.json({ error: 'Cloudflare did not return upload URL' }, { status: 500 });
   }
 
-  return NextResponse.json({
-    uploadUrl: cfData.result.uploadURL,
-    videoUid: cfData.result.uid,
-  });
+  return NextResponse.json({ uploadUrl, videoUid });
 }
