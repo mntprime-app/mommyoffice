@@ -1,21 +1,23 @@
 'use client';
 /**
- * BUG-069: Secure Passwordless Email OTP (Supabase Auth)
+ * BUG-069 (rev 2): Magic Link flow — Supabase default sends a clickable link,
+ * not a numeric OTP, unless custom SMTP + custom template is configured.
  *
- * Two-step flow (Udemy/Stripe pattern):
- *  1. User enters email → supabase.auth.signInWithOtp() sends 6-digit code
- *  2. User enters code → supabase.auth.verifyOtp() verifies
- *  3. POST /api/access/by-email finds their purchases → redirect to player
+ * Flow:
+ *  1. User enters email → signInWithOtp() → Supabase sends "Sign in" link
+ *  2. UI shows "check inbox and click the link"
+ *  3. User clicks link → Supabase redirects back here with session in URL hash
+ *  4. onAuthStateChange fires SIGNED_IN → query mo_access_tokens → redirect to course
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 type Tab    = 'student' | 'instructor';
-type Step   = 'email' | 'otp' | 'courses' | 'not-found';
+type Step   = 'email' | 'waiting' | 'courses' | 'not-found' | 'loading';
 type Course = { courseId: string; courseSlug: string; courseTitleMn: string };
 
-const RESEND_WAIT = 30; // seconds before resend is allowed
+const RESEND_WAIT = 60;
 
 export default function AccessIndexPage() {
   const router = useRouter();
@@ -26,20 +28,62 @@ export default function AccessIndexPage() {
   const [tab,        setTab]        = useState<Tab>('student');
   const [step,       setStep]       = useState<Step>('email');
   const [email,      setEmail]      = useState('');
-  const [code,       setCode]       = useState('');
   const [error,      setError]      = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [courses,    setCourses]    = useState<Course[]>([]);
   const [resendSecs, setResendSecs] = useState(0);
 
-  // Resend countdown timer
+  // Resend countdown
   useEffect(() => {
     if (resendSecs <= 0) return;
     const t = setTimeout(() => setResendSecs((s) => s - 1), 1000);
     return () => clearTimeout(t);
   }, [resendSecs]);
 
-  // ─── Step 1: Send OTP ────────────────────────────────────────────────────
+  // ── After magic link click: user returns here with session in URL hash ───
+  const handleVerified = useCallback(async (userEmail: string) => {
+    setStep('loading');
+    try {
+      const res = await fetch('/api/access/by-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail.toLowerCase().trim() }),
+      });
+      const data = await res.json() as { courses?: Course[] };
+      const found = data.courses ?? [];
+      if (found.length === 0) { setStep('not-found'); return; }
+      if (found.length === 1) {
+        router.push(lp(`/courses/${found[0].courseSlug}/learn`));
+        return;
+      }
+      setCourses(found);
+      setStep('courses');
+    } catch {
+      setError('Алдаа гарлаа. Дахин оролдоно уу.');
+      setStep('email');
+    }
+  }, [router, lp]);
+
+  // Listen for Supabase auth state — fires when magic link is clicked
+  useEffect(() => {
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user?.email) {
+          await handleVerified(session.user.email);
+        }
+      }
+    );
+    // Also check if already signed in on mount (page reload after magic link)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+        handleVerified(session.user.email).catch(() => {});
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [handleVerified]);
+
+  // ── Step 1: Send magic link ───────────────────────────────────────────────
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = email.trim().toLowerCase();
@@ -49,87 +93,31 @@ export default function AccessIndexPage() {
     }
     setSubmitting(true);
     setError('');
-
     const supabase = createClient();
     const { error: otpErr } = await supabase.auth.signInWithOtp({
       email: trimmed,
-      options: { shouldCreateUser: true },
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: window.location.href,
+      },
     });
     setSubmitting(false);
-
-    // Rate-limit error means a code was already sent — still advance to OTP step
     if (otpErr && !otpErr.message.toLowerCase().includes('rate')) {
       setError('И-мэйл илгээхэд алдаа гарлаа. Дахин оролдоно уу.');
       return;
     }
-
-    setStep('otp');
+    setStep('waiting');
     setResendSecs(RESEND_WAIT);
   }
 
-  // ─── Step 2: Verify OTP ──────────────────────────────────────────────────
-  async function handleOtpSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (code.trim().length !== 6) {
-      setError('6 оронтой кодыг бүрэн оруулна уу');
-      return;
-    }
-    setSubmitting(true);
-    setError('');
-
-    const supabase = createClient();
-    const { error: verifyErr } = await supabase.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
-      token: code.trim(),
-      type: 'email',
-    });
-
-    if (verifyErr) {
-      setSubmitting(false);
-      setError('Код буруу байна эсвэл хугацаа дууссан. Дахин код авна уу.');
-      return;
-    }
-
-    // OTP valid — look up purchased courses via admin API
-    try {
-      const res = await fetch('/api/access/by-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
-      });
-      const data = await res.json() as { courses?: Course[]; error?: string };
-      const found = data.courses ?? [];
-
-      if (found.length === 0) {
-        setStep('not-found');
-        setSubmitting(false);
-        return;
-      }
-      if (found.length === 1) {
-        // Single course — navigate directly (don't clear submitting; let nav happen)
-        router.push(lp(`/courses/${found[0].courseSlug}/learn`));
-        return;
-      }
-      // Multiple courses — show picker
-      setCourses(found);
-      setStep('courses');
-      setSubmitting(false);
-    } catch {
-      setError('Алдаа гарлаа. Дахин оролдоно уу.');
-      setSubmitting(false);
-    }
-  }
-
-  // ─── Resend OTP ──────────────────────────────────────────────────────────
   async function handleResend() {
     if (resendSecs > 0 || submitting) return;
-    setCode('');
     setError('');
     setSubmitting(true);
     const supabase = createClient();
     await supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
-      options: { shouldCreateUser: true },
+      options: { shouldCreateUser: true, emailRedirectTo: window.location.href },
     });
     setSubmitting(false);
     setResendSecs(RESEND_WAIT);
@@ -137,7 +125,6 @@ export default function AccessIndexPage() {
 
   function resetToEmail() {
     setStep('email');
-    setCode('');
     setError('');
     setCourses([]);
     setResendSecs(0);
@@ -162,8 +149,9 @@ export default function AccessIndexPage() {
 
       {/* Tab switcher */}
       <div style={{
-        display: 'flex', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px',
-        padding: '4px', marginBottom: '2rem', width: '100%', maxWidth: '480px',
+        display: 'flex', background: '#1a1a1a', border: '1px solid #2a2a2a',
+        borderRadius: '12px', padding: '4px', marginBottom: '2rem',
+        width: '100%', maxWidth: '480px',
       }}>
         <button onClick={() => { setTab('student'); resetToEmail(); }} style={{
           flex: 1, padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer',
@@ -183,10 +171,24 @@ export default function AccessIndexPage() {
       {tab === 'student' && (
         <div style={{ width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-          {/* ── STEP: email ── */}
+          {/* ── Loading ── */}
+          {step === 'loading' && (
+            <div style={{
+              background: '#1a1a1a', border: '1px solid #2a2a2a',
+              borderRadius: '16px', padding: '2.5rem', textAlign: 'center',
+            }}>
+              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
+              <div style={{ color: '#e5e5e5', fontWeight: 700 }}>Сургалт хайж байна...</div>
+            </div>
+          )}
+
+          {/* ── Email entry ── */}
           {step === 'email' && (
             <>
-              <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '16px', padding: '1.75rem' }}>
+              <div style={{
+                background: '#1a1a1a', border: '1px solid #2a2a2a',
+                borderRadius: '16px', padding: '1.75rem',
+              }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem' }}>
                   <span style={{ fontSize: '24px' }}>🎓</span>
                   <div>
@@ -216,12 +218,12 @@ export default function AccessIndexPage() {
                     borderRadius: '9px', fontWeight: 700, fontSize: '15px',
                     cursor: submitting ? 'not-allowed' : 'pointer',
                   }}>
-                    {submitting ? 'Илгээж байна...' : 'Үргэлжлүүлэх →'}
+                    {submitting ? 'Илгээж байна...' : 'Нэвтрэх холбоос авах →'}
                   </button>
                 </form>
                 {error && <p style={{ fontSize: '12px', color: '#f87171', margin: '8px 0 0' }}>{error}</p>}
                 <p style={{ fontSize: '11px', color: '#4b5563', margin: '12px 0 0', lineHeight: 1.5 }}>
-                  Та QPay-р сургалт худалдан авах үед ашигласан и-мэйл рүүгээ нэвтрэх код илгээгдэнэ.
+                  Таны и-мэйл рүү нэвтрэх холбоос илгээгдэнэ. Холбоосыг дарж хичээлдээ нэвтэрнэ.
                 </p>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -237,62 +239,51 @@ export default function AccessIndexPage() {
             </>
           )}
 
-          {/* ── STEP: otp ── */}
-          {step === 'otp' && (
-            <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '16px', padding: '1.75rem' }}>
+          {/* ── Waiting for magic link click ── */}
+          {step === 'waiting' && (
+            <div style={{
+              background: '#1a1a1a', border: '1px solid #2a2a2a',
+              borderRadius: '16px', padding: '1.75rem',
+            }}>
               <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
                 <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📬</div>
-                <div style={{ fontWeight: 800, color: '#fff', fontSize: '17px', marginBottom: '6px' }}>
+                <div style={{ fontWeight: 800, color: '#fff', fontSize: '17px', marginBottom: '8px' }}>
                   Шуудан хайрцгаа шалгана уу
                 </div>
-                <div style={{ color: '#6b7280', fontSize: '13px', lineHeight: 1.6 }}>
+                <div style={{ color: '#6b7280', fontSize: '13px', lineHeight: 1.7 }}>
                   <strong style={{ color: '#e5e5e5' }}>{email}</strong> хаяг руу<br />
-                  6 оронтой нэвтрэх код илгээлээ
+                  нэвтрэх холбоос илгээлээ
                 </div>
               </div>
 
-              <form onSubmit={handleOtpSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={code}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/\D/g, '').slice(0, 6);
-                    setCode(v);
-                    setError('');
-                  }}
-                  placeholder="· · · · · ·"
-                  maxLength={6}
-                  autoComplete="one-time-code"
-                  autoFocus
-                  style={{
-                    width: '100%', padding: '18px 14px', borderRadius: '9px',
-                    border: `1.5px solid ${error ? '#ef4444' : '#444'}`,
-                    fontSize: '32px', fontWeight: 700, letterSpacing: '0.45em',
-                    background: '#111', color: '#e5e5e5', textAlign: 'center',
-                    outline: 'none', fontFamily: 'monospace', boxSizing: 'border-box',
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={submitting || code.trim().length !== 6}
-                  style={{
-                    background: (submitting || code.trim().length !== 6) ? '#374151' : '#00B5AD',
-                    color: '#fff', border: 'none', padding: '13px',
-                    borderRadius: '9px', fontWeight: 700, fontSize: '15px',
-                    cursor: (submitting || code.trim().length !== 6) ? 'not-allowed' : 'pointer',
-                    opacity: code.trim().length !== 6 && !submitting ? 0.65 : 1,
-                  }}
-                >
-                  {submitting ? 'Шалгаж байна...' : 'Нэвтрэх'}
-                </button>
-              </form>
+              {/* Visual step guide */}
+              <div style={{
+                background: 'rgba(0,181,173,0.06)', border: '1px solid rgba(0,181,173,0.2)',
+                borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem',
+              }}>
+                {[
+                  { n: '1', text: 'И-мэйл хайрцгаа нээнэ үү' },
+                  { n: '2', text: '"Supabase Auth" илгээсэн и-мэйлийг олно уу' },
+                  { n: '3', text: '"Sign in" товч дарна уу' },
+                  { n: '4', text: 'Энэ хуудас руу автоматаар буцна' },
+                ].map(({ n, text }) => (
+                  <div key={n} style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    padding: '6px 0',
+                    borderBottom: n !== '4' ? '1px solid rgba(0,181,173,0.1)' : 'none',
+                  }}>
+                    <span style={{
+                      width: '22px', height: '22px', borderRadius: '50%',
+                      background: '#00B5AD', color: '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '11px', fontWeight: 700, flexShrink: 0,
+                    }}>{n}</span>
+                    <span style={{ fontSize: '13px', color: '#d1d5db' }}>{text}</span>
+                  </div>
+                ))}
+              </div>
 
-              {error && (
-                <p style={{ fontSize: '12px', color: '#f87171', margin: '10px 0 0', textAlign: 'center' }}>{error}</p>
-              )}
-
-              <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+              <div style={{ textAlign: 'center', marginBottom: '12px' }}>
                 {resendSecs > 0 ? (
                   <span style={{ fontSize: '12px', color: '#6b7280' }}>
                     Дахин илгээх — {resendSecs}с
@@ -303,11 +294,11 @@ export default function AccessIndexPage() {
                     cursor: 'pointer', fontSize: '13px', fontWeight: 600,
                     textDecoration: 'underline', padding: 0,
                   }}>
-                    Код дахин илгээх
+                    Холбоос дахин илгээх
                   </button>
                 )}
               </div>
-              <div style={{ textAlign: 'center', marginTop: '10px' }}>
+              <div style={{ textAlign: 'center' }}>
                 <button onClick={resetToEmail} style={{
                   background: 'none', border: 'none', color: '#6b7280',
                   cursor: 'pointer', fontSize: '12px', textDecoration: 'underline', padding: 0,
@@ -318,14 +309,17 @@ export default function AccessIndexPage() {
             </div>
           )}
 
-          {/* ── STEP: courses picker ── */}
+          {/* ── Course picker ── */}
           {step === 'courses' && (
-            <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '16px', padding: '1.75rem' }}>
+            <div style={{
+              background: '#1a1a1a', border: '1px solid #2a2a2a',
+              borderRadius: '16px', padding: '1.75rem',
+            }}>
               <div style={{ fontWeight: 800, color: '#fff', fontSize: '15px', marginBottom: '4px' }}>
                 Таны худалдан авсан сургалтууд
               </div>
               <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '1.25rem' }}>
-                {email} — нэвтрэх сургалтаа сонгоно уу
+                Нэвтрэх сургалтаа сонгоно уу
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {courses.map((c) => (
@@ -350,7 +344,7 @@ export default function AccessIndexPage() {
             </div>
           )}
 
-          {/* ── STEP: not-found ── */}
+          {/* ── Not found ── */}
           {step === 'not-found' && (
             <div style={{
               background: '#1a1a1a', border: '1px solid rgba(245,158,11,0.3)',
@@ -361,8 +355,7 @@ export default function AccessIndexPage() {
                 Худалдан авалт олдсонгүй
               </div>
               <p style={{ color: '#6b7280', fontSize: '13px', lineHeight: 1.6, margin: '0 0 1rem' }}>
-                <strong style={{ color: '#e5e5e5' }}>{email}</strong> хаягт холбоотой<br />
-                идэвхтэй сургалт олдсонгүй.
+                Энэ и-мэйлд холбоотой идэвхтэй сургалт олдсонгүй.
               </p>
               <a
                 href="mailto:info.mommyoffice@gmail.com?subject=Хичээлд нэвтрэх тусламж"
@@ -390,7 +383,10 @@ export default function AccessIndexPage() {
       {/* ══════════════ INSTRUCTOR TAB ══════════════ */}
       {tab === 'instructor' && (
         <div style={{ width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '16px', padding: '1.75rem' }}>
+          <div style={{
+            background: '#1a1a1a', border: '1px solid #2a2a2a',
+            borderRadius: '16px', padding: '1.75rem',
+          }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem' }}>
               <span style={{ fontSize: '24px' }}>🔐</span>
               <div>
@@ -400,17 +396,11 @@ export default function AccessIndexPage() {
             </div>
             <a href={lp('/instructor/login')} style={{
               display: 'block', textAlign: 'center',
-              background: '#6366f1', color: '#fff',
-              padding: '12px', borderRadius: '9px',
-              fontWeight: 700, fontSize: '14px', textDecoration: 'none',
+              background: '#6366f1', color: '#fff', padding: '12px',
+              borderRadius: '9px', fontWeight: 700, fontSize: '14px', textDecoration: 'none',
             }}>
               Нэвтрэх →
             </a>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ flex: 1, height: '1px', background: '#2a2a2a' }} />
-            <span style={{ fontSize: '12px', color: '#4b5563' }}>эсвэл</span>
-            <div style={{ flex: 1, height: '1px', background: '#2a2a2a' }} />
           </div>
           <div style={{
             background: 'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(0,181,173,0.08) 100%)',
@@ -422,21 +412,10 @@ export default function AccessIndexPage() {
               MommyOffice-д багш болох
             </div>
             <p style={{ color: '#9ca3af', fontSize: '13px', lineHeight: 1.6, margin: '0 0 1.25rem' }}>
-              Таны мэдлэгийг олон мянган ээжид хүргэ. QPay-р шууд орлого олж, хичээлээ бүтээгээрэй.
+              Таны мэдлэгийг олон мянган ээжид хүргэ.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '1.25rem' }}>
-              {[
-                '📤 Өргөдлөө 5 минутад бөглөнө',
-                '🔍 1-3 хоногт бид хянана',
-                '✅ Зөвшөөрлийн имэйл ирнэ',
-                '💰 QPay холбоод борлуулна',
-              ].map((item) => (
-                <div key={item} style={{ fontSize: '13px', color: '#9ca3af', textAlign: 'left' }}>{item}</div>
-              ))}
-            </div>
             <a href={lp('/become-instructor')} style={{
-              display: 'block',
-              background: '#6366f1', color: '#fff',
+              display: 'block', background: '#6366f1', color: '#fff',
               padding: '13px', borderRadius: '10px',
               fontWeight: 700, fontSize: '15px', textDecoration: 'none',
             }}>
@@ -456,7 +435,7 @@ function ActionCard({ href, icon, title, desc, color }: {
     <a href={href} style={{ textDecoration: 'none' }}>
       <div style={{
         background: '#1a1a1a', border: '1px solid #2a2a2a',
-        borderRadius: '12px', padding: '1rem', cursor: 'pointer',
+        borderRadius: '12px', padding: '1rem',
       }}>
         <div style={{ fontSize: '24px', marginBottom: '6px' }}>{icon}</div>
         <div style={{ fontWeight: 700, color: '#e5e5e5', fontSize: '14px' }}>{title}</div>
