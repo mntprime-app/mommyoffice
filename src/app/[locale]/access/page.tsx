@@ -1,36 +1,33 @@
 'use client';
 /**
- * BUG-070: Magic link flow — enterprise polish
- *  - Zero backend/Supabase terminology exposed to users
- *  - Graceful expired-link detection (otp_expired in URL params)
- *  - Clean emailRedirectTo (no trailing params)
- *  - Friendly Mongolian error with one-click resend
+ * BUG-071: Direct Brevo OTP flow — bypasses Supabase Auth entirely.
+ *  - No magic links, no rate limits, no Supabase SMTP dependency
+ *  - User enters email → gets 6-digit code via Brevo → enters code → redirected to course
+ *  - Zero backend/Supabase terminology visible to users
  */
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 
 type Tab    = 'student' | 'instructor';
-type Step   = 'email' | 'waiting' | 'courses' | 'not-found' | 'loading';
+type Step   = 'email' | 'otp' | 'loading' | 'courses' | 'not-found';
 type Course = { courseId: string; courseSlug: string; courseTitleMn: string };
 
 const RESEND_WAIT = 60;
 
 export default function AccessIndexPage() {
-  const router   = useRouter();
-  const params   = useParams();
-  const locale   = params.locale as string;
-  const lp       = (path: string) => `/${locale}${path}`;
+  const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
+  const lp     = (path: string) => `/${locale}${path}`;
 
-  const [tab,         setTab]         = useState<Tab>('student');
-  const [step,        setStep]        = useState<Step>('email');
-  const [email,       setEmail]       = useState('');
-  const [fieldError,  setFieldError]  = useState('');
-  const [linkExpired, setLinkExpired] = useState(false);
-  const [submitting,  setSubmitting]  = useState(false);
-  const [courses,     setCourses]     = useState<Course[]>([]);
-  const [resendSecs,  setResendSecs]  = useState(0);
-  const handledRef = useRef(false);
+  const [tab,        setTab]        = useState<Tab>('student');
+  const [step,       setStep]       = useState<Step>('email');
+  const [email,      setEmail]      = useState('');
+  const [otp,        setOtp]        = useState('');
+  const [fieldError, setFieldError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [courses,    setCourses]    = useState<Course[]>([]);
+  const [resendSecs, setResendSecs] = useState(0);
 
   // Resend countdown
   useEffect(() => {
@@ -39,67 +36,15 @@ export default function AccessIndexPage() {
     return () => clearTimeout(t);
   }, [resendSecs]);
 
-  // ── Detect expired/invalid link redirect from Supabase ────────────────────
-  useEffect(() => {
-    const search = window.location.search;
-    const hash   = window.location.hash;
-    if (
-      search.includes('error') ||
-      hash.includes('error=access_denied') ||
-      hash.includes('error_code=otp_expired')
-    ) {
-      setLinkExpired(true);
-      // Clean the ugly error URL
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, []);
+  function resetToEmail() {
+    setStep('email');
+    setOtp('');
+    setFieldError('');
+    setCourses([]);
+    setResendSecs(0);
+  }
 
-  // ── On fresh load (no magic link hash), clear any lingering session ───────
-  useEffect(() => {
-    const isFromMagicLink = window.location.hash.includes('access_token');
-    if (!isFromMagicLink) {
-      const supabase = createClient();
-      supabase.auth.signOut().catch(() => {});
-    }
-  }, []);
-
-  // ── Post-verification: look up courses by authenticated email ─────────────
-  const handleVerified = useCallback(async (userEmail: string) => {
-    setStep('loading');
-    try {
-      const res  = await fetch('/api/access/by-email', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email: userEmail.toLowerCase().trim() }),
-      });
-      const data   = await res.json() as { courses?: Course[] };
-      const found  = data.courses ?? [];
-      if (found.length === 0)  { setStep('not-found'); return; }
-      if (found.length === 1)  { router.push(lp(`/courses/${found[0].courseSlug}/learn`)); return; }
-      setCourses(found);
-      setStep('courses');
-    } catch {
-      setLinkExpired(true);
-      setStep('email');
-    }
-  }, [router, lp]);
-
-  // ── Listen for SIGNED_IN — fires once when magic link clicked ─────────────
-  useEffect(() => {
-    const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user?.email && !handledRef.current) {
-          handledRef.current = true;
-          await handleVerified(session.user.email);
-          supabase.auth.signOut().catch(() => {});
-        }
-      }
-    );
-    return () => subscription.unsubscribe();
-  }, [handleVerified]);
-
-  // ── Step 1: Send magic link ───────────────────────────────────────────────
+  // ── Step 1: Send OTP code via Brevo ───────────────────────────────────────
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = email.trim().toLowerCase();
@@ -109,47 +54,93 @@ export default function AccessIndexPage() {
     }
     setSubmitting(true);
     setFieldError('');
-    setLinkExpired(false);
 
-    const supabase     = createClient();
-    const redirectBase = `${window.location.origin}/${locale}/access`;
+    try {
+      const res = await fetch('/api/auth/send-code', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email: trimmed }),
+      });
 
-    const { error: otpErr } = await supabase.auth.signInWithOtp({
-      email: trimmed,
-      options: { shouldCreateUser: true, emailRedirectTo: redirectBase },
-    });
-    setSubmitting(false);
-
-    if (otpErr && !otpErr.message.toLowerCase().includes('rate')) {
-      setFieldError('И-мэйл илгээхэд алдаа гарлаа. Дахин оролдоно уу.');
+      if (res.status === 429) {
+        setFieldError('Хэт олон оролдлого. 5 минут хүлээгээд дахин оролдоно уу.');
+        setSubmitting(false);
+        return;
+      }
+      if (!res.ok) {
+        setFieldError('И-мэйл илгээхэд алдаа гарлаа. Дахин оролдоно уу.');
+        setSubmitting(false);
+        return;
+      }
+    } catch {
+      setFieldError('Сүлжээний алдаа. Дахин оролдоно уу.');
+      setSubmitting(false);
       return;
     }
-    setStep('waiting');
+
+    setSubmitting(false);
+    setStep('otp');
     setResendSecs(RESEND_WAIT);
+  }
+
+  // ── Step 2: Verify OTP code ────────────────────────────────────────────────
+  async function handleOtpSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmedOtp = otp.trim();
+    if (!/^\d{6}$/.test(trimmedOtp)) {
+      setFieldError('6 оронт тоо оруулна уу');
+      return;
+    }
+    setSubmitting(true);
+    setFieldError('');
+    setStep('loading');
+
+    try {
+      const res  = await fetch('/api/auth/verify-code', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email: email.trim().toLowerCase(), code: trimmedOtp }),
+      });
+      const data = await res.json() as { courses?: Course[]; error?: string };
+
+      if (!res.ok || data.error) {
+        if (data.error === 'invalid_code') {
+          setFieldError('Код буруу байна эсвэл хугацаа нь дуусчээ. Дахин оролдоно уу.');
+        } else {
+          setFieldError('Алдаа гарлаа. Дахин оролдоно уу.');
+        }
+        setStep('otp');
+        setSubmitting(false);
+        return;
+      }
+
+      const found = data.courses ?? [];
+      setSubmitting(false);
+      if (found.length === 0)   { setStep('not-found'); return; }
+      if (found.length === 1)   { router.push(lp(`/courses/${found[0].courseSlug}/learn`)); return; }
+      setCourses(found);
+      setStep('courses');
+    } catch {
+      setFieldError('Сүлжээний алдаа. Дахин оролдоно уу.');
+      setStep('otp');
+      setSubmitting(false);
+    }
   }
 
   async function handleResend() {
     if (resendSecs > 0 || submitting) return;
     setSubmitting(true);
-    setLinkExpired(false);
-    const supabase     = createClient();
-    const redirectBase = `${window.location.origin}/${locale}/access`;
-    await supabase.auth.signInWithOtp({
-      email: email.trim().toLowerCase(),
-      options: { shouldCreateUser: true, emailRedirectTo: redirectBase },
-    });
+    setFieldError('');
+    try {
+      await fetch('/api/auth/send-code', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+    } catch { /* silent */ }
     setSubmitting(false);
     setResendSecs(RESEND_WAIT);
-    handledRef.current = false; // allow next sign-in
-  }
-
-  function resetToEmail() {
-    setStep('email');
-    setFieldError('');
-    setCourses([]);
-    setResendSecs(0);
-    setLinkExpired(false);
-    handledRef.current = false;
+    setOtp('');
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -205,31 +196,9 @@ export default function AccessIndexPage() {
             </div>
           )}
 
-          {/* Email entry */}
+          {/* Step 1: Email entry */}
           {step === 'email' && (
             <>
-              {/* Expired link banner */}
-              {linkExpired && (
-                <div style={{
-                  background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.35)',
-                  borderRadius: '12px', padding: '1rem 1.25rem',
-                  display: 'flex', flexDirection: 'column', gap: '10px',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                    <span style={{ fontSize: '20px', flexShrink: 0 }}>⚠️</span>
-                    <div>
-                      <div style={{ fontWeight: 700, color: '#fbbf24', fontSize: '13px', marginBottom: '4px' }}>
-                        Нэвтрэх холбоос хүчингүй болсон
-                      </div>
-                      <div style={{ color: '#9ca3af', fontSize: '12px', lineHeight: 1.6 }}>
-                        Энэ холбоос аль хэдийн ашиглагдсан эсвэл хугацаа нь дууссан байна.
-                        И-мэйлээ оруулж шинэ холбоос авна уу.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div style={{
                 background: '#1a1a1a', border: '1px solid #2a2a2a',
                 borderRadius: '16px', padding: '1.75rem',
@@ -263,14 +232,14 @@ export default function AccessIndexPage() {
                     borderRadius: '9px', fontWeight: 700, fontSize: '15px',
                     cursor: submitting ? 'not-allowed' : 'pointer',
                   }}>
-                    {submitting ? 'Илгээж байна...' : 'Нэвтрэх холбоос авах →'}
+                    {submitting ? 'Илгээж байна...' : 'Нэвтрэх код авах →'}
                   </button>
                 </form>
                 {fieldError && (
                   <p style={{ fontSize: '12px', color: '#f87171', margin: '8px 0 0' }}>{fieldError}</p>
                 )}
                 <p style={{ fontSize: '11px', color: '#4b5563', margin: '12px 0 0', lineHeight: 1.5 }}>
-                  Таны и-мэйл рүү нэвтрэх холбоос илгээгдэнэ. Холбоосыг дарж хичээлдээ нэвтэрнэ.
+                  Таны и-мэйл рүү 6 оронт нэвтрэх код илгээгдэнэ. Код 15 минутын дотор хүчинтэй.
                 </p>
               </div>
 
@@ -287,8 +256,8 @@ export default function AccessIndexPage() {
             </>
           )}
 
-          {/* Waiting for magic link */}
-          {step === 'waiting' && (
+          {/* Step 2: OTP code entry */}
+          {step === 'otp' && (
             <div style={{
               background: '#1a1a1a', border: '1px solid #2a2a2a',
               borderRadius: '16px', padding: '1.75rem',
@@ -296,29 +265,64 @@ export default function AccessIndexPage() {
               <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
                 <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📬</div>
                 <div style={{ fontWeight: 800, color: '#fff', fontSize: '17px', marginBottom: '8px' }}>
-                  Шуудан хайрцгаа шалгана уу
+                  И-мэйлээ шалгана уу
                 </div>
                 <div style={{ color: '#6b7280', fontSize: '13px', lineHeight: 1.7 }}>
                   <strong style={{ color: '#e5e5e5' }}>{email}</strong> хаяг руу<br />
-                  нэвтрэх холбоос илгээлээ
+                  6 оронт нэвтрэх код илгээлээ
                 </div>
               </div>
 
-              {/* Step guide — zero backend terminology */}
+              <form onSubmit={handleOtpSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '1.25rem' }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setOtp(v);
+                    setFieldError('');
+                  }}
+                  placeholder="000000"
+                  autoFocus
+                  style={{
+                    width: '100%', padding: '16px 14px', borderRadius: '9px',
+                    border: `1px solid ${fieldError ? '#ef4444' : '#00B5AD'}`,
+                    fontSize: '28px', background: '#111', color: '#00B5AD',
+                    outline: 'none', fontFamily: 'monospace', boxSizing: 'border-box',
+                    letterSpacing: '10px', textAlign: 'center', fontWeight: 700,
+                  }}
+                />
+                <button type="submit" disabled={submitting || otp.length < 6} style={{
+                  background: (submitting || otp.length < 6) ? '#374151' : '#00B5AD',
+                  color: '#fff', border: 'none', padding: '13px',
+                  borderRadius: '9px', fontWeight: 700, fontSize: '15px',
+                  cursor: (submitting || otp.length < 6) ? 'not-allowed' : 'pointer',
+                }}>
+                  {submitting ? 'Шалгаж байна...' : 'Нэвтрэх →'}
+                </button>
+              </form>
+
+              {fieldError && (
+                <p style={{ fontSize: '12px', color: '#f87171', margin: '0 0 12px' }}>{fieldError}</p>
+              )}
+
+              {/* Step guide */}
               <div style={{
                 background: 'rgba(0,181,173,0.06)', border: '1px solid rgba(0,181,173,0.2)',
                 borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem',
               }}>
                 {[
                   { n: '1', text: 'И-мэйл хайрцгаа нээнэ үү' },
-                  { n: '2', text: 'MommyOffice нэвтрэх холбоос олно уу' },
-                  { n: '3', text: '"Нэвтрэх" товч дарна уу' },
-                  { n: '4', text: 'Энэ хуудас руу автоматаар буцна' },
+                  { n: '2', text: 'MommyOffice-с ирсэн и-мэйлийг олно уу' },
+                  { n: '3', text: '6 оронт кодыг дээрх талбарт оруулна уу' },
                 ].map(({ n, text }) => (
                   <div key={n} style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
                     padding: '7px 0',
-                    borderBottom: n !== '4' ? '1px solid rgba(0,181,173,0.1)' : 'none',
+                    borderBottom: n !== '3' ? '1px solid rgba(0,181,173,0.1)' : 'none',
                   }}>
                     <span style={{
                       width: '22px', height: '22px', borderRadius: '50%',
@@ -331,10 +335,10 @@ export default function AccessIndexPage() {
                 ))}
               </div>
 
-              <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+              <div style={{ textAlign: 'center', marginBottom: '10px' }}>
                 {resendSecs > 0 ? (
                   <span style={{ fontSize: '12px', color: '#6b7280' }}>
-                    Дахин илгээх — {resendSecs}с
+                    Код дахин илгээх — {resendSecs}с
                   </span>
                 ) : (
                   <button onClick={handleResend} disabled={submitting} style={{
@@ -342,7 +346,7 @@ export default function AccessIndexPage() {
                     cursor: 'pointer', fontSize: '13px', fontWeight: 600,
                     textDecoration: 'underline', padding: 0,
                   }}>
-                    Холбоос дахин илгээх
+                    Код дахин илгээх
                   </button>
                 )}
               </div>

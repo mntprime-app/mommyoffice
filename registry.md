@@ -233,6 +233,43 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-071 — Direct Brevo API OTP Mailer — Bypass Supabase Rate-Limited SMTP (RESOLVED 2026-09-09)
+
+**Pages affected:** `/mn/access`
+
+**Problem:** Supabase's free shared SMTP is rate-limited (~4 emails/hour). The magic link flow from BUG-069/070 broke under normal testing — no emails arrived after a few sends. Also required manual Supabase dashboard SMTP configuration by the user.
+
+**Resolution — Direct Brevo REST API + custom 6-digit OTP:**
+- Removed all `supabase.auth.signInWithOtp()` and `onAuthStateChange` dependencies from `/mn/access`
+- New flow: email → `POST /api/auth/send-code` → Brevo API sends branded 6-digit OTP → user enters code → `POST /api/auth/verify-code` → course redirect. Zero Supabase Auth in the path.
+- `mo_auth_codes` table stores `{ email, code, expires_at (15 min), used_at, created_at }` — service-role only (RLS enabled, no public policies)
+- Rate limit: max 3 active codes per email per 5 minutes (checked server-side)
+- Codes are single-use: `used_at` set on first successful verify
+- Email template: dark-mode branded card, teal `#00B5AD` OTP box with letter-spacing, Mongolian step guide, zero tech terminology
+- `BREVO_API_KEY`, `FROM_NAME`, `FROM_EMAIL` env vars (already present from purchase route)
+
+**New files:**
+- `src/app/api/auth/send-code/route.ts` — POST: generates code, inserts to DB, calls Brevo API
+- `src/app/api/auth/verify-code/route.ts` — POST: validates code, marks used, returns courses from `mo_access_tokens`
+- `supabase/migrations/20240101_mo_auth_codes.sql` — one-time migration (run in Supabase SQL Editor)
+
+**Files changed:**
+- `src/app/[locale]/access/page.tsx` — complete rewrite: removed Supabase Auth, added OTP code input step
+
+**One-time DB migration required:**
+```sql
+-- Run in Supabase → SQL Editor → New query
+CREATE TABLE IF NOT EXISTS mo_auth_codes (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  email text NOT NULL, code text NOT NULL,
+  expires_at timestamptz NOT NULL, used_at timestamptz, created_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_mo_auth_codes_email ON mo_auth_codes(email);
+ALTER TABLE mo_auth_codes ENABLE ROW LEVEL SECURITY;
+```
+
+---
+
 ## BUG-070 — Magic Link: Expired Link Handling & Zero Backend Exposure (RESOLVED 2026-09-09)
 
 **Pages affected:** `/mn/access`
