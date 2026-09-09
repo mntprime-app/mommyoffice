@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
 import { createCourse, uploadImage, getInstructors } from '@/app/actions/admin';
 import { CoverImageSection } from '@/components/ui/CoverImagePicker';
-import VideoUploader from '@/components/ui/VideoUploader';
+import VideoStagingUploader from '@/components/ui/VideoStagingUploader';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 const LEVELS = ['', 'Анхан шат', 'Дунд шат', 'Ахисан шат'];
@@ -14,7 +14,13 @@ const PLACEMENTS = [
   { value: 'standard', label: '📚 Стандарт каталог', desc: 'Зөвхөн /mn/courses' },
 ];
 
-type OutlineLesson = { title: string; stream_id?: string };
+type OutlineLesson = {
+  title: string;
+  stream_id?: string;
+  r2_key?: string;
+  r2_filename?: string;
+  video_status?: 'none' | 'pending' | 'approved';
+};
 type OutlineModule = { title: string; lessons: OutlineLesson[] };
 type Instructor = { id: string; name_mn: string; name_en: string | null; title_mn: string | null };
 
@@ -46,19 +52,10 @@ export default function NewCoursePage() {
     placement: 'standard', mo_instructor_id: '',
   });
 
+  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', r2_key: '', r2_filename: '', video_status: 'none' });
   const [outline, setOutline] = useState<OutlineModule[]>([
-    { title: '', lessons: [{ title: '', stream_id: '' }] },
+    { title: '', lessons: [emptyLesson()] },
   ]);
-
-  // Track which lesson upload panels are open, keyed by "moduleIndex-lessonIndex"
-  const [openUploaders, setOpenUploaders] = useState<Set<string>>(new Set());
-  function toggleUploader(key: string) {
-    setOpenUploaders((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
-      return next;
-    });
-  }
 
   useEffect(() => {
     getInstructors().then((list) => setInstructors(list as Instructor[]));
@@ -76,10 +73,10 @@ export default function NewCoursePage() {
   }
 
   // Outline helpers
-  const addModule = () => setOutline((o) => [...o, { title: '', lessons: [{ title: '', stream_id: '' }] }]);
+  const addModule = () => setOutline((o) => [...o, { title: '', lessons: [emptyLesson()] }]);
   const removeModule = (mi: number) => setOutline((o) => o.filter((_, i) => i !== mi));
   const setModuleTitle = (mi: number, val: string) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, title: val } : m));
-  const addLesson = (mi: number) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: [...m.lessons, { title: '', stream_id: '' }] } : m));
+  const addLesson = (mi: number) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: [...m.lessons, emptyLesson()] } : m));
   const removeLesson = (mi: number, li: number) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: m.lessons.filter((_, j) => j !== li) } : m));
   const setLessonField = (mi: number, li: number, field: keyof OutlineLesson, val: string) =>
     setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: m.lessons.map((l, j) => j === li ? { ...l, [field]: val } : l) } : m));
@@ -107,7 +104,14 @@ export default function NewCoursePage() {
     setSaving(true); setError('');
     const cleanOutline = outline.filter((m) => m.title.trim()).map((m) => ({
       title: m.title.trim(),
-      lessons: m.lessons.filter((l) => l.title.trim()).map((l) => ({ title: l.title.trim(), stream_id: l.stream_id?.trim() || undefined })),
+      lessons: m.lessons.filter((l) => l.title.trim()).map((l) => {
+        const lesson: OutlineLesson = { title: l.title.trim() };
+        if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
+        if (l.r2_key?.trim()) lesson.r2_key = l.r2_key.trim();
+        if (l.r2_filename?.trim()) lesson.r2_filename = l.r2_filename.trim();
+        if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
+        return lesson;
+      }),
     }));
     const { error: err } = await createCourse({
       title_mn: form.title_mn, title_en: form.title_en || null,
@@ -326,41 +330,47 @@ export default function NewCoursePage() {
                                 style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '13px', padding: '0 4px' }}>✕</button>
                             )}
                           </div>
-                          {/* Video row — always visible */}
+                          {/* Enterprise video row — no raw IDs exposed */}
                           <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #2a2a2a' }}>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
-                              <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap', paddingLeft: '2px' }}>
-                                🎬 Видео:
-                              </span>
-                              {lesson.stream_id ? (
-                                <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>✓ Видео холбогдсон</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap' }}>🎬 Видео:</span>
+                              {lesson.video_status === 'approved' || lesson.stream_id ? (
+                                <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, background: 'rgba(16,185,129,0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                                  ✓ Бэлэн — сурагчдад харагдана
+                                </span>
+                              ) : lesson.video_status === 'pending' && lesson.r2_key ? (
+                                <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700, background: 'rgba(245,158,11,0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                                  ⏳ Хянагдаж байна — Хичээлийг хадгалсны дараа admin батлах
+                                </span>
                               ) : (
-                                <span style={{ fontSize: '11px', color: '#6b7280' }}>Видео байхгүй</span>
+                                <span style={{ fontSize: '11px', color: '#6b7280' }}>— Видео байхгүй</span>
                               )}
                             </div>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                              <input value={lesson.stream_id || ''} onChange={(e) => setLessonField(mi, li, 'stream_id', e.target.value)}
-                                placeholder="CF Stream ID (paste хийх)"
-                                style={{ ...inp, flex: 1, fontSize: '12px', padding: '5px 10px', fontFamily: 'monospace', color: lesson.stream_id ? '#10b981' : '#6b7280' }} />
-                              <button type="button" onClick={() => toggleUploader(`${mi}-${li}`)} style={{
-                                background: openUploaders.has(`${mi}-${li}`) ? '#374151' : '#00B5AD',
-                                color: '#fff', border: 'none',
-                                borderRadius: '6px', padding: '7px 14px', cursor: 'pointer',
-                                fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap',
-                              }}>
-                                {openUploaders.has(`${mi}-${li}`) ? '✕ Хаах' : '📤 Видео оруулах'}
-                              </button>
-                            </div>
-                            {openUploaders.has(`${mi}-${li}`) && (
-                              <div style={{ marginTop: '8px' }}>
-                                <VideoUploader
-                                  title={lesson.title || `Хичээл ${li + 1}`}
-                                  onSuccess={(uid) => {
-                                    setLessonField(mi, li, 'stream_id', uid);
-                                    setOpenUploaders((prev) => { const next = new Set(prev); next.delete(`${mi}-${li}`); return next; });
-                                  }}
-                                  onError={(msg) => setError(msg)}
-                                />
+                            {!lesson.stream_id && lesson.video_status !== 'pending' && !lesson.r2_key && (
+                              <VideoStagingUploader
+                                courseId="new"
+                                moduleIdx={mi}
+                                lessonIdx={li}
+                                onStaged={(storagePath, filename) => {
+                                  setLessonField(mi, li, 'r2_key', storagePath);
+                                  setLessonField(mi, li, 'r2_filename', filename);
+                                  setLessonField(mi, li, 'video_status', 'pending');
+                                }}
+                                onError={(msg) => setError(msg)}
+                              />
+                            )}
+                            {lesson.video_status === 'pending' && lesson.r2_key && !lesson.stream_id && (
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '11px', color: '#6b7280' }}>📄 {lesson.r2_filename || 'видео файл'}</span>
+                                <span style={{ fontSize: '11px', color: '#9ca3af' }}>— Хичээл хадгалагдсны дараа admin батална</span>
+                                <button type="button" onClick={() => {
+                                  setLessonField(mi, li, 'r2_key', '');
+                                  setLessonField(mi, li, 'r2_filename', '');
+                                  setLessonField(mi, li, 'video_status', 'none');
+                                }}
+                                style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '11px', background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)', cursor: 'pointer' }}>
+                                  ✕ Цуцлах
+                                </button>
                               </div>
                             )}
                           </div>

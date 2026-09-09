@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
   const metadata = [
     `name ${Buffer.from(title).toString('base64')}`,
     `maxdurationseconds ${Buffer.from('7200').toString('base64')}`,
-    'requiresignedurls',
   ].join(',');
 
   const cfRes = await fetch(

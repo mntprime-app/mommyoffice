@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getCourseById, updateCourse, deleteCourseById, getInstructors } from '@/app/actions/admin';
 import { CoverImageSection } from '@/components/ui/CoverImagePicker';
-import VideoUploader from '@/components/ui/VideoUploader';
+import VideoStagingUploader from '@/components/ui/VideoStagingUploader';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 const LEVELS = ['', 'Анхан шат', 'Дунд шат', 'Ахисан шат'];
@@ -12,7 +12,13 @@ const PLACEMENTS = [
   { value: 'standard', label: '📚 Стандарт каталог', desc: 'Зөвхөн /mn/courses' },
 ];
 
-type OutlineLesson = { title: string; stream_id?: string };
+type OutlineLesson = {
+  title: string;
+  stream_id?: string;
+  r2_key?: string;       // Supabase Storage path (while staging)
+  r2_filename?: string;  // original filename for display
+  video_status?: 'none' | 'pending' | 'approved';
+};
 type OutlineModule = { title: string; lessons: OutlineLesson[] };
 type Instructor = { id: string; name_mn: string; name_en: string | null; title_mn: string | null };
 
@@ -90,7 +96,15 @@ export default function EditCoursePage() {
         setOutline(rawOutline.map((m: OutlineModule) => ({
           title: m.title,
           lessons: (m.lessons || []).map((l: OutlineLesson | string) =>
-            typeof l === 'string' ? { title: l, stream_id: '' } : { title: l.title || '', stream_id: l.stream_id || '' }
+            typeof l === 'string'
+            ? { title: l, stream_id: '', video_status: 'none' as const }
+            : {
+                title: l.title || '',
+                stream_id: l.stream_id || '',
+                r2_key: l.r2_key || '',
+                r2_filename: l.r2_filename || '',
+                video_status: l.video_status || 'none' as const,
+              }
           ),
         })));
       }
@@ -102,20 +116,51 @@ export default function EditCoursePage() {
     setForm((f) => ({ ...f, [key]: val }));
   }
 
-  // Track which lesson upload panels are open, keyed by "moduleIndex-lessonIndex"
-  const [openUploaders, setOpenUploaders] = useState<Set<string>>(new Set());
-  function toggleUploader(key: string) {
-    setOpenUploaders((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
-      return next;
-    });
+  // Track which lessons are currently being approved (showing spinner)
+  const [approvingLessons, setApprovingLessons] = useState<Set<string>>(new Set());
+
+  async function approveLesson(mi: number, li: number) {
+    const key = `${mi}-${li}`;
+    setApprovingLessons((prev) => new Set([...prev, key]));
+    try {
+      const res = await fetch('/api/admin/approve-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId: id, moduleIdx: mi, lessonIdx: li }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) { setError(json.error ?? 'Баталгаажуулахад алдаа гарлаа'); return; }
+      // Update local state
+      setOutline((o) => o.map((m, i) => i !== mi ? m : {
+        ...m,
+        lessons: m.lessons.map((l, j) => j !== li ? l : {
+          ...l, stream_id: json.streamId, video_status: 'approved' as const, r2_key: '', r2_filename: '',
+        }),
+      }));
+      setSuccess('Видео амжилттай баталгаажлаа ✓ Хичээл дууслаа!');
+      setTimeout(() => setSuccess(''), 4000);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Баталгаажуулахад алдаа гарлаа');
+    } finally {
+      setApprovingLessons((prev) => { const next = new Set(prev); next.delete(key); return next; });
+    }
   }
 
-  const addModule = () => setOutline((o) => [...o, { title: '', lessons: [{ title: '', stream_id: '' }] }]);
+  async function rejectLesson(mi: number, li: number) {
+    if (!confirm('Staged видеог устгах уу?')) return;
+    setOutline((o) => o.map((m, i) => i !== mi ? m : {
+      ...m,
+      lessons: m.lessons.map((l, j) => j !== li ? l : {
+        ...l, r2_key: '', r2_filename: '', video_status: 'none' as const,
+      }),
+    }));
+  }
+
+  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', r2_key: '', r2_filename: '', video_status: 'none' });
+  const addModule = () => setOutline((o) => [...o, { title: '', lessons: [emptyLesson()] }]);
   const removeModule = (mi: number) => setOutline((o) => o.filter((_, i) => i !== mi));
   const setModuleTitle = (mi: number, val: string) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, title: val } : m));
-  const addLesson = (mi: number) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: [...m.lessons, { title: '', stream_id: '' }] } : m));
+  const addLesson = (mi: number) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: [...m.lessons, emptyLesson()] } : m));
   const removeLesson = (mi: number, li: number) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: m.lessons.filter((_, j) => j !== li) } : m));
   const setLessonField = (mi: number, li: number, field: keyof OutlineLesson, val: string) =>
     setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: m.lessons.map((l, j) => j === li ? { ...l, [field]: val } : l) } : m));
@@ -125,7 +170,14 @@ export default function EditCoursePage() {
     setSaving(true); setError(''); setSuccess('');
     const cleanOutline = outline.filter((m) => m.title.trim()).map((m) => ({
       title: m.title.trim(),
-      lessons: m.lessons.filter((l) => l.title.trim()).map((l) => ({ title: l.title.trim(), stream_id: l.stream_id?.trim() || undefined })),
+      lessons: m.lessons.filter((l) => l.title.trim()).map((l) => {
+        const lesson: OutlineLesson = { title: l.title.trim() };
+        if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
+        if (l.r2_key?.trim()) lesson.r2_key = l.r2_key.trim();
+        if (l.r2_filename?.trim()) lesson.r2_filename = l.r2_filename.trim();
+        if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
+        return lesson;
+      }),
     }));
     const { error: err } = await updateCourse(id, {
       title_mn: form.title_mn, title_en: form.title_en,
@@ -345,42 +397,103 @@ export default function EditCoursePage() {
                                 style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '13px', padding: '0 4px' }}>✕</button>
                             )}
                           </div>
-                          {/* Video row — always visible */}
+                          {/* Enterprise video row — no raw IDs exposed */}
                           <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #2a2a2a' }}>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
-                              <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap', paddingLeft: '2px' }}>
-                                🎬 Видео:
-                              </span>
-                              {lesson.stream_id ? (
-                                <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>✓ Видео холбогдсон</span>
+
+                            {/* Status badge row */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap' }}>🎬 Видео:</span>
+                              {lesson.video_status === 'approved' || lesson.stream_id ? (
+                                <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, background: 'rgba(16,185,129,0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                                  ✓ Бэлэн — сурагчдад харагдана
+                                </span>
+                              ) : lesson.video_status === 'pending' && lesson.r2_key ? (
+                                <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700, background: 'rgba(245,158,11,0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                                  ⏳ Хянагдаж байна — admin батлах шаардлагатай
+                                </span>
                               ) : (
-                                <span style={{ fontSize: '11px', color: '#6b7280' }}>Видео байхгүй</span>
+                                <span style={{ fontSize: '11px', color: '#6b7280' }}>— Видео байхгүй</span>
                               )}
                             </div>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                              <input value={lesson.stream_id || ''} onChange={(e) => setLessonField(mi, li, 'stream_id', e.target.value)}
-                                placeholder="CF Stream ID (paste хийх)"
-                                style={{ ...inp, flex: 1, fontSize: '12px', padding: '5px 10px', fontFamily: 'monospace', color: lesson.stream_id ? '#10b981' : '#6b7280' }} />
-                              <button type="button" onClick={() => toggleUploader(`${mi}-${li}`)} style={{
-                                background: openUploaders.has(`${mi}-${li}`) ? '#374151' : '#00B5AD',
-                                color: '#fff', border: 'none',
-                                borderRadius: '6px', padding: '7px 14px', cursor: 'pointer',
-                                fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap',
-                              }}>
-                                {openUploaders.has(`${mi}-${li}`) ? '✕ Хаах' : '📤 Видео оруулах'}
-                              </button>
-                            </div>
-                            {openUploaders.has(`${mi}-${li}`) && (
-                              <div style={{ marginTop: '8px' }}>
-                                <VideoUploader
-                                  title={lesson.title || `Хичээл ${li + 1}`}
-                                  onSuccess={(uid) => {
-                                    setLessonField(mi, li, 'stream_id', uid);
-                                    setOpenUploaders((prev) => { const next = new Set(prev); next.delete(`${mi}-${li}`); return next; });
+
+                            {/* State: no video yet → show uploader */}
+                            {!lesson.stream_id && lesson.video_status !== 'pending' && !lesson.r2_key && (
+                              <VideoStagingUploader
+                                courseId={id}
+                                moduleIdx={mi}
+                                lessonIdx={li}
+                                onStaged={(storagePath, filename) => {
+                                  setLessonField(mi, li, 'r2_key', storagePath);
+                                  setLessonField(mi, li, 'r2_filename', filename);
+                                  setLessonField(mi, li, 'video_status', 'pending');
+                                }}
+                                onError={(msg) => setError(msg)}
+                              />
+                            )}
+
+                            {/* State: pending → admin approval bar */}
+                            {lesson.video_status === 'pending' && lesson.r2_key && !lesson.stream_id && (
+                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                <span style={{ fontSize: '11px', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                                  📄 {lesson.r2_filename || 'видео файл'}
+                                </span>
+                                <a
+                                  href={`/api/admin/staging-preview?path=${encodeURIComponent(lesson.r2_key)}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={{
+                                    padding: '5px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
+                                    background: 'rgba(59,130,246,0.12)', color: '#60a5fa',
+                                    border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', whiteSpace: 'nowrap',
                                   }}
-                                  onError={(msg) => setError(msg)}
-                                />
+                                >
+                                  👁️ Урьдчилан үзэх
+                                </a>
+                                <button
+                                  type="button"
+                                  disabled={approvingLessons.has(`${mi}-${li}`)}
+                                  onClick={() => approveLesson(mi, li)}
+                                  style={{
+                                    padding: '5px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 800,
+                                    background: approvingLessons.has(`${mi}-${li}`) ? '#374151' : '#10b981',
+                                    color: '#fff', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {approvingLessons.has(`${mi}-${li}`) ? '⏳ Шилжүүлж байна...' : '✅ БАТАЛГААЖУУЛАХ'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => rejectLesson(mi, li)}
+                                  style={{
+                                    padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
+                                    background: 'rgba(239,68,68,0.12)', color: '#f87171',
+                                    border: '1px solid rgba(239,68,68,0.25)', cursor: 'pointer', whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  🗑️ Устгах
+                                </button>
                               </div>
+                            )}
+
+                            {/* State: approved → replace option */}
+                            {(lesson.video_status === 'approved' || lesson.stream_id) && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!confirm('Одоогийн видеог устгаж шинээр оруулах уу?')) return;
+                                  setLessonField(mi, li, 'stream_id', '');
+                                  setLessonField(mi, li, 'video_status', 'none');
+                                  setLessonField(mi, li, 'r2_key', '');
+                                  setLessonField(mi, li, 'r2_filename', '');
+                                }}
+                                style={{
+                                  padding: '5px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
+                                  background: 'rgba(107,114,128,0.12)', color: '#9ca3af',
+                                  border: '1px solid #2a2a2a', cursor: 'pointer', whiteSpace: 'nowrap',
+                                }}
+                              >
+                                🔄 Видео солих
+                              </button>
                             )}
                           </div>
                         </div>
