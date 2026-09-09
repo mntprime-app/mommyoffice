@@ -231,7 +231,7 @@ export default function EditCoursePage() {
   const setModuleTitle = (mi: number, val: string) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, title: val } : m));
   const addLesson = (mi: number) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: [...m.lessons, emptyLesson()] } : m));
   const removeLesson = (mi: number, li: number) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: m.lessons.filter((_, j) => j !== li) } : m));
-  const setLessonField = (mi: number, li: number, field: keyof OutlineLesson, val: string) =>
+  const setLessonField = (mi: number, li: number, field: keyof OutlineLesson, val: string | number) =>
     setOutline((o) => o.map((m, i) => i === mi ? { ...m, lessons: m.lessons.map((l, j) => j === li ? { ...l, [field]: val } : l) } : m));
 
   async function handleSave(e: React.FormEvent) {
