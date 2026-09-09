@@ -1,13 +1,10 @@
 'use client';
 /**
- * BUG-069 (rev 2): Magic Link flow — Supabase default sends a clickable link,
- * not a numeric OTP, unless custom SMTP + custom template is configured.
- *
- * Flow:
- *  1. User enters email → signInWithOtp() → Supabase sends "Sign in" link
- *  2. UI shows "check inbox and click the link"
- *  3. User clicks link → Supabase redirects back here with session in URL hash
- *  4. onAuthStateChange fires SIGNED_IN → query mo_access_tokens → redirect to course
+ * BUG-070: Magic link flow — enterprise polish
+ *  - Zero backend/Supabase terminology exposed to users
+ *  - Graceful expired-link detection (otp_expired in URL params)
+ *  - Clean emailRedirectTo (no trailing params)
+ *  - Friendly Mongolian error with one-click resend
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -20,18 +17,20 @@ type Course = { courseId: string; courseSlug: string; courseTitleMn: string };
 const RESEND_WAIT = 60;
 
 export default function AccessIndexPage() {
-  const router = useRouter();
-  const params = useParams();
-  const locale = params.locale as string;
-  const lp = (path: string) => `/${locale}${path}`;
+  const router   = useRouter();
+  const params   = useParams();
+  const locale   = params.locale as string;
+  const lp       = (path: string) => `/${locale}${path}`;
 
-  const [tab,        setTab]        = useState<Tab>('student');
-  const [step,       setStep]       = useState<Step>('email');
-  const [email,      setEmail]      = useState('');
-  const [error,      setError]      = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [courses,    setCourses]    = useState<Course[]>([]);
-  const [resendSecs, setResendSecs] = useState(0);
+  const [tab,         setTab]         = useState<Tab>('student');
+  const [step,        setStep]        = useState<Step>('email');
+  const [email,       setEmail]       = useState('');
+  const [fieldError,  setFieldError]  = useState('');
+  const [linkExpired, setLinkExpired] = useState(false);
+  const [submitting,  setSubmitting]  = useState(false);
+  const [courses,     setCourses]     = useState<Course[]>([]);
+  const [resendSecs,  setResendSecs]  = useState(0);
+  const handledRef = useRef(false);
 
   // Resend countdown
   useEffect(() => {
@@ -40,33 +39,22 @@ export default function AccessIndexPage() {
     return () => clearTimeout(t);
   }, [resendSecs]);
 
-  // ── After magic link click: user returns here with session in URL hash ───
-  const handleVerified = useCallback(async (userEmail: string) => {
-    setStep('loading');
-    try {
-      const res = await fetch('/api/access/by-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail.toLowerCase().trim() }),
-      });
-      const data = await res.json() as { courses?: Course[] };
-      const found = data.courses ?? [];
-      if (found.length === 0) { setStep('not-found'); return; }
-      if (found.length === 1) {
-        router.push(lp(`/courses/${found[0].courseSlug}/learn`));
-        return;
-      }
-      setCourses(found);
-      setStep('courses');
-    } catch {
-      setError('Алдаа гарлаа. Дахин оролдоно уу.');
-      setStep('email');
+  // ── Detect expired/invalid link redirect from Supabase ────────────────────
+  useEffect(() => {
+    const search = window.location.search;
+    const hash   = window.location.hash;
+    if (
+      search.includes('error') ||
+      hash.includes('error=access_denied') ||
+      hash.includes('error_code=otp_expired')
+    ) {
+      setLinkExpired(true);
+      // Clean the ugly error URL
+      window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [router, lp]);
+  }, []);
 
-  const handledRef = useRef(false);
-
-  // On fresh page load (not coming from magic link), clear any lingering session
+  // ── On fresh load (no magic link hash), clear any lingering session ───────
   useEffect(() => {
     const isFromMagicLink = window.location.hash.includes('access_token');
     if (!isFromMagicLink) {
@@ -75,7 +63,28 @@ export default function AccessIndexPage() {
     }
   }, []);
 
-  // Listen for SIGNED_IN — fires exactly once when magic link is clicked
+  // ── Post-verification: look up courses by authenticated email ─────────────
+  const handleVerified = useCallback(async (userEmail: string) => {
+    setStep('loading');
+    try {
+      const res  = await fetch('/api/access/by-email', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email: userEmail.toLowerCase().trim() }),
+      });
+      const data   = await res.json() as { courses?: Course[] };
+      const found  = data.courses ?? [];
+      if (found.length === 0)  { setStep('not-found'); return; }
+      if (found.length === 1)  { router.push(lp(`/courses/${found[0].courseSlug}/learn`)); return; }
+      setCourses(found);
+      setStep('courses');
+    } catch {
+      setLinkExpired(true);
+      setStep('email');
+    }
+  }, [router, lp]);
+
+  // ── Listen for SIGNED_IN — fires once when magic link clicked ─────────────
   useEffect(() => {
     const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -83,7 +92,6 @@ export default function AccessIndexPage() {
         if (event === 'SIGNED_IN' && session?.user?.email && !handledRef.current) {
           handledRef.current = true;
           await handleVerified(session.user.email);
-          // Sign out after lookup so next visit starts clean
           supabase.auth.signOut().catch(() => {});
         }
       }
@@ -96,22 +104,24 @@ export default function AccessIndexPage() {
     e.preventDefault();
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || !trimmed.includes('@') || !trimmed.includes('.')) {
-      setError('И-мэйл хаягаа зөв оруулна уу');
+      setFieldError('И-мэйл хаягаа зөв оруулна уу');
       return;
     }
     setSubmitting(true);
-    setError('');
-    const supabase = createClient();
+    setFieldError('');
+    setLinkExpired(false);
+
+    const supabase     = createClient();
+    const redirectBase = `${window.location.origin}/${locale}/access`;
+
     const { error: otpErr } = await supabase.auth.signInWithOtp({
       email: trimmed,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: window.location.href,
-      },
+      options: { shouldCreateUser: true, emailRedirectTo: redirectBase },
     });
     setSubmitting(false);
+
     if (otpErr && !otpErr.message.toLowerCase().includes('rate')) {
-      setError('И-мэйл илгээхэд алдаа гарлаа. Дахин оролдоно уу.');
+      setFieldError('И-мэйл илгээхэд алдаа гарлаа. Дахин оролдоно уу.');
       return;
     }
     setStep('waiting');
@@ -120,24 +130,29 @@ export default function AccessIndexPage() {
 
   async function handleResend() {
     if (resendSecs > 0 || submitting) return;
-    setError('');
     setSubmitting(true);
-    const supabase = createClient();
+    setLinkExpired(false);
+    const supabase     = createClient();
+    const redirectBase = `${window.location.origin}/${locale}/access`;
     await supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
-      options: { shouldCreateUser: true, emailRedirectTo: window.location.href },
+      options: { shouldCreateUser: true, emailRedirectTo: redirectBase },
     });
     setSubmitting(false);
     setResendSecs(RESEND_WAIT);
+    handledRef.current = false; // allow next sign-in
   }
 
   function resetToEmail() {
     setStep('email');
-    setError('');
+    setFieldError('');
     setCourses([]);
     setResendSecs(0);
+    setLinkExpired(false);
+    handledRef.current = false;
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div style={{
       minHeight: '90vh', background: '#111',
@@ -155,7 +170,7 @@ export default function AccessIndexPage() {
         </p>
       </div>
 
-      {/* Tab switcher */}
+      {/* Tabs */}
       <div style={{
         display: 'flex', background: '#1a1a1a', border: '1px solid #2a2a2a',
         borderRadius: '12px', padding: '4px', marginBottom: '2rem',
@@ -165,13 +180,13 @@ export default function AccessIndexPage() {
           flex: 1, padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer',
           fontWeight: 700, fontSize: '14px',
           background: tab === 'student' ? '#00B5AD' : 'transparent',
-          color: tab === 'student' ? '#fff' : '#6b7280',
+          color:      tab === 'student' ? '#fff' : '#6b7280',
         }}>📚 Сурагч</button>
         <button onClick={() => setTab('instructor')} style={{
           flex: 1, padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer',
           fontWeight: 700, fontSize: '14px',
           background: tab === 'instructor' ? '#6366f1' : 'transparent',
-          color: tab === 'instructor' ? '#fff' : '#6b7280',
+          color:      tab === 'instructor' ? '#fff' : '#6b7280',
         }}>👩‍🏫 Багш</button>
       </div>
 
@@ -179,7 +194,7 @@ export default function AccessIndexPage() {
       {tab === 'student' && (
         <div style={{ width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-          {/* ── Loading ── */}
+          {/* Loading */}
           {step === 'loading' && (
             <div style={{
               background: '#1a1a1a', border: '1px solid #2a2a2a',
@@ -190,9 +205,31 @@ export default function AccessIndexPage() {
             </div>
           )}
 
-          {/* ── Email entry ── */}
+          {/* Email entry */}
           {step === 'email' && (
             <>
+              {/* Expired link banner */}
+              {linkExpired && (
+                <div style={{
+                  background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.35)',
+                  borderRadius: '12px', padding: '1rem 1.25rem',
+                  display: 'flex', flexDirection: 'column', gap: '10px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{ fontSize: '20px', flexShrink: 0 }}>⚠️</span>
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#fbbf24', fontSize: '13px', marginBottom: '4px' }}>
+                        Нэвтрэх холбоос хүчингүй болсон
+                      </div>
+                      <div style={{ color: '#9ca3af', fontSize: '12px', lineHeight: 1.6 }}>
+                        Энэ холбоос аль хэдийн ашиглагдсан эсвэл хугацаа нь дууссан байна.
+                        И-мэйлээ оруулж шинэ холбоос авна уу.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div style={{
                 background: '#1a1a1a', border: '1px solid #2a2a2a',
                 borderRadius: '16px', padding: '1.75rem',
@@ -210,12 +247,12 @@ export default function AccessIndexPage() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => { setEmail(e.target.value); setError(''); }}
+                    onChange={(e) => { setEmail(e.target.value); setFieldError(''); }}
                     placeholder="tanii@email.com"
                     autoComplete="email"
                     style={{
                       width: '100%', padding: '13px 14px', borderRadius: '9px',
-                      border: `1px solid ${error ? '#ef4444' : '#333'}`,
+                      border: `1px solid ${fieldError ? '#ef4444' : '#333'}`,
                       fontSize: '15px', background: '#111', color: '#e5e5e5',
                       outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
                     }}
@@ -229,11 +266,14 @@ export default function AccessIndexPage() {
                     {submitting ? 'Илгээж байна...' : 'Нэвтрэх холбоос авах →'}
                   </button>
                 </form>
-                {error && <p style={{ fontSize: '12px', color: '#f87171', margin: '8px 0 0' }}>{error}</p>}
+                {fieldError && (
+                  <p style={{ fontSize: '12px', color: '#f87171', margin: '8px 0 0' }}>{fieldError}</p>
+                )}
                 <p style={{ fontSize: '11px', color: '#4b5563', margin: '12px 0 0', lineHeight: 1.5 }}>
                   Таны и-мэйл рүү нэвтрэх холбоос илгээгдэнэ. Холбоосыг дарж хичээлдээ нэвтэрнэ.
                 </p>
               </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <ActionCard href={lp('/courses')} icon="🎓" title="Сургалтууд" desc="Бүх хичээлийг үзэх" color="#00B5AD" />
                 <ActionCard href={lp('/videos')}  icon="🎬" title="Видео"       desc="Үнэгүй контент"    color="#f59e0b" />
@@ -247,7 +287,7 @@ export default function AccessIndexPage() {
             </>
           )}
 
-          {/* ── Waiting for magic link click ── */}
+          {/* Waiting for magic link */}
           {step === 'waiting' && (
             <div style={{
               background: '#1a1a1a', border: '1px solid #2a2a2a',
@@ -264,20 +304,20 @@ export default function AccessIndexPage() {
                 </div>
               </div>
 
-              {/* Visual step guide */}
+              {/* Step guide — zero backend terminology */}
               <div style={{
                 background: 'rgba(0,181,173,0.06)', border: '1px solid rgba(0,181,173,0.2)',
                 borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem',
               }}>
                 {[
                   { n: '1', text: 'И-мэйл хайрцгаа нээнэ үү' },
-                  { n: '2', text: '"Supabase Auth" илгээсэн и-мэйлийг олно уу' },
-                  { n: '3', text: '"Sign in" товч дарна уу' },
+                  { n: '2', text: 'MommyOffice нэвтрэх холбоос олно уу' },
+                  { n: '3', text: '"Нэвтрэх" товч дарна уу' },
                   { n: '4', text: 'Энэ хуудас руу автоматаар буцна' },
                 ].map(({ n, text }) => (
                   <div key={n} style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '6px 0',
+                    padding: '7px 0',
                     borderBottom: n !== '4' ? '1px solid rgba(0,181,173,0.1)' : 'none',
                   }}>
                     <span style={{
@@ -317,7 +357,7 @@ export default function AccessIndexPage() {
             </div>
           )}
 
-          {/* ── Course picker ── */}
+          {/* Course picker */}
           {step === 'courses' && (
             <div style={{
               background: '#1a1a1a', border: '1px solid #2a2a2a',
@@ -331,17 +371,13 @@ export default function AccessIndexPage() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {courses.map((c) => (
-                  <a
-                    key={c.courseId}
-                    href={lp(`/courses/${c.courseSlug}/learn`)}
-                    style={{
-                      display: 'block', padding: '14px 16px',
-                      background: 'rgba(0,181,173,0.08)',
-                      border: '1px solid rgba(0,181,173,0.25)',
-                      borderRadius: '10px', textDecoration: 'none',
-                      color: '#e5e5e5', fontWeight: 600, fontSize: '14px',
-                    }}
-                  >
+                  <a key={c.courseId} href={lp(`/courses/${c.courseSlug}/learn`)} style={{
+                    display: 'block', padding: '14px 16px',
+                    background: 'rgba(0,181,173,0.08)',
+                    border: '1px solid rgba(0,181,173,0.25)',
+                    borderRadius: '10px', textDecoration: 'none',
+                    color: '#e5e5e5', fontWeight: 600, fontSize: '14px',
+                  }}>
                     🎓 {c.courseTitleMn}
                     <span style={{ fontSize: '11px', color: '#00B5AD', marginLeft: '8px', fontWeight: 400 }}>
                       Эхлүүлэх →
@@ -352,7 +388,7 @@ export default function AccessIndexPage() {
             </div>
           )}
 
-          {/* ── Not found ── */}
+          {/* Not found */}
           {step === 'not-found' && (
             <div style={{
               background: '#1a1a1a', border: '1px solid rgba(245,158,11,0.3)',
@@ -363,16 +399,13 @@ export default function AccessIndexPage() {
                 Худалдан авалт олдсонгүй
               </div>
               <p style={{ color: '#6b7280', fontSize: '13px', lineHeight: 1.6, margin: '0 0 1rem' }}>
-                Энэ и-мэйлд холбоотой идэвхтэй сургалт олдсонгүй.
+                Энэ и-мэйл хаягт холбоотой идэвхтэй сургалт олдсонгүй.
               </p>
-              <a
-                href="mailto:info.mommyoffice@gmail.com?subject=Хичээлд нэвтрэх тусламж"
-                style={{
-                  display: 'inline-block', background: '#00B5AD', color: '#fff',
-                  padding: '10px 20px', borderRadius: '8px', textDecoration: 'none',
-                  fontWeight: 700, fontSize: '13px', marginBottom: '12px',
-                }}
-              >
+              <a href="mailto:info.mommyoffice@gmail.com?subject=Хичээлд нэвтрэх тусламж" style={{
+                display: 'inline-block', background: '#00B5AD', color: '#fff',
+                padding: '10px 20px', borderRadius: '8px', textDecoration: 'none',
+                fontWeight: 700, fontSize: '13px', marginBottom: '12px',
+              }}>
                 Тусламж авах →
               </a>
               <br />

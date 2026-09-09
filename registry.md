@@ -233,6 +233,31 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-070 — Magic Link: Expired Link Handling & Zero Backend Exposure (RESOLVED 2026-09-09)
+
+**Pages affected:** `/mn/access`
+
+**Problem:**
+1. Clicking an already-used or expired magic link silently redirected back to `/mn/access?error=access_denied&error_code=otp_expired...` with no user-facing explanation
+2. Step guide exposed "Supabase Auth" — internal backend terminology visible to buyers
+3. `emailRedirectTo` used `window.location.href` which could carry stale query params
+
+**Resolution:**
+- On mount: detect `error` / `otp_expired` in URL search params or hash → set `linkExpired` state → clean URL with `history.replaceState` → show amber ⚠️ banner: "Нэвтрэх холбоос хүчингүй болсон — аль хэдийн ашиглагдсан эсвэл хугацаа нь дууссан. И-мэйлээ оруулж шинэ холбоос авна уу."
+- Step 2 of guide changed from `"Supabase Auth" илгээсэн и-мэйлийг олно уу` → `MommyOffice нэвтрэх холбоос олно уу` — zero backend names visible
+- `emailRedirectTo` now uses clean base URL: `window.location.origin + '/' + locale + '/access'`
+- `handledRef.current` reset on resend so new sign-in works after clearing expired state
+
+**Files changed:**
+- `src/app/[locale]/access/page.tsx`
+
+**Supabase URL Configuration required (one-time manual step):**
+- Authentication → URL Configuration → Redirect URLs → add:
+  - `https://mommyoffice-smoky.vercel.app/**`
+  - `https://mommyoffice.com/**`
+
+---
+
 ## BUG-069 — Secure Passwordless Email OTP Access Flow (RESOLVED 2026-09-09)
 
 **Pages affected:** `/mn/access`
