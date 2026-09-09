@@ -12,7 +12,7 @@ import { CategoryBadge, StatusBadge, PriceBadge } from '@/components/ui/Category
 
 async function getFeaturedCourses() {
   const supabase = await createAdminClient();
-  const SEL = 'id, title_mn, title_en, price, cover_image_url, slug, category';
+  const SEL = 'id, title_mn, title_en, price, original_price, cover_image_url, slug, category';
   // Try placement-filtered first (requires migration); fallback to all published
   try {
     const { data, error } = await supabase
@@ -154,6 +154,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 ? String(c.title_mn || c.title || '')
                 : String(c.title_en || c.title_mn || c.title || '');
               const price = Number(c.price) || 0;
+              const originalPrice = Number(c.original_price) || 0;
+              const discountPct = originalPrice > price && originalPrice > 0 ? Math.round((1 - price / originalPrice) * 100) : 0;
               const slug = c.slug ? `/${locale}/courses/${c.slug}` : '#';
               const gradients = [
                 'linear-gradient(135deg,#0d2137,#1a4a6b)',
@@ -181,10 +183,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                       }
                     </div>
                     {/* External text box */}
-                    <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #1f1f1f', flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px', flexWrap: 'wrap' }}>
+                    <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #1f1f1f', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
                         <CategoryBadge text={String(c.category || c.cat || 'Сургалт')} />
-                        <PriceBadge price={price} />
                       </div>
                       <p style={{
                         fontWeight: 700, fontSize: '13px', color: '#e5e5e5',
@@ -194,6 +195,22 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                       }}>
                         {title}
                       </p>
+                      {/* Price row — discounted + original + % badge */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: 'auto' }}>
+                        <span style={{ fontWeight: 800, fontSize: '14px', color: price === 0 ? '#10b981' : '#fff' }}>
+                          {price === 0 ? 'Үнэгүй' : `${price.toLocaleString()}₮`}
+                        </span>
+                        {discountPct > 0 && (
+                          <>
+                            <span style={{ fontSize: '11px', color: '#555', textDecoration: 'line-through' }}>
+                              {originalPrice.toLocaleString()}₮
+                            </span>
+                            <span style={{ fontSize: '10px', fontWeight: 700, background: '#e53e3e', color: '#fff', padding: '1px 5px', borderRadius: '3px' }}>
+                              -{discountPct}%
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Link>
