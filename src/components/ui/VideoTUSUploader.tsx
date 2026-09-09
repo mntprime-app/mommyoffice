@@ -20,7 +20,7 @@ const ACCEPTED_EXT = '.mp4, .mov, .mkv, .webm';
 const CHUNK_SIZE = 50 * 1024 * 1024; // 50 MB per chunk
 
 interface Props {
-  onUploaded: (streamId: string) => void;
+  onUploaded: (streamId: string, fileName: string, fileSize: number) => void;
   onError?: (msg: string) => void;
   disabled?: boolean;
 }
@@ -103,7 +103,7 @@ export default function VideoTUSUploader({ onUploaded, onError, disabled }: Prop
     }
 
     setUploading(false);
-    onUploaded(videoUid);
+    onUploaded(videoUid, file.name, file.size);
     // Parent auto-approves and transitions to STATE C (green) — this component will unmount
   }, [onUploaded, onError]);
 

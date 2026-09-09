@@ -16,7 +16,16 @@ type OutlineLesson = {
   title: string;
   stream_id?: string;
   video_status?: 'none' | 'pending' | 'approved';
+  file_name?: string;
+  file_size?: number;
 };
+
+function fmtBytes(b: number): string {
+  if (!b) return '';
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+  if (b < 1024 * 1024 * 1024) return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
 type OutlineModule = { title: string; lessons: OutlineLesson[] };
 type Instructor = { id: string; name_mn: string; name_en: string | null; title_mn: string | null };
 
@@ -100,6 +109,8 @@ export default function EditCoursePage() {
                 title: l.title || '',
                 stream_id: l.stream_id || '',
                 video_status: l.video_status || 'none' as const,
+                file_name: l.file_name || '',
+                file_size: l.file_size || 0,
               }
           ),
         })));
@@ -126,6 +137,8 @@ export default function EditCoursePage() {
               const lesson: OutlineLesson = { title: l.title.trim() };
               if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
               if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
+              if (l.file_name?.trim()) lesson.file_name = l.file_name.trim();
+              if (l.file_size) lesson.file_size = l.file_size;
               return lesson;
             }),
         }));
@@ -181,7 +194,7 @@ export default function EditCoursePage() {
     }
   }
 
-  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', video_status: 'none' });
+  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', video_status: 'none', file_name: '', file_size: 0 });
   const addModule = () => setOutline((o) => [...o, { title: '', lessons: [emptyLesson()] }]);
   const removeModule = (mi: number) => setOutline((o) => o.filter((_, i) => i !== mi));
   const setModuleTitle = (mi: number, val: string) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, title: val } : m));
@@ -205,6 +218,8 @@ export default function EditCoursePage() {
             const lesson: OutlineLesson = { title: l.title.trim() };
             if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
             if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
+            if (l.file_name?.trim()) lesson.file_name = l.file_name.trim();
+            if (l.file_size) lesson.file_size = l.file_size;
             return lesson;
           }),
       }));
@@ -445,7 +460,7 @@ export default function EditCoursePage() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ fontSize: '11px', color: '#6b7280' }}>🎬 Видео: — Байхгүй</span>
                                 <VideoTUSUploader
-                                  onUploaded={(streamId) => {
+                                  onUploaded={(streamId, fileName, fileSize) => {
                                     setOutline((o) => {
                                       const newO = o.map((m, i) => i !== mi ? m : ({
                                         ...m,
@@ -453,9 +468,11 @@ export default function EditCoursePage() {
                                           ...l,
                                           stream_id: streamId,
                                           video_status: 'approved' as const, // auto-approve
+                                          file_name: fileName,
+                                          file_size: fileSize,
                                         })),
                                       }));
-                                      // Auto-save so stream_id + approved status persists in DB immediately
+                                      // Auto-save so stream_id + metadata persists in DB immediately
                                       autoSaveOutlineWithStreamId(newO);
                                       return newO;
                                     });
@@ -478,22 +495,29 @@ export default function EditCoursePage() {
                                 gap: '8px',
                                 flexWrap: 'wrap',
                               }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#10b981' }}>
-                                    ✓ Бэлэн — сурагчдад харагдана
-                                  </span>
-                                  <a
-                                    href={`https://iframe.cloudflarestream.com/${lesson.stream_id}?controls=true`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={{
-                                      padding: '3px 8px', borderRadius: '5px', fontSize: '10px', fontWeight: 700,
-                                      background: 'rgba(59,130,246,0.12)', color: '#60a5fa',
-                                      border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', whiteSpace: 'nowrap',
-                                    }}
-                                  >
-                                    👁️ Үзэх
-                                  </a>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#10b981' }}>
+                                      ✓ Бэлэн — сурагчдад харагдана
+                                    </span>
+                                    <a
+                                      href={`https://iframe.cloudflarestream.com/${lesson.stream_id}?controls=true&preload=metadata`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      style={{
+                                        padding: '3px 8px', borderRadius: '5px', fontSize: '10px', fontWeight: 700,
+                                        background: 'rgba(59,130,246,0.12)', color: '#60a5fa',
+                                        border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', whiteSpace: 'nowrap',
+                                      }}
+                                    >
+                                      👁️ Үзэх
+                                    </a>
+                                  </div>
+                                  {lesson.file_name && (
+                                    <span style={{ fontSize: '11px', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      🎬 {lesson.file_name}{lesson.file_size ? ` • ${fmtBytes(lesson.file_size)}` : ''}
+                                    </span>
+                                  )}
                                 </div>
                                 <div style={{ display: 'flex', gap: '6px' }}>
                                   <button

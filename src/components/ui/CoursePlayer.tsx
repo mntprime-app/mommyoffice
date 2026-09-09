@@ -143,7 +143,7 @@ export function CoursePlayer({
             {currentStreamId ? (
               <iframe
                 key={currentStreamId}
-                src={`https://iframe.cloudflarestream.com/${currentStreamId}`}
+                src={`https://iframe.cloudflarestream.com/${currentStreamId}?controls=true&preload=metadata`}
                 title={activeLesson?.title || title}
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

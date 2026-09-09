@@ -233,6 +233,33 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-061 — CF Stream Iframe Player Params & Rich Video Metadata Display (RESOLVED 2026-09-09)
+
+**Pages affected:** `/admin/courses/[id]/edit`, `/admin/courses/new`, `CoursePlayer.tsx`
+
+**Problem / Trigger:**
+1. CF Stream iframe URLs lacked `controls=true&preload=metadata`, causing some browsers to show "An unknown error occurred" on cold-load (player had no control bar and no preload hint).
+2. The green STATE C card showed only "✓ Бэлэн — сурагчдад харагдана" with no filename or file size, making it impossible for the admin to identify which file was uploaded without clicking 👁️ Үзэх.
+
+**Root cause of "unknown error":** Stale / partial TUS stream_id from a previous failed upload session. CF Stream creates the UID on the initial POST but marks the video as error if bytes never arrive. `preload=metadata` also helps browsers that don't autoplay request the manifest early.
+
+**Resolution:**
+- `VideoTUSUploader.tsx`: `onUploaded` callback signature changed to `(streamId: string, fileName: string, fileSize: number)` — passes original filename and byte count to parent.
+- `OutlineLesson` type extended: `file_name?: string; file_size?: number`. Added `fmtBytes()` helper.
+- `onUploaded` in `edit/page.tsx` and `new/page.tsx`: stores `file_name` and `file_size` in outline state alongside `stream_id`.
+- `autoSaveOutlineWithStreamId`, `handleSave` cleanOutline, DB hydration: all persist and restore `file_name`/`file_size`.
+- STATE C green card: displays `🎬 {file_name} • {size}` below the status line.
+- Iframe URLs updated everywhere: `?controls=true` → `?controls=true&preload=metadata`.
+- `CoursePlayer.tsx`: same iframe URL fix applied to the student course player.
+
+**Files changed:**
+- `src/components/ui/VideoTUSUploader.tsx`
+- `src/app/[locale]/admin/courses/[id]/edit/page.tsx`
+- `src/app/[locale]/admin/courses/new/page.tsx`
+- `src/components/ui/CoursePlayer.tsx`
+
+---
+
 ## BUG-060 — Auto-Approval Pipeline & 4 GB Kajabi File Validation (RESOLVED 2026-09-09)
 
 **Pages affected:** `/admin/courses/[id]/edit`, `/admin/courses/new`
