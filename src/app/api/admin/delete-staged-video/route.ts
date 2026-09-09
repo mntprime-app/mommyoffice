@@ -1,29 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+/**
+ * POST /api/admin/delete-staged-video
+ * @deprecated — Supabase staging bucket removed (BUG-066). Route kept as stub to avoid 404s.
+ * All video management now uses /api/admin/reject-video (CF Stream DELETE) instead.
+ */
+import { NextResponse } from 'next/server';
 
-const BUCKET = 'course-staging';
-
-export async function POST(req: NextRequest) {
-  try {
-    const { storagePath } = await req.json();
-    if (!storagePath || typeof storagePath !== 'string') {
-      return NextResponse.json({ error: 'storagePath required' }, { status: 400 });
-    }
-    // Safety: only allow paths inside course-staging (no path traversal)
-    if (storagePath.includes('..') || storagePath.startsWith('/')) {
-      return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
-    }
-
-    const supabase = await createAdminClient();
-    const { error } = await supabase.storage.from(BUCKET).remove([storagePath]);
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ ok: true });
-  } catch (e: unknown) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : 'Server error' },
-      { status: 500 }
-    );
-  }
+export async function POST() {
+  return NextResponse.json(
+    { error: 'Supabase staging bucket deprecated. Use /api/admin/reject-video instead.' },
+    { status: 410 },
+  );
 }
