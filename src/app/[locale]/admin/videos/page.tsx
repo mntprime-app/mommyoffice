@@ -174,28 +174,28 @@ export default function AdminVideosPage() {
                   <button
                     onClick={() => togglePublished(v.id, v.is_published)}
                     style={{
-                      fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '6px',
-                      border: '1px solid',
-                      background: v.is_published ? 'rgba(16,185,129,0.1)' : '#222',
-                      color: v.is_published ? '#10b981' : '#6b7280',
-                      borderColor: v.is_published ? 'rgba(16,185,129,0.3)' : '#333',
-                      cursor: 'pointer',
+                      padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 600,
+                      border: 'none', cursor: 'pointer',
+                      background: v.is_published ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)',
+                      color: v.is_published ? '#f59e0b' : '#10b981',
                     }}
                   >
-                    {v.is_published ? '✓ Нийтлэгдсэн' : '○ Ноорог'}
+                    {v.is_published ? 'Нуух' : 'Нийтлэх'}
                   </button>
                   <Link href={`/${locale}/admin/videos/${v.id}/edit`} style={{
-                    fontSize: '12px', color: '#00B5AD', background: 'rgba(0,181,173,0.1)',
-                    border: '1px solid rgba(0,181,173,0.3)', padding: '5px 12px',
-                    borderRadius: '6px', textDecoration: 'none', fontWeight: 600,
+                    padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 600,
+                    textDecoration: 'none', background: '#2a2a2a', color: '#e5e5e5', border: '1px solid #333',
                   }}>
                     Засах
                   </Link>
                   <button
                     onClick={() => deleteVideo(v.id, v.title_mn)}
-                    style={{ fontSize: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}
+                    style={{
+                      padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600,
+                      border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.15)', color: '#ef4444',
+                    }}
                   >
-                    🗑
+                    Устгах
                   </button>
                 </div>
               </div>
