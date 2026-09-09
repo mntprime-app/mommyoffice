@@ -100,7 +100,7 @@ export default function EditCoursePage() {
       });
       const rawOutline = data.course_outline_mn || data.outline;
       if (Array.isArray(rawOutline) && rawOutline.length > 0) {
-        setOutline(rawOutline.map((m: OutlineModule) => ({
+        const loadedOutline = rawOutline.map((m: OutlineModule) => ({
           title: m.title,
           lessons: (m.lessons || []).map((l: OutlineLesson | string) =>
             typeof l === 'string'
@@ -113,9 +113,14 @@ export default function EditCoursePage() {
                 file_size: l.file_size || 0,
               }
           ),
-        })));
+        }));
+        setOutline(loadedOutline);
+        setLoading(false);
+        // BUG-062: backfill file_name/file_size from CF Stream for pre-BUG-061 videos
+        backfillVideoMeta(loadedOutline).catch(() => {});
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
   }, [id]);
 
@@ -146,6 +151,49 @@ export default function EditCoursePage() {
     } catch {
       // Non-critical — user can still save manually with 💾 Хадгалах
     }
+  }
+
+  // BUG-062: Fetch file_name/file_size from CF Stream API for any lesson that
+  // has a stream_id but no metadata (uploaded before BUG-061). Runs once on
+  // page load, patches state, and auto-saves results back to DB so subsequent
+  // loads skip this fetch entirely.
+  async function backfillVideoMeta(loadedOutline: OutlineModule[]) {
+    const jobs: Array<{ mi: number; li: number; streamId: string }> = [];
+    loadedOutline.forEach((mod, mi) => {
+      (mod.lessons || []).forEach((lesson, li) => {
+        if (lesson.stream_id?.trim() && (!lesson.file_name?.trim() || !lesson.file_size)) {
+          jobs.push({ mi, li, streamId: lesson.stream_id });
+        }
+      });
+    });
+    if (jobs.length === 0) return;
+
+    const settled = await Promise.allSettled(
+      jobs.map(async ({ mi, li, streamId }) => {
+        try {
+          const res = await fetch(`/api/admin/cf-video-meta?streamId=${encodeURIComponent(streamId)}`);
+          if (!res.ok) return null;
+          const d = await res.json() as { name: string; size: number };
+          return { mi, li, name: d.name || '', size: d.size || 0 };
+        } catch { return null; }
+      })
+    );
+
+    const patches = settled.flatMap((r) =>
+      r.status === 'fulfilled' && r.value ? [r.value] : []
+    );
+    if (patches.length === 0) return;
+
+    const patchedOutline = loadedOutline.map((m, mi) => ({
+      ...m,
+      lessons: m.lessons.map((l, li) => {
+        const p = patches.find((x) => x.mi === mi && x.li === li);
+        return p ? { ...l, file_name: p.name, file_size: p.size } : l;
+      }),
+    }));
+
+    setOutline(patchedOutline);
+    autoSaveOutlineWithStreamId(patchedOutline).catch(() => {});
   }
 
   // Per-lesson inline error messages (keyed by "mi-li")

@@ -233,6 +233,25 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-067 — CF Stream Metadata Backfill for Pre-BUG-061 Lessons (RESOLVED 2026-09-09)
+
+**Pages affected:** `/admin/courses/[id]/edit`
+
+**Problem:** Lessons uploaded before BUG-061 (commit `0ce20e9`) have no `file_name`/`file_size` in `course_outline_mn` — the green STATE C card shows "✓ Бэлэн" but no filename or file size. Re-uploading every video to capture metadata was impractical.
+
+**Root cause:** `file_name`/`file_size` fields were only added to the TUS upload callback in BUG-061. Existing DB rows have `null`/`0` for these fields.
+
+**Resolution:**
+- New API route `GET /api/admin/cf-video-meta?streamId=xxx` — calls `GET /accounts/{CF_ACCOUNT_ID}/stream/{streamId}` and returns `{ name, size, duration, readyToStream }`. The `name` is the original TUS filename (`meta.name` from the CF Stream API). Response cached 1 hour at Next.js fetch layer.
+- `backfillVideoMeta(loadedOutline)` function in `edit/page.tsx` — runs once on page load (fire-and-forget). Scans all lessons for `stream_id` with missing `file_name`/`file_size`, fetches CF Stream metadata in parallel (`Promise.allSettled`), patches local state, and calls `autoSaveOutlineWithStreamId` to persist backfilled data to DB. Self-healing: next page load finds metadata already in DB and skips the backfill entirely.
+- No UI changes required — the existing `{lesson.file_name && (...)}` conditional now renders because the data is present.
+
+**Files changed:**
+- `src/app/api/admin/cf-video-meta/route.ts` (NEW)
+- `src/app/[locale]/admin/courses/[id]/edit/page.tsx` — `useEffect` captures `loadedOutline` before `setOutline` and fires `backfillVideoMeta`; `backfillVideoMeta` function added
+
+---
+
 ## BUG-061 — CF Stream Iframe Player Params & Rich Video Metadata Display (RESOLVED 2026-09-09)
 
 **Pages affected:** `/admin/courses/[id]/edit`, `/admin/courses/new`, `CoursePlayer.tsx`
