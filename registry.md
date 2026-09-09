@@ -233,6 +233,44 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-069 — Secure Passwordless Email OTP Access Flow (RESOLVED 2026-09-09)
+
+**Pages affected:** `/mn/access`
+
+**Problem (BUG-068 security flaw):** The BUG-068 email-first access flow looked up `mo_access_tokens` directly by email and redirected to the course — no verification. Anyone who knew a buyer's email could access their purchased courses without owning them.
+
+**Resolution — Supabase Auth OTP (Udemy/Stripe pattern):**
+- Step 1: User enters email → `supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })` → Supabase sends a free 6-digit OTP email. Rate-limit errors are swallowed (code was already sent).
+- Step 2: Inline transition to OTP entry — large monospace 6-digit input, 30s resend countdown, "← Өөр и-мэйл ашиглах" back link. `supabase.auth.verifyOtp({ email, token, type: 'email' })`.
+- Step 3: After verified, calls existing `POST /api/access/by-email` with authenticated email → 1 course = direct redirect to `/mn/courses/[slug]/learn`; multiple = course picker cards; none = friendly "Худалдан авалт олдсонгүй" error with support email link.
+- `shouldCreateUser: true` used (Supabase still verifies ownership via OTP code delivery to real inbox).
+- Resend timer: 30s cooldown enforced client-side via `useEffect` + `setTimeout`. Resend button hidden during countdown, shows countdown in seconds.
+
+**UX states implemented:** `email` → `otp` → `courses` (picker) | `not-found`
+
+**Files changed:**
+- `src/app/[locale]/access/page.tsx` — complete rewrite with 4-state OTP flow
+
+---
+
+## BUG-068 — Email-First Course Access (RESOLVED 2026-09-09)
+
+**Pages affected:** `/mn/access`
+
+**Problem:** `/mn/access` expected a UUID token the user never had (magic link to non-existent `/mn/welcome`). Users who purchased via QPay couldn't access their course.
+
+**Resolution:**
+- New `POST /api/access/by-email` — queries `mo_access_tokens` by email, deduplicates by `course_id`, joins `mo_courses` for slug/title, returns `{ courses: [...] }`. No token exposed to client.
+- `/mn/access` rewritten to email input → course redirect/picker UI. 1 course = direct push; multiple = picker cards; none = friendly error.
+
+**Security note:** This was superseded immediately by BUG-069 (OTP verification).
+
+**Files changed:**
+- `src/app/api/access/by-email/route.ts` (NEW)
+- `src/app/[locale]/access/page.tsx` (then further rewritten by BUG-069)
+
+---
+
 ## BUG-067 — CF Stream Metadata Backfill for Pre-BUG-061 Lessons (RESOLVED 2026-09-09)
 
 **Pages affected:** `/admin/courses/[id]/edit`
