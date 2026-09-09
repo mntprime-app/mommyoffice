@@ -955,3 +955,53 @@ Exact code change or action taken.
 ### Prevention
 How to avoid repeating this.
 ```
+
+---
+
+## [BUG-078] Hero revert — objectFit contain / Netflix full-bleed attempts
+
+**Status**: Resolved. Session 18. Commits: `a0479cd`
+**Module**: `UniversalHero.tsx`, `VideosClient.tsx`
+
+### Symptom
+Hero image showed letterbox (black bars) after BUG-078b set `objectFit: 'contain'`. BUG-078c over-corrected to Netflix full-bleed (no maxWidth, no borderRadius) — user rejected both.
+
+### Fix
+Fully reverted to registry spec: `objectFit: 'cover'`, `objectPosition: 'center top'`, `maxWidth: 1400px`, `borderRadius: 24px`, `height: clamp(580px, 68vh, 780px)`.
+
+### Prevention
+**ALWAYS read `registry.md` HERO CARD STANDARD before any hero change. Never remove maxWidth wrapper or borderRadius without explicit user approval.**
+
+---
+
+## [BUG-079] Home page course cards missing discounted/original price
+
+**Status**: Resolved. Session 18. Commit: `835b87e`
+**Module**: `src/app/[locale]/page.tsx`
+
+### Symptom
+Featured course cards on home page only showed current price. No crossed-out original price or discount % badge.
+
+### Fix
+- Added `original_price` to `getFeaturedCourses()` SELECT
+- Computed `discountPct` client-side
+- Rendered: current price + `line-through` original + red `-X%` badge (Udemy pattern)
+
+### Prevention
+When adding `PriceBadge` to any card, also check if `original_price` is in the DB query.
+
+---
+
+## [BUG-080] Videos mobile hero: objectFit contain → black letterbox gaps
+
+**Status**: Resolved. Session 18. Commit: `09686f7`
+**Module**: `src/app/[locale]/videos/VideosClient.tsx` — `mo-hero-mobile` section
+
+### Symptom
+Mobile Videos page hero showed visible black gaps on left/right/bottom of the image container. Other pages (Articles, Home) were correct.
+
+### Fix
+Changed `objectFit: 'contain'` → `objectFit: 'cover'`, `objectPosition: 'center top'` on the mobile hero `<img>` tag (line ~376).
+
+### Prevention
+All hero images — desktop AND mobile — must use `objectFit: 'cover'`, `objectPosition: 'center top'`. Never use `contain` in a hero context.

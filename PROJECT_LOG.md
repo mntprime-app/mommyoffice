@@ -11,6 +11,16 @@
 
 ## Session Log
 
+### Session 18 — 2026-09-09 — BUG-078 Revert + BUG-079 Discounted Prices + BUG-080 Videos Mobile Hero
+
+**Commits:** `a0479cd`, `835b87e`, `09686f7`
+
+Reverted BUG-078b/c hero changes back to registry spec (cover, maxWidth, borderRadius). Added Udemy-style discounted + original price display to home page featured course cards (BUG-079). Fixed Videos mobile hero `objectFit: contain` → `cover` black letterbox bug (BUG-080). All three pushed and verified live.
+
+**Pending:** Domain connect, missing lesson fix, mobile QA full pass, checkout/cart, admin toggles.
+
+---
+
 ### Session 17 — 2026-09-06 — Task #27: Zero Badges on Images + CategoryBadge System
 
 **Commits:** `deaf43e`, `2213558`
