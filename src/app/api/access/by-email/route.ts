@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
   const { data: courses } = await supabase
     .from('mo_courses')
-    .select('id, title_mn, slug')
+    .select('id, title_mn, slug, cover_image_url')
     .in('id', courseIds);
 
   const courseMap = Object.fromEntries((courses ?? []).map((c) => [String(c.id), c]));
@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
         courseId:      String(t.course_id),
         courseSlug:    String(c.slug),
         courseTitleMn: String(c.title_mn),
+        coverImageUrl: (c.cover_image_url as string | null) ?? null,
       };
     })
     .filter(Boolean);

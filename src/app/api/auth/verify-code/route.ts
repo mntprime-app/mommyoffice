@@ -11,7 +11,7 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-type Course = { courseId: string; courseSlug: string; courseTitleMn: string };
+type Course = { courseId: string; courseSlug: string; courseTitleMn: string; coverImageUrl: string | null };
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,7 +59,8 @@ export async function POST(req: NextRequest) {
         mo_courses!inner (
           id,
           slug,
-          title_mn
+          title_mn,
+          cover_image_url
         )
       `)
       .eq('email', normalizedEmail)
@@ -74,13 +75,14 @@ export async function POST(req: NextRequest) {
     const seen = new Set<string>();
     const courses: Course[] = [];
     for (const row of (tokens ?? [])) {
-      const c = row.mo_courses as { id: string; slug: string; title_mn: string } | null;
+      const c = row.mo_courses as { id: string; slug: string; title_mn: string; cover_image_url: string | null } | null;
       if (!c || seen.has(row.course_id)) continue;
       seen.add(row.course_id);
       courses.push({
         courseId:      c.id,
         courseSlug:    c.slug,
         courseTitleMn: c.title_mn,
+        coverImageUrl: c.cover_image_url ?? null,
       });
     }
 

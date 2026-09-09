@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-type Course = { courseId: string; courseSlug: string; courseTitleMn: string };
+type Course = { courseId: string; courseSlug: string; courseTitleMn: string; coverImageUrl?: string | null };
 
 export default function MyCoursesPage() {
   const params = useParams();
@@ -153,15 +153,26 @@ function CourseCard({ course, lp }: { course: Course; lp: (p: string) => string 
         boxShadow: hovered ? '0 8px 24px rgba(0,181,173,0.12)' : 'none',
         cursor: 'pointer',
       }}>
-        {/* Thumbnail placeholder */}
+        {/* Thumbnail */}
         <div style={{
           height: '160px',
           background: 'linear-gradient(135deg, rgba(0,181,173,0.15) 0%, rgba(0,181,173,0.05) 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '3rem',
           borderBottom: '1px solid #2a2a2a',
+          overflow: 'hidden',
+          position: 'relative',
         }}>
-          🎓
+          {course.coverImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={course.coverImageUrl}
+              alt={course.courseTitleMn}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          ) : (
+            <span>🎓</span>
+          )}
         </div>
 
         <div style={{ padding: '1rem' }}>
