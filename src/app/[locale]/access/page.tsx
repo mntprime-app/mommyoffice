@@ -9,7 +9,7 @@
  *  3. User clicks link → Supabase redirects back here with session in URL hash
  *  4. onAuthStateChange fires SIGNED_IN → query mo_access_tokens → redirect to course
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
@@ -64,22 +64,30 @@ export default function AccessIndexPage() {
     }
   }, [router, lp]);
 
-  // Listen for Supabase auth state — fires when magic link is clicked
+  const handledRef = useRef(false);
+
+  // On fresh page load (not coming from magic link), clear any lingering session
+  useEffect(() => {
+    const isFromMagicLink = window.location.hash.includes('access_token');
+    if (!isFromMagicLink) {
+      const supabase = createClient();
+      supabase.auth.signOut().catch(() => {});
+    }
+  }, []);
+
+  // Listen for SIGNED_IN — fires exactly once when magic link is clicked
   useEffect(() => {
     const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user?.email) {
+        if (event === 'SIGNED_IN' && session?.user?.email && !handledRef.current) {
+          handledRef.current = true;
           await handleVerified(session.user.email);
+          // Sign out after lookup so next visit starts clean
+          supabase.auth.signOut().catch(() => {});
         }
       }
     );
-    // Also check if already signed in on mount (page reload after magic link)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user?.email) {
-        handleVerified(session.user.email).catch(() => {});
-      }
-    });
     return () => subscription.unsubscribe();
   }, [handleVerified]);
 
