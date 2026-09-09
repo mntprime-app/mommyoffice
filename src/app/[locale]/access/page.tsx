@@ -1,12 +1,13 @@
 'use client';
 /**
  * BUG-071: Direct Brevo OTP flow — bypasses Supabase Auth entirely.
+ * BUG-075: ?email= pre-fill from post-purchase welcome email link.
  *  - No magic links, no rate limits, no Supabase SMTP dependency
  *  - User enters email → gets 6-digit code via Brevo → enters code → redirected to course
  *  - Zero backend/Supabase terminology visible to users
  */
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 
 type Tab    = 'student' | 'instructor';
 type Step   = 'email' | 'otp' | 'loading' | 'courses' | 'not-found';
@@ -14,11 +15,12 @@ type Course = { courseId: string; courseSlug: string; courseTitleMn: string };
 
 const RESEND_WAIT = 60;
 
-export default function AccessIndexPage() {
-  const router = useRouter();
-  const params = useParams();
-  const locale = params.locale as string;
-  const lp     = (path: string) => `/${locale}${path}`;
+function AccessIndexInner() {
+  const router       = useRouter();
+  const params       = useParams();
+  const searchParams = useSearchParams();
+  const locale       = params.locale as string;
+  const lp           = (path: string) => `/${locale}${path}`;
 
   const [tab,        setTab]        = useState<Tab>('student');
   const [step,       setStep]       = useState<Step>('email');
@@ -28,6 +30,14 @@ export default function AccessIndexPage() {
   const [submitting, setSubmitting] = useState(false);
   const [courses,    setCourses]    = useState<Course[]>([]);
   const [resendSecs, setResendSecs] = useState(0);
+
+  // Pre-fill email from ?email= query param (post-purchase welcome link)
+  useEffect(() => {
+    const prefill = searchParams.get('email');
+    if (prefill && prefill.includes('@')) {
+      setEmail(decodeURIComponent(prefill));
+    }
+  }, [searchParams]);
 
   // Resend countdown
   useEffect(() => {
@@ -477,6 +487,14 @@ export default function AccessIndexPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AccessIndexPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '90vh', background: '#111' }} />}>
+      <AccessIndexInner />
+    </Suspense>
   );
 }
 

@@ -18,13 +18,101 @@ async function getQPayToken(): Promise<string> {
 async function sendWelcomeEmail(
   email: string,
   courseTitle: string,
-  welcomeUrl: string,
+  accessUrl: string,
   isLifetime: boolean,
   expiryDate: string | null
 ) {
   const accessNote = isLifetime
     ? 'Насан туршийн хандалт — дахин төлбөр шаардахгүй.'
     : `Хандалтын хугацаа: ${expiryDate} хүртэл.`;
+
+  const fromName  = process.env.FROM_NAME  || 'MommyOffice';
+  const fromEmail = process.env.FROM_EMAIL || 'hello@mommyoffice.com';
+
+  const htmlContent = `<!DOCTYPE html>
+<html lang="mn">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background:#0d0d0d;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0d0d;padding:40px 16px;">
+<tr><td align="center">
+<table width="520" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;width:100%;">
+
+  <!-- Logo -->
+  <tr><td align="center" style="padding-bottom:32px;">
+    <div style="font-size:28px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">Mommy<span style="color:#00B5AD;">Office</span></div>
+    <div style="font-size:13px;color:#6b7280;margin-top:6px;">Таны хувийн сургалтын орчин</div>
+  </td></tr>
+
+  <!-- Main card -->
+  <tr><td style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:20px;overflow:hidden;">
+    <div style="height:4px;background:linear-gradient(90deg,#00B5AD 0%,#06d6cd 100%);"></div>
+    <div style="padding:40px 36px;">
+
+      <!-- Icon -->
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="display:inline-block;background:rgba(0,181,173,0.12);border:1px solid rgba(0,181,173,0.3);border-radius:16px;padding:16px 20px;font-size:36px;line-height:1;">🎉</div>
+      </div>
+
+      <!-- Heading -->
+      <h1 style="margin:0 0 8px;text-align:center;font-size:22px;font-weight:800;color:#ffffff;">
+        Таны сургалт бэлэн боллоо!
+      </h1>
+      <p style="margin:0 0 6px;text-align:center;font-size:15px;font-weight:600;color:#00B5AD;">${courseTitle}</p>
+      <p style="margin:0 0 28px;text-align:center;font-size:14px;color:#9ca3af;line-height:1.6;">
+        Төлбөр амжилттай хүлээн авагдлаа. Доорх товчийг дарж нэвтрэх кодоо аваарай.
+      </p>
+
+      <!-- CTA button -->
+      <div style="text-align:center;margin-bottom:28px;">
+        <a href="${accessUrl}" style="display:inline-block;background:linear-gradient(90deg,#00B5AD,#06d6cd);color:#ffffff;padding:16px 40px;border-radius:12px;text-decoration:none;font-weight:800;font-size:16px;letter-spacing:0.2px;">
+          Хичээлдээ нэвтрэх →
+        </a>
+      </div>
+
+      <!-- Steps -->
+      <div style="background:rgba(0,181,173,0.06);border:1px solid rgba(0,181,173,0.18);border-radius:12px;padding:20px;margin-bottom:24px;">
+        <div style="font-size:12px;font-weight:700;color:#00B5AD;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">Хандах алхамууд</div>
+        ${[
+          'Дээрх товч дарж нэвтрэх хуудас руу орно уу',
+          `И-мэйл хаягаа оруулна уу — <strong style="color:#e5e5e5">${email}</strong>`,
+          '6 оронт кодоо аваад нэвтэрнэ үү',
+        ].map((step, i) => `
+        <div style="padding:8px 0;${i < 2 ? 'border-bottom:1px solid rgba(0,181,173,0.1);' : ''}">
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="vertical-align:middle;padding-right:10px;">
+              <div style="width:22px;height:22px;border-radius:11px;background:#00B5AD;text-align:center;line-height:22px;font-size:11px;font-weight:700;color:#ffffff;">${i + 1}</div>
+            </td>
+            <td style="vertical-align:middle;font-size:13px;color:#d1d5db;">${step}</td>
+          </tr></table>
+        </div>`).join('')}
+      </div>
+
+      <!-- Access note -->
+      <div style="background:rgba(0,181,173,0.06);border:1px solid rgba(0,181,173,0.15);border-radius:8px;padding:12px 16px;margin-bottom:20px;text-align:center;">
+        <p style="margin:0;font-size:12px;color:#6b7280;">✅ ${accessNote}</p>
+      </div>
+
+      <div style="text-align:center;">
+        <p style="font-size:12px;color:#4b5563;margin:0;line-height:1.6;">
+          Энэ и-мэйлийг хүсээгүй бол үл тоомсорлоно уу.
+        </p>
+      </div>
+    </div>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td align="center" style="padding-top:28px;">
+    <p style="font-size:12px;color:#374151;margin:0;line-height:1.8;">
+      © 2024 MommyOffice &nbsp;·&nbsp;
+      <a href="mailto:info.mommyoffice@gmail.com" style="color:#00B5AD;text-decoration:none;">info.mommyoffice@gmail.com</a>
+    </p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
 
   try {
     await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -34,42 +122,14 @@ async function sendWelcomeEmail(
         'api-key': process.env.BREVO_API_KEY!,
       },
       body: JSON.stringify({
-        sender: {
-          name: process.env.FROM_NAME || 'Mommyoffice',
-          email: process.env.FROM_EMAIL || 'hello@mommyoffice.com',
-        },
+        sender: { name: fromName, email: fromEmail },
         to: [{ email }],
-        subject: `🎉 ${courseTitle} — Тавтай морил!`,
-        htmlContent: `
-          <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#f9fafb">
-            <div style="background:#00B5AD;padding:24px;border-radius:12px 12px 0 0;text-align:center">
-              <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800;letter-spacing:-0.5px">MommyOFFICE</h1>
-            </div>
-            <div style="background:#fff;padding:32px;border:1px solid #e5e7eb;border-radius:0 0 12px 12px">
-              <h2 style="color:#111;margin-top:0;font-size:20px">${courseTitle} хичээлд тавтай морил! 🎉</h2>
-              <p style="color:#4b5563;line-height:1.7;font-size:15px">
-                Та амжилттай бүртгүүллээ. Доорх товчийг дарж хичээлдээ нэвтэрч эхэлнэ үү.
-              </p>
-              <div style="text-align:center;margin:32px 0">
-                <a href="${welcomeUrl}"
-                  style="background:#00B5AD;color:#fff;padding:16px 36px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block">
-                  Хичээл эхлүүлэх →
-                </a>
-              </div>
-              <div style="background:#f0fdf9;border:1px solid #99f6e4;border-radius:8px;padding:14px 16px;margin-bottom:20px">
-                <p style="margin:0;font-size:13px;color:#065f46">✅ ${accessNote}</p>
-              </div>
-              <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0"/>
-              <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0">
-                Асуулт байвал <a href="mailto:info.mommyoffice@gmail.com" style="color:#00B5AD">info.mommyoffice@gmail.com</a> хаягт холбогдоно уу.
-              </p>
-            </div>
-          </div>
-        `,
+        subject: `Таны худалдаж авсан сургалтын эрх — ${courseTitle}`,
+        htmlContent,
       }),
     });
   } catch (e) {
-    console.error('Brevo send failed:', e);
+    console.error('[qpay/check] Brevo send failed:', e);
   }
 }
 
@@ -171,10 +231,8 @@ export async function GET(req: NextRequest) {
       const email = String(order.buyer_email);
       const orderUserId = (order as Record<string, unknown>).user_id as string | null;
 
+      // ── Scenario B: logged-in user — already has mo_session ──────────────
       if (orderUserId) {
-        // ── Scenario B: logged-in user ────────────────────────────────────────
-        // Enrollment already handled by upsert above (email-based).
-        // Also upsert with user_id for direct lookup later.
         await supabase.from('mo_enrollments').upsert({
           course_id: String(order.course_id),
           email: email,
@@ -182,53 +240,28 @@ export async function GET(req: NextRequest) {
           user_id: orderUserId,
         }, { onConflict: 'email,course_id' });
 
-        // No magic link, no email — they're already in-app
+        // Send confirmation email even for logged-in users
+        if (course) {
+          const accessUrl = `${siteUrl}/mn/access?email=${encodeURIComponent(email)}`;
+          await sendWelcomeEmail(email, String(course.title_mn), accessUrl, isLifetime, expiryDateStr);
+        }
+
         return NextResponse.json({
           ok: true,
           paid: true,
-          accessUrl: `${siteUrl}/mn/user/profile?tab=courses`,
+          accessUrl: `${siteUrl}/mn/my-courses`,
         });
       }
 
-      // ── Scenario A: guest checkout ────────────────────────────────────────
-      let welcomeUrl = `${siteUrl}/mn/my-courses`;
+      // ── Scenario A: guest checkout — passwordless OTP flow ───────────────
+      // Access link pre-fills their email on /mn/access so they just request a code
+      const accessUrl = `${siteUrl}/mn/access?email=${encodeURIComponent(email)}`;
 
-      try {
-        // Try to create user (noop if already exists)
-        await supabase.auth.admin.createUser({
-          email,
-          email_confirm: true,
-          user_metadata: {
-            source: 'mommyoffice_payment',
-            enrolled_at: new Date().toISOString(),
-          },
-        });
-      } catch {
-        // User likely already exists — that's fine
-      }
-
-      try {
-        // Generate magic link → /welcome page (handles password setup)
-        const { data: linkData } = await supabase.auth.admin.generateLink({
-          type: 'magiclink',
-          email,
-          options: { redirectTo: `${siteUrl}/mn/welcome` },
-        });
-        const actionLink = (linkData as Record<string, unknown> | null)?.properties as Record<string, unknown> | undefined;
-        if (actionLink?.action_link) {
-          welcomeUrl = String(actionLink.action_link);
-        }
-      } catch (e) {
-        console.error('Magic link generation failed:', e);
-        welcomeUrl = `${siteUrl}/mn/my-courses`;
-      }
-
-      // Send welcome email
       if (course) {
         await sendWelcomeEmail(
           email,
           String(course.title_mn),
-          welcomeUrl,
+          accessUrl,
           isLifetime,
           expiryDateStr
         );
