@@ -233,6 +233,54 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-063 — Admin Lesson Video Row Invisible + Wrong Button (RESOLVED 2026-09-09)
+
+**Symptom:** In `/admin/courses/[id]/edit` and `/admin/courses/new`, the video upload row per lesson was a tiny 🎬 icon (11px gray) with a small teal-outline "📤 Upload" button — easy to miss, no status indicator.
+
+**Root cause:** Visual hierarchy too low; no indication whether a lesson already had a video attached.
+
+**Fix:** Added a visible `🎬 Видео:` label + "✓ Видео холбогдсон" (green) / "Видео байхгүй" (gray) status + solid teal `📤 Видео оруулах` button with `borderTop` separator. Applied to both `edit/page.tsx` and `new/page.tsx`.
+
+**Commits:** `3456e2a`
+
+---
+
+## BUG-062 — CoursePlayer Plays YouTube Instead of Cloudflare Stream (RESOLVED 2026-09-09)
+
+**Symptom:** Clicking a lesson in the course player showed a YouTube embed (broken, wrong video) instead of the CF Stream video.
+
+**Root cause:** `CoursePlayer` used `videoId` prop and `https://www.youtube.com/embed/${videoId}` iframe. `Section.lessons` was typed as `string[]` with no per-lesson stream_id.
+
+**Fix:** Rewrote `CoursePlayer` — `courseStreamId` prop replaces `videoId`, per-lesson `stream_id` in `OutlineLesson`, iframe src = `https://iframe.videodelivery.net/${currentStreamId}` with fallback to course-level stream.
+
+**Commits:** `3456e2a`
+
+---
+
+## BUG-061 — learn/page.tsx Reads Non-Existent DB Fields (RESOLVED 2026-09-09)
+
+**Symptom:** Course player page loaded but showed blank video and no curriculum — paid users saw nothing after QPay payment.
+
+**Root cause:** `learn/page.tsx` read `course.video_url` (column doesn't exist) and `course.outline` (wrong name). Correct columns are `cloudflare_stream_id` and `course_outline_mn`.
+
+**Fix:** Rewrote `learn/page.tsx` with correct field names; parses `course_outline_mn` JSON into `sections[]` with per-lesson `stream_id`; passes `courseStreamId` to `CoursePlayer`.
+
+**Commits:** `3456e2a`
+
+---
+
+## BUG-056b — Admin Section Parity: Courses + Videos Missing Нуух/Устгах (RESOLVED 2026-09-09)
+
+**Symptom:** Admin courses list had only a Засах link (no Нуух/Нийтлэх, no Устгах). Admin videos list had toggle text "✓ Нийтлэгдсэн" and 🗑 icon — inconsistent with articles list.
+
+**Root cause:** Courses list was a server component with no actions. Videos list predated the admin UI standard.
+
+**Fix:** Rewrote courses list as `'use client'` with `actions.ts` (listCourses/toggleCoursePublish/deleteCourse). Videos list buttons standardized to Нуух/Нийтлэх + Засах + Устгах text buttons matching articles.
+
+**Commits:** `92383b3` (courses), `970ecaa` (videos)
+
+---
+
 ## BUG-060 — mo_courses Missing updated_at Column Crashes Course Save (RESOLVED 2026-09-08)
 
 **Pages affected:** `/admin/courses/[id]/edit`
