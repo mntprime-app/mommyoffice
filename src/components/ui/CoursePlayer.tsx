@@ -2,42 +2,46 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-interface Lesson {
+interface OutlineLesson {
   title: string;
-  sectionIndex: number;
-  lessonIndex: number;
-  globalIndex: number;
+  stream_id?: string;
 }
 
 interface Section {
   section: string;
-  lessons: string[];
+  lessons: OutlineLesson[];
+}
+
+interface FlatLesson {
+  title: string;
+  stream_id?: string;
+  sectionIndex: number;
+  lessonIndex: number;
+  globalIndex: number;
 }
 
 interface CoursePlayerProps {
   locale: string;
   slug: string;
   title: string;
-  videoId: string;
+  courseStreamId: string; // fallback: course-level CF stream ID
   sections: Section[];
   instructorName: string;
   instructorSlug: string;
 }
 
-function buildLessons(sections: Section[]): Lesson[] {
-  const all: Lesson[] = [];
+function buildLessons(sections: Section[]): FlatLesson[] {
+  const all: FlatLesson[] = [];
   let g = 0;
   sections.forEach((sec, si) => {
     (sec.lessons || []).forEach((l, li) => {
-      all.push({ title: l, sectionIndex: si, lessonIndex: li, globalIndex: g++ });
+      all.push({ title: l.title || '', stream_id: l.stream_id, sectionIndex: si, lessonIndex: li, globalIndex: g++ });
     });
   });
   return all;
 }
 
-function storageKey(slug: string) {
-  return `mo_progress_${slug}`;
-}
+function storageKey(slug: string) { return `mo_progress_${slug}`; }
 
 function loadCompleted(slug: string): Set<number> {
   try {
@@ -48,13 +52,11 @@ function loadCompleted(slug: string): Set<number> {
 }
 
 function saveCompleted(slug: string, set: Set<number>) {
-  try {
-    localStorage.setItem(storageKey(slug), JSON.stringify([...set]));
-  } catch { /* ignore */ }
+  try { localStorage.setItem(storageKey(slug), JSON.stringify([...set])); } catch { /* ignore */ }
 }
 
 export function CoursePlayer({
-  locale, slug, title, videoId, sections, instructorName, instructorSlug,
+  locale, slug, title, courseStreamId, sections, instructorName, instructorSlug,
 }: CoursePlayerProps) {
   const allLessons = buildLessons(sections);
   const total = allLessons.length;
@@ -63,9 +65,7 @@ export function CoursePlayer({
   const [openSections, setOpenSections] = useState<Set<number>>(new Set(sections.map((_, i) => i)));
   const [activeLessonIdx, setActiveLessonIdx] = useState(0);
 
-  useEffect(() => {
-    setCompleted(loadCompleted(slug));
-  }, [slug]);
+  useEffect(() => { setCompleted(loadCompleted(slug)); }, [slug]);
 
   function toggleLesson(globalIdx: number) {
     setCompleted(prev => {
@@ -86,10 +86,6 @@ export function CoursePlayer({
     });
   }
 
-  function goToLesson(idx: number) {
-    if (idx >= 0 && idx < total) setActiveLessonIdx(idx);
-  }
-
   function markAndNext() {
     if (!completed.has(activeLessonIdx)) toggleLesson(activeLessonIdx);
     if (activeLessonIdx < total - 1) setActiveLessonIdx(activeLessonIdx + 1);
@@ -98,6 +94,9 @@ export function CoursePlayer({
   const doneCount = completed.size;
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
   const activeLesson = allLessons[activeLessonIdx];
+
+  // Determine which CF Stream UID to play: active lesson's stream_id → fallback course-level
+  const currentStreamId = activeLesson?.stream_id || courseStreamId || '';
 
   return (
     <div style={{ minHeight: '100vh', background: '#111' }}>
@@ -123,7 +122,6 @@ export function CoursePlayer({
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{title}</span>
         </div>
-        {/* Progress */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
           <div style={{ width: '120px', height: '4px', background: '#2a2a2a', borderRadius: '2px', overflow: 'hidden' }}>
             <div style={{ width: `${pct}%`, height: '100%', background: '#00B5AD', transition: 'width 0.3s' }} />
@@ -141,17 +139,13 @@ export function CoursePlayer({
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
 
           {/* Video */}
-          <div style={{
-            position: 'relative', width: '100%',
-            background: '#000',
-            aspectRatio: '16 / 9',
-          }}>
-            {videoId ? (
+          <div style={{ position: 'relative', width: '100%', background: '#000', aspectRatio: '16 / 9' }}>
+            {currentStreamId ? (
               <iframe
-                key={videoId}
-                src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
-                title={title}
-                allow="autoplay; fullscreen; picture-in-picture"
+                key={currentStreamId}
+                src={`https://iframe.videodelivery.net/${currentStreamId}`}
+                title={activeLesson?.title || title}
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
               />
@@ -187,17 +181,19 @@ export function CoursePlayer({
                   </h2>
                 </>
               )}
-              <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', color: '#666' }}>Багш:</span>
-                <Link href={`/${locale}/instructors/${instructorSlug}`}
-                  style={{ fontSize: '13px', color: '#00B5AD', textDecoration: 'none', fontWeight: 600 }}>
-                  {instructorName}
-                </Link>
-              </div>
+              {instructorName && (
+                <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '13px', color: '#666' }}>Багш:</span>
+                  <Link href={`/${locale}/instructors/${instructorSlug}`}
+                    style={{ fontSize: '13px', color: '#00B5AD', textDecoration: 'none', fontWeight: 600 }}>
+                    {instructorName}
+                  </Link>
+                </div>
+              )}
             </div>
             <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
               <button
-                onClick={() => goToLesson(activeLessonIdx - 1)}
+                onClick={() => setActiveLessonIdx(i => Math.max(0, i - 1))}
                 disabled={activeLessonIdx === 0}
                 style={{
                   padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 600,
@@ -219,7 +215,7 @@ export function CoursePlayer({
             </div>
           </div>
 
-          {/* Completion certificate teaser (if 100%) */}
+          {/* Completion */}
           {pct === 100 && (
             <div style={{
               margin: '20px 24px',
@@ -245,13 +241,11 @@ export function CoursePlayer({
         <div style={{
           width: '340px', flexShrink: 0,
           borderLeft: '1px solid #1f1f1f',
-          background: '#111',
-          overflowY: 'auto',
+          background: '#111', overflowY: 'auto',
           display: 'flex', flexDirection: 'column',
         }}>
           <div style={{
-            padding: '14px 16px',
-            borderBottom: '1px solid #1f1f1f',
+            padding: '14px 16px', borderBottom: '1px solid #1f1f1f',
             position: 'sticky', top: 0, background: '#111', zIndex: 2,
           }}>
             <p style={{ fontSize: '13px', fontWeight: 700, color: '#e5e5e5', margin: 0 }}>
@@ -259,21 +253,22 @@ export function CoursePlayer({
             </p>
           </div>
 
-          {sections.map((sec, si) => {
+          {sections.length === 0 ? (
+            <div style={{ padding: '32px 16px', textAlign: 'center', color: '#555', fontSize: '13px' }}>
+              Хичээл удахгүй нэмэгдэх болно
+            </div>
+          ) : sections.map((sec, si) => {
             const isOpen = openSections.has(si);
             const secLessons = allLessons.filter(l => l.sectionIndex === si);
             const secDone = secLessons.filter(l => completed.has(l.globalIndex)).length;
             return (
               <div key={si} style={{ borderBottom: '1px solid #1a1a1a' }}>
-                {/* Section header */}
                 <button
                   onClick={() => toggleSection(si)}
                   style={{
-                    width: '100%', textAlign: 'left',
-                    padding: '12px 16px',
+                    width: '100%', textAlign: 'left', padding: '12px 16px',
                     background: '#161616', border: 'none', cursor: 'pointer',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    gap: '8px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px',
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
@@ -291,10 +286,10 @@ export function CoursePlayer({
                   }}>▼</span>
                 </button>
 
-                {/* Lessons */}
                 {isOpen && secLessons.map(lesson => {
                   const isActive = lesson.globalIndex === activeLessonIdx;
                   const isDone = completed.has(lesson.globalIndex);
+                  const hasVideo = Boolean(lesson.stream_id);
                   return (
                     <button
                       key={lesson.globalIndex}
@@ -308,12 +303,10 @@ export function CoursePlayer({
                         display: 'flex', alignItems: 'flex-start', gap: '10px',
                       }}
                     >
-                      {/* Checkbox */}
                       <span
                         onClick={e => { e.stopPropagation(); toggleLesson(lesson.globalIndex); }}
                         style={{
-                          width: '16px', height: '16px', borderRadius: '3px', flexShrink: 0,
-                          marginTop: '1px',
+                          width: '16px', height: '16px', borderRadius: '3px', flexShrink: 0, marginTop: '1px',
                           border: isDone ? 'none' : '1.5px solid #444',
                           background: isDone ? '#00B5AD' : 'transparent',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -326,13 +319,20 @@ export function CoursePlayer({
                           </svg>
                         )}
                       </span>
-                      <span style={{
-                        fontSize: '12px',
-                        color: isActive ? '#00B5AD' : isDone ? '#666' : '#aaa',
-                        lineHeight: 1.4, fontWeight: isActive ? 600 : 400,
-                      }}>
-                        {lesson.title}
-                      </span>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <span style={{
+                          fontSize: '12px', display: 'block',
+                          color: isActive ? '#00B5AD' : isDone ? '#666' : '#aaa',
+                          lineHeight: 1.4, fontWeight: isActive ? 600 : 400,
+                        }}>
+                          {lesson.title}
+                        </span>
+                        {hasVideo && (
+                          <span style={{ fontSize: '10px', color: '#444', marginTop: '2px', display: 'block' }}>
+                            ▶ Видео
+                          </span>
+                        )}
+                      </div>
                     </button>
                   );
                 })}

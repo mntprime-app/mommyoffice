@@ -326,23 +326,33 @@ export default function NewCoursePage() {
                                 style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '13px', padding: '0 4px' }}>✕</button>
                             )}
                           </div>
-                          <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {/* Video row — always visible */}
+                          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #2a2a2a' }}>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
+                              <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap', paddingLeft: '2px' }}>
+                                🎬 Видео:
+                              </span>
+                              {lesson.stream_id ? (
+                                <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>✓ Видео холбогдсон</span>
+                              ) : (
+                                <span style={{ fontSize: '11px', color: '#6b7280' }}>Видео байхгүй</span>
+                              )}
+                            </div>
                             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                              <span style={{ fontSize: '11px', color: '#4b5563', whiteSpace: 'nowrap' }}>🎬</span>
                               <input value={lesson.stream_id || ''} onChange={(e) => setLessonField(mi, li, 'stream_id', e.target.value)}
-                                placeholder="Stream ID (paste эсвэл доор Upload дарна уу)"
+                                placeholder="CF Stream ID (paste хийх)"
                                 style={{ ...inp, flex: 1, fontSize: '12px', padding: '5px 10px', fontFamily: 'monospace', color: lesson.stream_id ? '#10b981' : '#6b7280' }} />
                               <button type="button" onClick={() => toggleUploader(`${mi}-${li}`)} style={{
-                                background: openUploaders.has(`${mi}-${li}`) ? '#374151' : 'rgba(0,181,173,0.1)',
-                                color: '#00B5AD', border: '1px solid rgba(0,181,173,0.25)',
-                                borderRadius: '6px', padding: '5px 10px', cursor: 'pointer',
-                                fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap',
+                                background: openUploaders.has(`${mi}-${li}`) ? '#374151' : '#00B5AD',
+                                color: '#fff', border: 'none',
+                                borderRadius: '6px', padding: '7px 14px', cursor: 'pointer',
+                                fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap',
                               }}>
-                                {openUploaders.has(`${mi}-${li}`) ? '✕ Хаах' : '📤 Upload'}
+                                {openUploaders.has(`${mi}-${li}`) ? '✕ Хаах' : '📤 Видео оруулах'}
                               </button>
                             </div>
                             {openUploaders.has(`${mi}-${li}`) && (
-                              <div style={{ marginTop: '4px' }}>
+                              <div style={{ marginTop: '8px' }}>
                                 <VideoUploader
                                   title={lesson.title || `Хичээл ${li + 1}`}
                                   onSuccess={(uid) => {

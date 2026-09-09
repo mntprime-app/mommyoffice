@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/server';
 import { CoursePlayer } from '@/components/ui/CoursePlayer';
 
@@ -36,7 +36,7 @@ export async function generateMetadata({
   if (!course) return { title: 'Сургалт олдсонгүй' };
   return {
     title: `${course.title_mn} — Үзэх | Mommyoffice`,
-    robots: { index: false }, // Player pages should not be indexed
+    robots: { index: false },
   };
 }
 
@@ -49,17 +49,27 @@ export default async function LearnPage({
   const course = await getCourse(slug);
   if (!course) notFound();
 
-  // If no video — use empty string, player will show placeholder
-  const videoId: string = course.video_url || '';
+  // Course-level CF Stream UID (trailer / fallback video)
+  const courseStreamId: string = course.cloudflare_stream_id || '';
 
-  // Parse curriculum outline
-  let sections: { section: string; lessons: string[] }[] = [];
+  // Parse course_outline_mn → sections with per-lesson stream_ids
+  type RawLesson = { title: string; stream_id?: string };
+  type RawModule = { title: string; lessons: RawLesson[] };
+  let sections: { section: string; lessons: { title: string; stream_id?: string }[] }[] = [];
   try {
-    if (course.outline) {
-      const parsed = typeof course.outline === 'string'
-        ? JSON.parse(course.outline)
-        : course.outline;
-      if (Array.isArray(parsed)) sections = parsed;
+    const raw = course.course_outline_mn;
+    if (raw) {
+      const parsed: RawModule[] = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (Array.isArray(parsed)) {
+        sections = parsed
+          .filter((m) => m && m.title)
+          .map((m) => ({
+            section: m.title,
+            lessons: (m.lessons || [])
+              .filter((l) => l && l.title)
+              .map((l) => ({ title: l.title, stream_id: l.stream_id || undefined })),
+          }));
+      }
     }
   } catch { /* keep empty */ }
 
@@ -75,7 +85,7 @@ export default async function LearnPage({
       locale={locale}
       slug={slug}
       title={title}
-      videoId={videoId}
+      courseStreamId={courseStreamId}
       sections={sections}
       instructorName={instructorName}
       instructorSlug={instructorSlug}
