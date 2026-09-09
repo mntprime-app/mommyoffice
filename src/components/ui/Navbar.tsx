@@ -290,47 +290,94 @@ export default function Navbar() {
                 onClick={() => setUserMenuOpen(v => !v)}
                 title={userEmail}
                 style={{
-                  width: '36px', height: '36px', borderRadius: '50%',
-                  background: '#00B5AD', border: '2px solid rgba(0,181,173,0.4)',
+                  width: '38px', height: '38px', borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #00B5AD 0%, #00d4cb 100%)',
+                  border: userMenuOpen ? '2px solid #00B5AD' : '2px solid rgba(0,181,173,0.35)',
                   color: '#fff', fontWeight: 800, fontSize: '15px',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   textTransform: 'uppercase', flexShrink: 0,
+                  boxShadow: userMenuOpen ? '0 0 0 3px rgba(0,181,173,0.2)' : 'none',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
                 }}
               >
                 {userEmail.charAt(0).toUpperCase()}
               </button>
               {userMenuOpen && (
                 <div style={{
-                  position: 'absolute', right: 0, top: '44px',
-                  background: '#1a1a1a', border: '1px solid #2a2a2a',
-                  borderRadius: '12px', padding: '8px', minWidth: '220px',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 200,
+                  position: 'absolute', right: 0, top: '48px',
+                  background: '#1c1c1c', border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '14px', overflow: 'hidden', minWidth: '248px',
+                  boxShadow: '0 16px 48px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.4)',
+                  zIndex: 200,
+                  animation: 'dropdownFade 0.15s ease',
                 }}>
-                  <div style={{ padding: '10px 12px 12px', borderBottom: '1px solid #2a2a2a', marginBottom: '6px' }}>
-                    <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Нэвтэрсэн</div>
-                    <div style={{ fontSize: '13px', color: '#e5e5e5', fontWeight: 600, wordBreak: 'break-all' }}>{userEmail}</div>
+                  {/* Profile header */}
+                  <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '46px', height: '46px', borderRadius: '50%', flexShrink: 0,
+                        background: 'linear-gradient(135deg, #00B5AD 0%, #00d4cb 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '20px', fontWeight: 800, color: '#fff',
+                        border: '2px solid rgba(0,181,173,0.3)',
+                      }}>
+                        {userEmail.charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{
+                          fontSize: '15px', fontWeight: 700, color: '#fff',
+                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        }}>
+                          {userEmail.split('@')[0].split(/[._-]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                        </div>
+                        <div style={{
+                          fontSize: '12px', color: '#6b7280', marginTop: '2px',
+                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          maxWidth: '160px',
+                        }}>
+                          {userEmail}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <Link href={lp('/my-courses')} onClick={() => setUserMenuOpen(false)} style={{
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '10px 12px', borderRadius: '8px', textDecoration: 'none',
-                    color: '#e5e5e5', fontSize: '14px', fontWeight: 500,
-                  }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <span>🎓</span> Миний сургалтууд
-                  </Link>
-                  <button onClick={handleLogout} style={{
-                    display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
-                    padding: '10px 12px', borderRadius: '8px', border: 'none',
-                    background: 'transparent', color: '#9ca3af', fontSize: '14px',
-                    fontWeight: 500, cursor: 'pointer', textAlign: 'left',
-                  }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <span>↩</span> Гарах
-                  </button>
+
+                  {/* Menu items */}
+                  <div style={{ padding: '6px' }}>
+                    <Link href={lp('/my-courses')} onClick={() => setUserMenuOpen(false)} style={{
+                      display: 'flex', alignItems: 'center', gap: '12px',
+                      padding: '11px 12px', borderRadius: '8px', textDecoration: 'none',
+                      color: '#e5e5e5', fontSize: '14px', fontWeight: 500,
+                      transition: 'background 0.12s',
+                    }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00B5AD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                      </svg>
+                      Миний сургалтууд
+                    </Link>
+                  </div>
+
+                  <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', margin: '0 6px' }} />
+
+                  <div style={{ padding: '6px' }}>
+                    <button onClick={handleLogout} style={{
+                      display: 'flex', alignItems: 'center', gap: '12px', width: '100%',
+                      padding: '11px 12px', borderRadius: '8px', border: 'none',
+                      background: 'transparent', color: '#9ca3af', fontSize: '14px',
+                      fontWeight: 500, cursor: 'pointer', textAlign: 'left',
+                      transition: 'background 0.12s',
+                    }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#e5e5e5'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9ca3af'; }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                      </svg>
+                      Гарах
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -419,6 +466,10 @@ export default function Navbar() {
         @keyframes searchExpand {
           from { opacity: 0; transform: scaleX(0.7); transform-origin: right; }
           to   { opacity: 1; transform: scaleX(1); }
+        }
+        @keyframes dropdownFade {
+          from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
         button:hover svg { opacity: 0.75; }
       `}</style>
