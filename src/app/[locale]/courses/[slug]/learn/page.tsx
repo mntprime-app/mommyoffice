@@ -52,10 +52,10 @@ export default async function LearnPage({
   // Course-level CF Stream UID (trailer / fallback video)
   const courseStreamId: string = course.cloudflare_stream_id || '';
 
-  // Parse course_outline_mn → sections with per-lesson stream_ids
-  type RawLesson = { title: string; stream_id?: string };
+  // Parse course_outline_mn → sections with per-lesson stream_ids / youtube_ids
+  type RawLesson = { title: string; stream_id?: string; youtube_id?: string };
   type RawModule = { title: string; lessons: RawLesson[] };
-  let sections: { section: string; lessons: { title: string; stream_id?: string }[] }[] = [];
+  let sections: { section: string; lessons: { title: string; stream_id?: string; youtube_id?: string }[] }[] = [];
   try {
     const raw = course.course_outline_mn;
     if (raw) {
@@ -67,7 +67,7 @@ export default async function LearnPage({
             section: m.title,
             lessons: (m.lessons || [])
               .filter((l) => l && l.title)
-              .map((l) => ({ title: l.title, stream_id: l.stream_id || undefined })),
+              .map((l) => ({ title: l.title, stream_id: l.stream_id || undefined, youtube_id: l.youtube_id || undefined })),
           }));
       }
     }

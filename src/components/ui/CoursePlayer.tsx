@@ -5,6 +5,7 @@ import Link from 'next/link';
 interface OutlineLesson {
   title: string;
   stream_id?: string;
+  youtube_id?: string;
 }
 
 interface Section {
@@ -15,6 +16,7 @@ interface Section {
 interface FlatLesson {
   title: string;
   stream_id?: string;
+  youtube_id?: string;
   sectionIndex: number;
   lessonIndex: number;
   globalIndex: number;
@@ -35,7 +37,7 @@ function buildLessons(sections: Section[]): FlatLesson[] {
   let g = 0;
   sections.forEach((sec, si) => {
     (sec.lessons || []).forEach((l, li) => {
-      all.push({ title: l.title || '', stream_id: l.stream_id, sectionIndex: si, lessonIndex: li, globalIndex: g++ });
+      all.push({ title: l.title || '', stream_id: l.stream_id, youtube_id: l.youtube_id, sectionIndex: si, lessonIndex: li, globalIndex: g++ });
     });
   });
   return all;
@@ -95,8 +97,9 @@ export function CoursePlayer({
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
   const activeLesson = allLessons[activeLessonIdx];
 
-  // Determine which CF Stream UID to play: active lesson's stream_id → fallback course-level
-  const currentStreamId = activeLesson?.stream_id || courseStreamId || '';
+  // Determine video source: lesson youtube_id → lesson stream_id → course-level stream_id fallback
+  const currentYoutubeId = activeLesson?.youtube_id || '';
+  const currentStreamId = (!currentYoutubeId && (activeLesson?.stream_id || courseStreamId)) || '';
 
   return (
     <div style={{ minHeight: '100vh', background: '#111' }}>
@@ -140,7 +143,16 @@ export function CoursePlayer({
 
           {/* Video */}
           <div style={{ position: 'relative', width: '100%', background: '#000', aspectRatio: '16 / 9' }}>
-            {currentStreamId ? (
+            {currentYoutubeId ? (
+              <iframe
+                key={currentYoutubeId}
+                src={`https://www.youtube.com/embed/${currentYoutubeId}?rel=0&modestbranding=1`}
+                title={activeLesson?.title || title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+              />
+            ) : currentStreamId ? (
               <iframe
                 key={currentStreamId}
                 src={`https://iframe.cloudflarestream.com/${currentStreamId}?controls=true&preload=metadata`}

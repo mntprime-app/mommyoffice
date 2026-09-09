@@ -15,6 +15,7 @@ const PLACEMENTS = [
 type OutlineLesson = {
   title: string;
   stream_id?: string;
+  youtube_id?: string;
   video_status?: 'none' | 'pending' | 'approved';
   file_name?: string;
   file_size?: number;
@@ -108,6 +109,7 @@ export default function EditCoursePage() {
             : {
                 title: l.title || '',
                 stream_id: l.stream_id || '',
+                youtube_id: l.youtube_id || '',
                 video_status: l.video_status || 'none' as const,
                 file_name: l.file_name || '',
                 file_size: l.file_size || 0,
@@ -133,14 +135,15 @@ export default function EditCoursePage() {
   async function autoSaveOutlineWithStreamId(newOutline: OutlineModule[]) {
     try {
       const cleanOutline = newOutline
-        .filter((m) => m.title.trim() || m.lessons.some((l) => l.stream_id?.trim()))
+        .filter((m) => m.title.trim() || m.lessons.some((l) => l.stream_id?.trim() || l.youtube_id?.trim()))
         .map((m) => ({
           title: m.title.trim(),
           lessons: m.lessons
-            .filter((l) => l.title.trim() || l.stream_id?.trim())
+            .filter((l) => l.title.trim() || l.stream_id?.trim() || l.youtube_id?.trim())
             .map((l) => {
               const lesson: OutlineLesson = { title: l.title.trim() };
               if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
+              if (l.youtube_id?.trim()) lesson.youtube_id = l.youtube_id.trim();
               if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
               if (l.file_name?.trim()) lesson.file_name = l.file_name.trim();
               if (l.file_size) lesson.file_size = l.file_size;
@@ -242,7 +245,7 @@ export default function EditCoursePage() {
     }
   }
 
-  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', video_status: 'none', file_name: '', file_size: 0 });
+  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', youtube_id: '', video_status: 'none', file_name: '', file_size: 0 });
   const addModule = () => setOutline((o) => [...o, { title: '', lessons: [emptyLesson()] }]);
   const removeModule = (mi: number) => setOutline((o) => o.filter((_, i) => i !== mi));
   const setModuleTitle = (mi: number, val: string) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, title: val } : m));
@@ -261,7 +264,7 @@ export default function EditCoursePage() {
       .map((m) => ({
         title: m.title.trim(),
         lessons: m.lessons
-          .filter((l) => l.title.trim() || l.stream_id?.trim())
+          .filter((l) => l.title.trim() || l.stream_id?.trim() || l.youtube_id?.trim())
           .map((l) => {
             const lesson: OutlineLesson = { title: l.title.trim() };
             if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
@@ -503,8 +506,8 @@ export default function EditCoursePage() {
                               </div>
                             )}
 
-                            {/* STATE A: No video → TUS uploader + manual stream_id link */}
-                            {!lesson.stream_id && (
+                            {/* STATE A: No video → TUS uploader + YouTube option for free lessons */}
+                            {!lesson.stream_id && !lesson.youtube_id && (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                   <span style={{ fontSize: '11px', color: '#6b7280' }}>🎬 Видео: — Байхгүй</span>
@@ -528,15 +531,14 @@ export default function EditCoursePage() {
                                     onError={(msg) => setLessonError(mi, li, msg)}
                                   />
                                 </div>
-                                {/* Link existing CF Stream video without re-uploading */}
-                                <LinkStreamId
-                                  onLink={(streamId) => {
+                                <YouTubeIdInput
+                                  onSave={(youtubeId) => {
                                     setOutline((o) => {
                                       const newO = o.map((m, i) => i !== mi ? m : ({
                                         ...m,
                                         lessons: m.lessons.map((l, j) => j !== li ? l : ({
                                           ...l,
-                                          stream_id: streamId,
+                                          youtube_id: youtubeId,
                                           video_status: 'approved' as const,
                                         })),
                                       }));
@@ -545,6 +547,30 @@ export default function EditCoursePage() {
                                     });
                                   }}
                                 />
+                              </div>
+                            )}
+
+                            {/* STATE B: YouTube video set */}
+                            {!lesson.stream_id && lesson.youtube_id && (
+                              <div style={{
+                                border: '1px solid rgba(255,0,0,0.25)', borderRadius: '8px',
+                                background: 'rgba(255,0,0,0.05)', padding: '10px 12px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '18px' }}>▶️</span>
+                                  <div>
+                                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#f87171' }}>YouTube — Үнэгүй хичээл</div>
+                                    <div style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace' }}>{lesson.youtube_id}</div>
+                                  </div>
+                                </div>
+                                <button type="button"
+                                  onClick={() => setOutline((o) => o.map((m, i) => i !== mi ? m : ({
+                                    ...m, lessons: m.lessons.map((l, j) => j !== li ? l : ({ ...l, youtube_id: '', video_status: 'none' as const })),
+                                  })))}
+                                  style={{ fontSize: '11px', background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
+                                  Устгах
+                                </button>
                               </div>
                             )}
 
@@ -775,15 +801,15 @@ function Toggle({ checked, onChange, label, color }: { checked: boolean; onChang
   );
 }
 
-/** Small helper: paste an existing CF stream ID to link without re-uploading */
-function LinkStreamId({ onLink }: { onLink: (streamId: string) => void }) {
+/** Inline YouTube video ID input for free/preview lessons */
+function YouTubeIdInput({ onSave }: { onSave: (youtubeId: string) => void }) {
   const [show, setShow] = React.useState(false);
   const [val, setVal] = React.useState('');
   if (!show) {
     return (
       <button type="button" onClick={() => setShow(true)}
         style={{ fontSize: '11px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', textDecoration: 'underline' }}>
-        Аль хэдийн байршуулсан видео холбох
+        + Үнэгүй хичээлд YouTube видео нэмэх
       </button>
     );
   }
@@ -792,12 +818,12 @@ function LinkStreamId({ onLink }: { onLink: (streamId: string) => void }) {
       <input
         value={val}
         onChange={(e) => setVal(e.target.value)}
-        placeholder="Stream ID (CF dashboard-аас)"
+        placeholder="YouTube видео ID (жишээ: dQw4w9WgXcQ)"
         style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #444', background: '#2a2a2a', color: '#e5e5e5', fontSize: '11px', fontFamily: 'monospace', flex: 1 }}
       />
-      <button type="button" onClick={() => { if (val.trim()) { onLink(val.trim()); setVal(''); setShow(false); } }}
+      <button type="button" onClick={() => { if (val.trim()) { onSave(val.trim()); setVal(''); setShow(false); } }}
         style={{ fontSize: '11px', background: 'rgba(0,181,173,0.15)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.3)', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 600 }}>
-        Холбох
+        Хадгалах
       </button>
       <button type="button" onClick={() => setShow(false)}
         style={{ fontSize: '11px', background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}>✕</button>
