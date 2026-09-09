@@ -74,9 +74,13 @@ function buildEmailHtml(code: string): string {
                     'Дээрх 6 оронт кодыг оруулна уу',
                     '"Нэвтрэх" товч дарна уу',
                   ].map((step, i) => `
-                  <div style="display:flex;align-items:center;gap:10px;padding:6px 0;${i < 2 ? 'border-bottom:1px solid rgba(0,181,173,0.1);' : ''}">
-                    <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#00B5AD;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">${i + 1}</span>
-                    <span style="font-size:13px;color:#d1d5db;">${step}</span>
+                  <div style="padding:8px 0;${i < 2 ? 'border-bottom:1px solid rgba(0,181,173,0.1);' : ''}">
+                    <table cellpadding="0" cellspacing="0" border="0"><tr>
+                      <td style="vertical-align:middle;padding-right:10px;">
+                        <div style="width:22px;height:22px;border-radius:11px;background:#00B5AD;text-align:center;line-height:22px;font-size:11px;font-weight:700;color:#ffffff;">${i + 1}</div>
+                      </td>
+                      <td style="vertical-align:middle;font-size:13px;color:#d1d5db;">${step}</td>
+                    </tr></table>
                   </div>`).join('')}
                 </div>
 

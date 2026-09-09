@@ -116,6 +116,13 @@ export default function AccessIndexPage() {
 
       const found = data.courses ?? [];
       setSubmitting(false);
+
+      // Persist session so navbar can show user avatar
+      try {
+        localStorage.setItem('mo_session', JSON.stringify({ email: email.trim().toLowerCase() }));
+        window.dispatchEvent(new Event('mo_session_change'));
+      } catch { /* ignore */ }
+
       if (found.length === 0)   { setStep('not-found'); return; }
       if (found.length === 1)   { router.push(lp(`/courses/${found[0].courseSlug}/learn`)); return; }
       setCourses(found);

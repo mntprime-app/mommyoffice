@@ -63,13 +63,58 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Read session from localStorage
+  useEffect(() => {
+    const readSession = () => {
+      try {
+        const s = localStorage.getItem('mo_session');
+        if (s) {
+          const parsed = JSON.parse(s);
+          setUserEmail(parsed.email || null);
+        } else {
+          setUserEmail(null);
+        }
+      } catch { setUserEmail(null); }
+    };
+    readSession();
+    window.addEventListener('mo_session_change', readSession);
+    window.addEventListener('storage', readSession);
+    return () => {
+      window.removeEventListener('mo_session_change', readSession);
+      window.removeEventListener('storage', readSession);
+    };
+  }, []);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [userMenuOpen]);
+
+  function handleLogout() {
+    try { localStorage.removeItem('mo_session'); } catch { /* */ }
+    setUserEmail(null);
+    setUserMenuOpen(false);
+    window.dispatchEvent(new Event('mo_session_change'));
+    router.push(lp('/access'));
+  }
 
   // Read cart count from localStorage
   useEffect(() => {
@@ -238,13 +283,65 @@ export default function Navbar() {
             {otherLocale === 'mn' ? 'МН' : 'EN'}
           </Link>
 
-          {/* Login */}
-          <Link href={lp('/access')} style={{
-            background: 'var(--teal)', color: '#fff',
-            padding: '8px 20px', borderRadius: '6px',
-            fontWeight: 700, textDecoration: 'none',
-            fontSize: '14px', letterSpacing: '0.2px',
-          }}>Нэвтрэх</Link>
+          {/* Login / User avatar */}
+          {userEmail ? (
+            <div ref={userMenuRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setUserMenuOpen(v => !v)}
+                title={userEmail}
+                style={{
+                  width: '36px', height: '36px', borderRadius: '50%',
+                  background: '#00B5AD', border: '2px solid rgba(0,181,173,0.4)',
+                  color: '#fff', fontWeight: 800, fontSize: '15px',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  textTransform: 'uppercase', flexShrink: 0,
+                }}
+              >
+                {userEmail.charAt(0).toUpperCase()}
+              </button>
+              {userMenuOpen && (
+                <div style={{
+                  position: 'absolute', right: 0, top: '44px',
+                  background: '#1a1a1a', border: '1px solid #2a2a2a',
+                  borderRadius: '12px', padding: '8px', minWidth: '220px',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 200,
+                }}>
+                  <div style={{ padding: '10px 12px 12px', borderBottom: '1px solid #2a2a2a', marginBottom: '6px' }}>
+                    <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Нэвтэрсэн</div>
+                    <div style={{ fontSize: '13px', color: '#e5e5e5', fontWeight: 600, wordBreak: 'break-all' }}>{userEmail}</div>
+                  </div>
+                  <Link href={lp('/my-courses')} onClick={() => setUserMenuOpen(false)} style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    padding: '10px 12px', borderRadius: '8px', textDecoration: 'none',
+                    color: '#e5e5e5', fontSize: '14px', fontWeight: 500,
+                  }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <span>🎓</span> Миний сургалтууд
+                  </Link>
+                  <button onClick={handleLogout} style={{
+                    display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
+                    padding: '10px 12px', borderRadius: '8px', border: 'none',
+                    background: 'transparent', color: '#9ca3af', fontSize: '14px',
+                    fontWeight: 500, cursor: 'pointer', textAlign: 'left',
+                  }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <span>↩</span> Гарах
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link href={lp('/access')} style={{
+              background: 'var(--teal)', color: '#fff',
+              padding: '8px 20px', borderRadius: '6px',
+              fontWeight: 700, textDecoration: 'none',
+              fontSize: '14px', letterSpacing: '0.2px',
+            }}>Нэвтрэх</Link>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -294,11 +391,23 @@ export default function Navbar() {
           <Link href={`/${otherLocale}`} style={{ color: '#aaa', textDecoration: 'none', fontSize: '14px' }}>
             {otherLocale === 'mn' ? 'МН' : 'EN'}
           </Link>
-          <Link href={lp('/access')} style={{
-            background: 'var(--teal)', color: '#fff',
-            padding: '10px 18px', borderRadius: '8px', fontWeight: 700,
-            textDecoration: 'none', textAlign: 'center',
-          }}>Нэвтрэх</Link>
+          {userEmail ? (
+            <>
+              <Link href={lp('/my-courses')} onClick={() => setOpen(false)} style={{
+                color: '#00B5AD', textDecoration: 'none', fontWeight: 600, fontSize: '15px',
+              }}>🎓 Миний сургалтууд</Link>
+              <button onClick={handleLogout} style={{
+                background: 'none', border: 'none', color: '#9ca3af',
+                fontWeight: 500, fontSize: '14px', cursor: 'pointer', padding: 0, textAlign: 'left',
+              }}>↩ Гарах</button>
+            </>
+          ) : (
+            <Link href={lp('/access')} style={{
+              background: 'var(--teal)', color: '#fff',
+              padding: '10px 18px', borderRadius: '8px', fontWeight: 700,
+              textDecoration: 'none', textAlign: 'center',
+            }}>Нэвтрэх</Link>
+          )}
         </div>
       )}
 
