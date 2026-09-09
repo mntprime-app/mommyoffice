@@ -22,7 +22,7 @@ interface Props {
   courseId: string;
   moduleIdx: number;
   lessonIdx: number;
-  onStaged: (storagePath: string, filename: string) => void;
+  onStaged: (storagePath: string, filename: string, fileBytes: number) => void;
   onError: (msg: string) => void;
 }
 
@@ -31,6 +31,7 @@ export default function VideoStagingUploader({ courseId, moduleIdx, lessonIdx, o
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
+  const fileBytesRef = useRef(0);
 
   async function handleFile(file: File) {
     if (!file.type.startsWith('video/')) {
@@ -43,6 +44,7 @@ export default function VideoStagingUploader({ courseId, moduleIdx, lessonIdx, o
       return;
     }
 
+    fileBytesRef.current = file.size;
     setUploading(true);
     setProgress(0);
     setStatusMsg('Байршуулах URL авч байна...');
@@ -68,7 +70,12 @@ export default function VideoStagingUploader({ courseId, moduleIdx, lessonIdx, o
       storagePath = json.storagePath;
     } catch (e: unknown) {
       setUploading(false);
-      onError(e instanceof Error ? e.message : 'Байршуулах URL авахад алдаа гарлаа');
+      const msg = e instanceof Error ? e.message : '';
+      if (msg.includes('Bucket not found') || msg.includes('bucket') || msg.includes('404')) {
+        onError('⚠️ Сүлжээний алдаа: Supabase Storage bucket тохируулаагүй байна. Admin: "course-staging" bucket үүсгэнэ үү.');
+      } else {
+        onError(msg || 'Байршуулах URL авахад алдаа гарлаа');
+      }
       return;
     }
 
@@ -88,13 +95,18 @@ export default function VideoStagingUploader({ courseId, moduleIdx, lessonIdx, o
     setUploading(false);
 
     if (uploadErr) {
-      onError(uploadErr.message ?? 'Байршуулахад алдаа гарлаа. Дахин оролдоно уу.');
+      const msg = uploadErr.message ?? '';
+      if (msg.includes('Bucket not found') || msg.includes('bucket') || msg.includes('not found')) {
+        onError('⚠️ Сүлжээний алдаа: Supabase Storage bucket тохируулаагүй байна. Admin: "course-staging" bucket үүсгэнэ үү.');
+      } else {
+        onError(msg || 'Байршуулахад алдаа гарлаа. Дахин оролдоно уу.');
+      }
       return;
     }
 
     setStatusMsg('');
     setProgress(0);
-    onStaged(storagePath, file.name);
+    onStaged(storagePath, file.name, fileBytesRef.current);
   }
 
   return (

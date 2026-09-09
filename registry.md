@@ -233,6 +233,24 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-065 — Lesson Video Management: No File Info, No Delete, Silent Errors (RESOLVED 2026-09-09)
+
+**Pages affected:** `/admin/courses/[id]/edit`, `/admin/courses/new`
+
+**Symptom:** After upload, the lesson row showed `"📄 видео файл"` with no filename display, no file size. `🗑️ Устгах` only cleared local React state without deleting from Supabase Storage. Storage errors surfaced as a global form error. No `🔄 Солих` in pending state.
+
+**Root cause:** `VideoStagingUploader.onStaged` callback returned only `(storagePath, filename)` — file size never tracked. `rejectLesson` did `setLessonField` only (no Storage delete call). Errors routed to global `setError`.
+
+**Fix (4-part):**
+1. `VideoStagingUploader.tsx` — added `fileBytes: number` to `onStaged`; improved bucket-not-found error → `⚠️ Сүлжээний алдаа: Supabase Storage bucket тохируулаагүй байна.`
+2. New `POST /api/admin/delete-staged-video` — deletes from `course-staging` by path; path-traversal guard.
+3. `OutlineLesson` type — added `r2_size?: number`; hydrated on load, persisted on save.
+4. Lesson video row redesigned into 3 states: **None** (uploader + per-lesson inline error), **Pending** (Connected Media Card: `🎬 filename • 42.5 MB • ⏳` + 👁️ ✅ 🔄 🗑️ actions that actually call Storage delete), **Approved** (green card + 🔄 replace).
+
+**Note:** BUG-059 already taken (duplicate slug). This is BUG-065.
+
+---
+
 ## BUG-064 — Enterprise Staging Pipeline: Zero-Cost Supabase→CF Stream + Zero ID Exposure (RESOLVED 2026-09-09)
 
 **Symptom:** Instructors could see raw Cloudflare Stream IDs in admin UI; no approval gate before video went live; no cost control on CF Stream encoding.

@@ -19,10 +19,18 @@ type OutlineLesson = {
   stream_id?: string;
   r2_key?: string;
   r2_filename?: string;
+  r2_size?: number;
   video_status?: 'none' | 'pending' | 'approved';
 };
 type OutlineModule = { title: string; lessons: OutlineLesson[] };
 type Instructor = { id: string; name_mn: string; name_en: string | null; title_mn: string | null };
+
+function formatBytes(bytes: number): string {
+  if (!bytes) return '';
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -33,6 +41,51 @@ export default function NewCoursePage() {
   const [error, setError] = useState('');
   const [imgPreview, setImgPreview] = useState('');
   const [instructors, setInstructors] = useState<Instructor[]>([]);
+
+  // Per-lesson inline error messages (keyed by "mi-li")
+  const [lessonErrors, setLessonErrors] = useState<Record<string, string>>({});
+  function setLessonError(mi: number, li: number, msg: string) {
+    setLessonErrors((prev) => ({ ...prev, [`${mi}-${li}`]: msg }));
+    setTimeout(() => setLessonErrors((prev) => {
+      const next = { ...prev };
+      delete next[`${mi}-${li}`];
+      return next;
+    }), 8000);
+  }
+
+  async function deleteStagedVideo(mi: number, li: number, storagePath: string) {
+    if (!confirm('Staged видеог устгах уу? Энэ үйлдлийг буцаах боломжгүй.')) return;
+    try {
+      await fetch('/api/admin/delete-staged-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storagePath }),
+      });
+    } catch { /* best-effort */ }
+    setOutline((o) => o.map((m, i) => i !== mi ? m : ({
+      ...m,
+      lessons: m.lessons.map((l, j) => j !== li ? l : ({
+        ...l, r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' as const,
+      })),
+    })));
+  }
+
+  async function replaceStagedVideo(mi: number, li: number, storagePath: string) {
+    if (!confirm('Одоогийн staged видеог устгаж шинээр оруулах уу?')) return;
+    try {
+      await fetch('/api/admin/delete-staged-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storagePath }),
+      });
+    } catch { /* best-effort */ }
+    setOutline((o) => o.map((m, i) => i !== mi ? m : ({
+      ...m,
+      lessons: m.lessons.map((l, j) => j !== li ? l : ({
+        ...l, r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' as const,
+      })),
+    })));
+  }
 
   const [form, setForm] = useState({
     title_mn: '', title_en: '',
@@ -52,7 +105,7 @@ export default function NewCoursePage() {
     placement: 'standard', mo_instructor_id: '',
   });
 
-  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', r2_key: '', r2_filename: '', video_status: 'none' });
+  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' });
   const [outline, setOutline] = useState<OutlineModule[]>([
     { title: '', lessons: [emptyLesson()] },
   ]);
@@ -109,6 +162,7 @@ export default function NewCoursePage() {
         if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
         if (l.r2_key?.trim()) lesson.r2_key = l.r2_key.trim();
         if (l.r2_filename?.trim()) lesson.r2_filename = l.r2_filename.trim();
+        if (l.r2_size) lesson.r2_size = l.r2_size;
         if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
         return lesson;
       }),
@@ -330,47 +384,99 @@ export default function NewCoursePage() {
                                 style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '13px', padding: '0 4px' }}>✕</button>
                             )}
                           </div>
-                          {/* Enterprise video row — no raw IDs exposed */}
+                          {/* ── Video management row ── */}
                           <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #2a2a2a' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap' }}>🎬 Видео:</span>
-                              {lesson.video_status === 'approved' || lesson.stream_id ? (
-                                <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, background: 'rgba(16,185,129,0.1)', padding: '2px 8px', borderRadius: '4px' }}>
-                                  ✓ Бэлэн — сурагчдад харагдана
-                                </span>
-                              ) : lesson.video_status === 'pending' && lesson.r2_key ? (
-                                <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700, background: 'rgba(245,158,11,0.1)', padding: '2px 8px', borderRadius: '4px' }}>
-                                  ⏳ Хянагдаж байна — Хичээлийг хадгалсны дараа admin батлах
-                                </span>
-                              ) : (
-                                <span style={{ fontSize: '11px', color: '#6b7280' }}>— Видео байхгүй</span>
-                              )}
-                            </div>
-                            {!lesson.stream_id && lesson.video_status !== 'pending' && !lesson.r2_key && (
-                              <VideoStagingUploader
-                                courseId="new"
-                                moduleIdx={mi}
-                                lessonIdx={li}
-                                onStaged={(storagePath, filename) => {
-                                  setLessonField(mi, li, 'r2_key', storagePath);
-                                  setLessonField(mi, li, 'r2_filename', filename);
-                                  setLessonField(mi, li, 'video_status', 'pending');
-                                }}
-                                onError={(msg) => setError(msg)}
-                              />
+
+                            {/* Inline per-lesson error */}
+                            {lessonErrors[`${mi}-${li}`] && (
+                              <div style={{
+                                marginBottom: '8px', padding: '8px 12px', borderRadius: '6px',
+                                background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)',
+                                fontSize: '11px', color: '#fbbf24', lineHeight: 1.5,
+                              }}>
+                                {lessonErrors[`${mi}-${li}`]}
+                              </div>
                             )}
+
+                            {/* STATE A: No video → uploader */}
+                            {!lesson.stream_id && lesson.video_status !== 'pending' && !lesson.r2_key && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '11px', color: '#6b7280' }}>🎬 Видео: — Байхгүй</span>
+                                <VideoStagingUploader
+                                  courseId="new"
+                                  moduleIdx={mi}
+                                  lessonIdx={li}
+                                  onStaged={(storagePath, filename, fileBytes) => {
+                                    setOutline((o) => o.map((m, i) => i !== mi ? m : ({
+                                      ...m,
+                                      lessons: m.lessons.map((l, j) => j !== li ? l : ({
+                                        ...l,
+                                        r2_key: storagePath,
+                                        r2_filename: filename,
+                                        r2_size: fileBytes,
+                                        video_status: 'pending' as const,
+                                      })),
+                                    })));
+                                  }}
+                                  onError={(msg) => setLessonError(mi, li, msg)}
+                                />
+                              </div>
+                            )}
+
+                            {/* STATE B: Pending → Connected Media Card */}
                             {lesson.video_status === 'pending' && lesson.r2_key && !lesson.stream_id && (
-                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '11px', color: '#6b7280' }}>📄 {lesson.r2_filename || 'видео файл'}</span>
-                                <span style={{ fontSize: '11px', color: '#9ca3af' }}>— Хичээл хадгалагдсны дараа admin батална</span>
-                                <button type="button" onClick={() => {
-                                  setLessonField(mi, li, 'r2_key', '');
-                                  setLessonField(mi, li, 'r2_filename', '');
-                                  setLessonField(mi, li, 'video_status', 'none');
-                                }}
-                                style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '11px', background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)', cursor: 'pointer' }}>
-                                  ✕ Цуцлах
-                                </button>
+                              <div style={{
+                                border: '1px solid rgba(245,158,11,0.3)',
+                                borderRadius: '8px',
+                                background: 'rgba(245,158,11,0.05)',
+                                padding: '10px 12px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '8px',
+                              }}>
+                                {/* File info */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#e5e5e5', wordBreak: 'break-all' }}>
+                                    🎬 {lesson.r2_filename || 'видео файл'}
+                                  </span>
+                                  {lesson.r2_size ? (
+                                    <span style={{ fontSize: '11px', color: '#9ca3af', whiteSpace: 'nowrap' }}>
+                                      • {formatBytes(lesson.r2_size)}
+                                    </span>
+                                  ) : null}
+                                  <span style={{
+                                    fontSize: '11px', fontWeight: 700, color: '#f59e0b',
+                                    background: 'rgba(245,158,11,0.15)', padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap',
+                                  }}>
+                                    ⏳ Хянагдаж байна (Pending)
+                                  </span>
+                                </div>
+                                {/* Note + actions */}
+                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '11px', color: '#6b7280', flexShrink: 0 }}>Хадгалсны дараа edit хуудаснаас батална</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => replaceStagedVideo(mi, li, lesson.r2_key!)}
+                                    style={{
+                                      padding: '4px 10px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
+                                      background: 'rgba(59,130,246,0.08)', color: '#60a5fa',
+                                      border: '1px solid rgba(59,130,246,0.2)', cursor: 'pointer', whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    🔄 Солих
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteStagedVideo(mi, li, lesson.r2_key!)}
+                                    style={{
+                                      padding: '4px 10px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
+                                      background: 'rgba(239,68,68,0.1)', color: '#f87171',
+                                      border: '1px solid rgba(239,68,68,0.2)', cursor: 'pointer', whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    🗑️ Устгах
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </div>
