@@ -195,15 +195,16 @@ export function CartView({ locale }: { locale: string }) {
             Худалдаж авах →
           </Link>
         ) : (
-          <Link href={`/${locale}/checkout`} style={{
-            display: 'block', width: '100%', boxSizing: 'border-box',
-            background: '#00B5AD', color: '#fff',
-            padding: '14px', borderRadius: '8px',
-            fontWeight: 800, textDecoration: 'none',
-            fontSize: '15px', textAlign: 'center',
+          <div style={{
+            background: '#222', border: '1px solid #333',
+            borderRadius: '8px', padding: '14px',
+            textAlign: 'center',
           }}>
-            Бүгдийг худалдаж авах →
-          </Link>
+            <p style={{ fontSize: '13px', color: '#aaa', margin: 0, lineHeight: 1.6 }}>
+              Дээрх жагсаалтаас сургалт бүрийг тус тусад нь<br />
+              <strong style={{ color: '#00B5AD' }}>Худалдаж авах</strong> товч дарж авна уу.
+            </p>
+          </div>
         )}
         <p style={{ fontSize: '11px', color: '#555', textAlign: 'center', marginTop: '12px', lineHeight: 1.5 }}>
           QPay-р дамжуулан аюулгүй төлбөр хийгдэнэ
