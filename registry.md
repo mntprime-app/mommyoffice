@@ -233,6 +233,33 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-060 — Auto-Approval Pipeline & 4 GB Kajabi File Validation (RESOLVED 2026-09-09)
+
+**Pages affected:** `/admin/courses/[id]/edit`, `/admin/courses/new`
+**Component:** `VideoTUSUploader.tsx`
+
+**Problem / Trigger:** Stage 1 course creation needed zero-friction video publishing — no manual approval gate required. Additionally, the 10 GB file size limit was non-standard; Kajabi enforces 4 GB.
+
+**Root cause:** `VideoTUSUploader` set `video_status = 'pending'` after upload, requiring an admin to click ✅ Батлах before students could watch. The amber "Хянагдаж байна (Pending)" STATE B card was a friction point with no real security benefit at this stage.
+
+**Resolution:**
+- `VideoTUSUploader.tsx`: `MAX_FILE_BYTES` changed from 10 GB → **4 GB**. Error message for oversized files: `⚠️ Файлын хэмжээ хэтэрсэн байна. Дээд хэмжээ 4GB (Kajabi стандарт).` Enforced client-side before upload starts.
+- `onUploaded` callback in both `edit/page.tsx` and `new/page.tsx`: now sets `video_status: 'approved'` immediately (was `'pending'`).
+- STATE B (amber pending card) removed from both pages. The only states are now **STATE A** (no video → uploader) and **STATE C** (has video → green ✓ Бэлэн card with 👁️ Үзэх, 🔄 Видео солих, 🗑️ Устгах).
+- `admin.ts`: Added `saveCourseOutlinePatch(courseId, outline)` — a targeted server action that updates only `course_outline_mn` (avoids passing all fields to `updateCourse`). Used for auto-save after upload.
+- `cleanOutline` logic updated in both pages to preserve lessons with `stream_id` even when titles are blank (prevents orphaned stream IDs).
+- `approve-video` and `reject-video` API routes: switched from fragile `moduleIdx`/`lessonIdx` index lookup to robust `stream_id`-based search (prevents "Lesson not found" errors when DB outline indices diverge from client state).
+
+**Files changed:**
+- `src/components/ui/VideoTUSUploader.tsx`
+- `src/app/[locale]/admin/courses/[id]/edit/page.tsx`
+- `src/app/[locale]/admin/courses/new/page.tsx`
+- `src/app/actions/admin.ts`
+- `src/app/api/admin/approve-video/route.ts`
+- `src/app/api/admin/reject-video/route.ts`
+
+---
+
 ## BUG-066 — Direct CF Stream TUS Architecture: Drop Supabase Staging Bucket (RESOLVED 2026-09-09)
 
 **Pages affected:** `/admin/courses/[id]/edit`, `/admin/courses/new`

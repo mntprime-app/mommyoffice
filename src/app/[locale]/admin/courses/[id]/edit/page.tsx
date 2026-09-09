@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getCourseById, updateCourse, deleteCourseById, getInstructors } from '@/app/actions/admin';
+import { getCourseById, updateCourse, deleteCourseById, getInstructors, saveCourseOutlinePatch } from '@/app/actions/admin';
 import { CoverImageSection } from '@/components/ui/CoverImagePicker';
 import VideoTUSUploader from '@/components/ui/VideoTUSUploader';
 
@@ -112,6 +112,29 @@ export default function EditCoursePage() {
     setForm((f) => ({ ...f, [key]: val }));
   }
 
+  // Auto-save outline to DB immediately after a video upload so stream_id is persisted.
+  // Preserves lessons with stream_id even if titles are blank.
+  async function autoSaveOutlineWithStreamId(newOutline: OutlineModule[]) {
+    try {
+      const cleanOutline = newOutline
+        .filter((m) => m.title.trim() || m.lessons.some((l) => l.stream_id?.trim()))
+        .map((m) => ({
+          title: m.title.trim(),
+          lessons: m.lessons
+            .filter((l) => l.title.trim() || l.stream_id?.trim())
+            .map((l) => {
+              const lesson: OutlineLesson = { title: l.title.trim() };
+              if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
+              if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
+              return lesson;
+            }),
+        }));
+      await saveCourseOutlinePatch(id, cleanOutline.length > 0 ? cleanOutline : null);
+    } catch {
+      // Non-critical — user can still save manually with 💾 Хадгалах
+    }
+  }
+
   // Per-lesson inline error messages (keyed by "mi-li")
   const [lessonErrors, setLessonErrors] = useState<Record<string, string>>({});
   function setLessonError(mi: number, li: number, msg: string) {
@@ -124,46 +147,21 @@ export default function EditCoursePage() {
     }), 8000);
   }
 
-  // Track which lessons are currently being approved (showing spinner)
-  const [approvingLessons, setApprovingLessons] = useState<Set<string>>(new Set());
+  // Track which lessons are currently being processed (reject/replace spinner)
+  const [processingLessons, setProcessingLessons] = useState<Set<string>>(new Set());
 
-  async function approveLesson(mi: number, li: number) {
-    const key = `${mi}-${li}`;
-    setApprovingLessons((prev) => new Set([...prev, key]));
-    try {
-      const res = await fetch('/api/admin/approve-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courseId: id, moduleIdx: mi, lessonIdx: li }),
-      });
-      const json = await res.json();
-      if (!res.ok || json.error) { setLessonError(mi, li, json.error ?? 'Баталгаажуулахад алдаа гарлаа'); return; }
-      // DB updated — reflect in local state (stream_id already set from TUS upload)
-      setOutline((o) => o.map((m, i) => i !== mi ? m : ({
-        ...m,
-        lessons: m.lessons.map((l, j) => j !== li ? l : ({
-          ...l, video_status: 'approved' as const,
-        })),
-      })));
-      setSuccess('Видео амжилттай баталгаажлаа ✓ Сурагчдад харагдана!');
-      setTimeout(() => setSuccess(''), 4000);
-    } catch (e: unknown) {
-      setLessonError(mi, li, e instanceof Error ? e.message : 'Баталгаажуулахад алдаа гарлаа');
-    } finally {
-      setApprovingLessons((prev) => { const next = new Set(prev); next.delete(key); return next; });
-    }
-  }
-
-  // Deletes CF Stream video and clears DB + local state
+  // Deletes CF Stream video from CF + DB, clears local state (reject / replace / delete)
   async function rejectVideo(mi: number, li: number, confirmMsg: string) {
     if (!confirm(confirmMsg)) return;
     const key = `${mi}-${li}`;
-    setApprovingLessons((prev) => new Set([...prev, key]));
+    const streamId = outline[mi]?.lessons[li]?.stream_id;
+    if (!streamId) return; // nothing to delete
+    setProcessingLessons((prev) => new Set([...prev, key]));
     try {
       const res = await fetch('/api/admin/reject-video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courseId: id, moduleIdx: mi, lessonIdx: li }),
+        body: JSON.stringify({ courseId: id, streamId }),
       });
       const json = await res.json();
       if (!res.ok || json.error) {
@@ -179,7 +177,7 @@ export default function EditCoursePage() {
     } catch (e: unknown) {
       setLessonError(mi, li, e instanceof Error ? e.message : 'Устгахад алдаа гарлаа');
     } finally {
-      setApprovingLessons((prev) => { const next = new Set(prev); next.delete(key); return next; });
+      setProcessingLessons((prev) => { const next = new Set(prev); next.delete(key); return next; });
     }
   }
 
@@ -195,15 +193,21 @@ export default function EditCoursePage() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true); setError(''); setSuccess('');
-    const cleanOutline = outline.filter((m) => m.title.trim()).map((m) => ({
-      title: m.title.trim(),
-      lessons: m.lessons.filter((l) => l.title.trim()).map((l) => {
-        const lesson: OutlineLesson = { title: l.title.trim() };
-        if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
-        if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
-        return lesson;
-      }),
-    }));
+    // Always include lessons that have a stream_id even if title is blank,
+    // so that stream_id is never orphaned in client-state-only limbo.
+    const cleanOutline = outline
+      .filter((m) => m.title.trim() || m.lessons.some((l) => l.stream_id?.trim()))
+      .map((m) => ({
+        title: m.title.trim(),
+        lessons: m.lessons
+          .filter((l) => l.title.trim() || l.stream_id?.trim())
+          .map((l) => {
+            const lesson: OutlineLesson = { title: l.title.trim() };
+            if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
+            if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
+            return lesson;
+          }),
+      }));
     const { error: err } = await updateCourse(id, {
       title_mn: form.title_mn, title_en: form.title_en,
       description_mn: form.description_mn, description_en: form.description_en,
@@ -442,100 +446,27 @@ export default function EditCoursePage() {
                                 <span style={{ fontSize: '11px', color: '#6b7280' }}>🎬 Видео: — Байхгүй</span>
                                 <VideoTUSUploader
                                   onUploaded={(streamId) => {
-                                    setOutline((o) => o.map((m, i) => i !== mi ? m : ({
-                                      ...m,
-                                      lessons: m.lessons.map((l, j) => j !== li ? l : ({
-                                        ...l,
-                                        stream_id: streamId,
-                                        video_status: 'pending' as const,
-                                      })),
-                                    })));
+                                    setOutline((o) => {
+                                      const newO = o.map((m, i) => i !== mi ? m : ({
+                                        ...m,
+                                        lessons: m.lessons.map((l, j) => j !== li ? l : ({
+                                          ...l,
+                                          stream_id: streamId,
+                                          video_status: 'approved' as const, // auto-approve
+                                        })),
+                                      }));
+                                      // Auto-save so stream_id + approved status persists in DB immediately
+                                      autoSaveOutlineWithStreamId(newO);
+                                      return newO;
+                                    });
                                   }}
                                   onError={(msg) => setLessonError(mi, li, msg)}
                                 />
                               </div>
                             )}
 
-                            {/* STATE B: Pending (stream_id exists, not yet approved) → Connected Media Card */}
-                            {lesson.stream_id && lesson.video_status !== 'approved' && (
-                              <div style={{
-                                border: '1px solid rgba(245,158,11,0.3)',
-                                borderRadius: '8px',
-                                background: 'rgba(245,158,11,0.05)',
-                                padding: '10px 12px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '8px',
-                              }}>
-                                {/* Status row */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#e5e5e5' }}>
-                                    🎬 CF Stream видео байршуулагдсан
-                                  </span>
-                                  <span style={{
-                                    fontSize: '11px', fontWeight: 700, color: '#f59e0b',
-                                    background: 'rgba(245,158,11,0.15)', padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap',
-                                  }}>
-                                    ⏳ Хянагдаж байна (Pending)
-                                  </span>
-                                </div>
-                                {/* Action buttons */}
-                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                                  <a
-                                    href={`https://iframe.cloudflarestream.com/${lesson.stream_id}?controls=true`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={{
-                                      padding: '5px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
-                                      background: 'rgba(59,130,246,0.12)', color: '#60a5fa',
-                                      border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', whiteSpace: 'nowrap',
-                                    }}
-                                  >
-                                    👁️ Үзэх
-                                  </a>
-                                  <button
-                                    type="button"
-                                    disabled={approvingLessons.has(`${mi}-${li}`)}
-                                    onClick={() => approveLesson(mi, li)}
-                                    style={{
-                                      padding: '5px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 800,
-                                      background: approvingLessons.has(`${mi}-${li}`) ? '#374151' : '#10b981',
-                                      color: '#fff', border: 'none',
-                                      cursor: approvingLessons.has(`${mi}-${li}`) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
-                                    }}
-                                  >
-                                    {approvingLessons.has(`${mi}-${li}`) ? '⏳ Баталж байна...' : '✅ Батлах'}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    disabled={approvingLessons.has(`${mi}-${li}`)}
-                                    onClick={() => rejectVideo(mi, li, 'Видеог устгаж шинээр оруулах уу?')}
-                                    style={{
-                                      padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
-                                      background: 'rgba(59,130,246,0.08)', color: '#60a5fa',
-                                      border: '1px solid rgba(59,130,246,0.2)', cursor: 'pointer', whiteSpace: 'nowrap',
-                                    }}
-                                  >
-                                    🔄 Солих
-                                  </button>
-                                  <button
-                                    type="button"
-                                    disabled={approvingLessons.has(`${mi}-${li}`)}
-                                    onClick={() => rejectVideo(mi, li, 'Видеог CF Stream-аас устгах уу? Энэ үйлдлийг буцаах боломжгүй.')}
-                                    style={{
-                                      padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
-                                      background: 'rgba(239,68,68,0.1)', color: '#f87171',
-                                      border: '1px solid rgba(239,68,68,0.2)', cursor: 'pointer', whiteSpace: 'nowrap',
-                                    }}
-                                  >
-                                    🗑️ Устгах
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* STATE C: Approved → green card + replace option */}
-                            {lesson.stream_id && lesson.video_status === 'approved' && (
+                            {/* STATE C: Video uploaded → green card (auto-approved, instant publish) */}
+                            {lesson.stream_id && (
                               <div style={{
                                 border: '1px solid rgba(16,185,129,0.25)',
                                 borderRadius: '8px',
@@ -564,18 +495,32 @@ export default function EditCoursePage() {
                                     👁️ Үзэх
                                   </a>
                                 </div>
-                                <button
-                                  type="button"
-                                  disabled={approvingLessons.has(`${mi}-${li}`)}
-                                  onClick={() => rejectVideo(mi, li, 'Одоогийн видеог CF Stream-аас устгаж шинээр оруулах уу?')}
-                                  style={{
-                                    padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
-                                    background: 'rgba(107,114,128,0.12)', color: '#9ca3af',
-                                    border: '1px solid #2a2a2a', cursor: 'pointer', whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  🔄 Видео солих
-                                </button>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  <button
+                                    type="button"
+                                    disabled={processingLessons.has(`${mi}-${li}`)}
+                                    onClick={() => rejectVideo(mi, li, 'Видеог устгаж шинээр оруулах уу?')}
+                                    style={{
+                                      padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
+                                      background: 'rgba(59,130,246,0.08)', color: '#60a5fa',
+                                      border: '1px solid rgba(59,130,246,0.2)', cursor: processingLessons.has(`${mi}-${li}`) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    {processingLessons.has(`${mi}-${li}`) ? '⏳...' : '🔄 Видео солих'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={processingLessons.has(`${mi}-${li}`)}
+                                    onClick={() => rejectVideo(mi, li, 'Видеог CF Stream-аас устгах уу? Энэ үйлдлийг буцаах боломжгүй.')}
+                                    style={{
+                                      padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
+                                      background: 'rgba(239,68,68,0.1)', color: '#f87171',
+                                      border: '1px solid rgba(239,68,68,0.2)', cursor: processingLessons.has(`${mi}-${li}`) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    🗑️ Устгах
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </div>

@@ -4,9 +4,10 @@
  * Deletes a lesson video from Cloudflare Stream and clears stream_id / video_status in the DB.
  * Used when admin rejects (pending) or replaces (approved) a lesson video.
  *
+ * Looks up the lesson by stream_id (robust — no fragile array index dependency).
  * CF Stream DELETE is idempotent (404 is treated as success so re-runs are safe).
  *
- * Body: { courseId: string, moduleIdx: number, lessonIdx: number }
+ * Body: { courseId: string, streamId: string }
  * Returns: { ok: true } | { error: string }
  */
 
@@ -20,6 +21,7 @@ type OutlineLesson = {
   title: string;
   stream_id?: string;
   video_status?: string;
+  [key: string]: unknown;
 };
 type OutlineModule = { title: string; lessons: OutlineLesson[] };
 
@@ -28,12 +30,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'CF_ACCOUNT_ID / CF_STREAM_API_TOKEN not configured' }, { status: 503 });
   }
 
-  let body: { courseId?: string; moduleIdx?: number; lessonIdx?: number } = {};
+  let body: { courseId?: string; streamId?: string } = {};
   try { body = await req.json(); } catch { /* empty */ }
 
-  const { courseId, moduleIdx, lessonIdx } = body;
-  if (!courseId || moduleIdx === undefined || lessonIdx === undefined) {
-    return NextResponse.json({ error: 'courseId, moduleIdx, lessonIdx required' }, { status: 400 });
+  const { courseId, streamId } = body;
+  if (!courseId || !streamId) {
+    return NextResponse.json({ error: 'courseId and streamId required' }, { status: 400 });
   }
 
   const supabase = await createAdminClient();
@@ -52,12 +54,19 @@ export async function POST(req: NextRequest) {
     ? (course.course_outline_mn as OutlineModule[])
     : [];
 
-  const lesson = outline[moduleIdx]?.lessons[lessonIdx];
-  if (!lesson) return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
+  // Find lesson by stream_id (robust against client/DB index mismatches)
+  let foundMi = -1, foundLi = -1;
+  for (let mi = 0; mi < outline.length; mi++) {
+    const lessons = outline[mi]?.lessons ?? [];
+    for (let li = 0; li < lessons.length; li++) {
+      if (lessons[li].stream_id === streamId) { foundMi = mi; foundLi = li; break; }
+    }
+    if (foundMi >= 0) break;
+  }
 
-  const streamId = lesson.stream_id;
-  if (!streamId) {
-    return NextResponse.json({ error: 'No CF Stream video found for this lesson' }, { status: 400 });
+  if (foundMi < 0) {
+    // Lesson not in DB outline — may have not been saved yet. Still delete from CF Stream.
+    console.warn('[reject-video] stream_id not found in DB outline, deleting from CF Stream anyway');
   }
 
   // Delete from Cloudflare Stream (404 = already gone, treat as success)
@@ -75,19 +84,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `CF Stream delete failed (${cfRes.status})` }, { status: 500 });
   }
 
-  // Clear stream_id and video_status in DB
-  const { stream_id: _removed_stream, video_status: _removed_status, ...lessonRest } = lesson as OutlineLesson & Record<string, unknown>;
-  void _removed_stream; void _removed_status;
-  outline[moduleIdx].lessons[lessonIdx] = lessonRest as OutlineLesson;
+  // Clear stream_id and video_status in DB (only if we found the lesson)
+  if (foundMi >= 0) {
+    const lesson = outline[foundMi].lessons[foundLi];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { stream_id: _s, video_status: _v, ...lessonRest } = lesson;
+    outline[foundMi].lessons[foundLi] = lessonRest as OutlineLesson;
 
-  const { error: updateErr } = await supabase
-    .from('mo_courses')
-    .update({ course_outline_mn: outline, updated_at: new Date().toISOString() })
-    .eq('id', courseId);
+    const { error: updateErr } = await supabase
+      .from('mo_courses')
+      .update({ course_outline_mn: outline, updated_at: new Date().toISOString() })
+      .eq('id', courseId);
 
-  if (updateErr) {
-    // CF delete succeeded — DB failed. Log it; stream is already gone.
-    console.error('[reject-video] DB update error (CF delete already succeeded)', updateErr);
+    if (updateErr) {
+      // CF delete succeeded — DB failed. Log it; stream is already gone.
+      console.error('[reject-video] DB update error (CF delete already succeeded)', updateErr);
+    }
   }
 
   return NextResponse.json({ ok: true });

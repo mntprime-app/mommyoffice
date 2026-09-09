@@ -1,31 +1,26 @@
 /**
  * POST /api/admin/approve-video
  *
- * New architecture: Video is already in CF Stream (uploaded via TUS).
- * This route simply updates video_status = 'approved' in the DB.
- * No Supabase Storage, no CF Stream copy — just a DB update.
+ * Marks a lesson video as approved in the DB.
+ * Looks up the lesson by stream_id (robust — no fragile array index dependency).
  *
- * Body: { courseId: string, moduleIdx: number, lessonIdx: number }
+ * Body: { courseId: string, streamId: string }
  * Returns: { ok: true } | { error: string }
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 
-type OutlineLesson = {
-  title: string;
-  stream_id?: string;
-  video_status?: string;
-};
-type OutlineModule = { title: string; lessons: OutlineLesson[] };
+type OutlineLesson = { title: string; stream_id?: string; video_status?: string; [key: string]: unknown };
+type OutlineModule  = { title: string; lessons: OutlineLesson[] };
 
 export async function POST(req: NextRequest) {
-  let body: { courseId?: string; moduleIdx?: number; lessonIdx?: number } = {};
+  let body: { courseId?: string; streamId?: string } = {};
   try { body = await req.json(); } catch { /* empty */ }
 
-  const { courseId, moduleIdx, lessonIdx } = body;
-  if (!courseId || moduleIdx === undefined || lessonIdx === undefined) {
-    return NextResponse.json({ error: 'courseId, moduleIdx, lessonIdx required' }, { status: 400 });
+  const { courseId, streamId } = body;
+  if (!courseId || !streamId) {
+    return NextResponse.json({ error: 'courseId and streamId required' }, { status: 400 });
   }
 
   const supabase = await createAdminClient();
@@ -44,15 +39,22 @@ export async function POST(req: NextRequest) {
     ? (course.course_outline_mn as OutlineModule[])
     : [];
 
-  const lesson = outline[moduleIdx]?.lessons[lessonIdx];
-  if (!lesson) return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
-
-  if (!lesson.stream_id) {
-    return NextResponse.json({ error: 'No CF Stream video found for this lesson' }, { status: 400 });
+  // Find lesson by stream_id (robust against client/DB index mismatches)
+  let foundMi = -1, foundLi = -1;
+  for (let mi = 0; mi < outline.length; mi++) {
+    const lessons = outline[mi]?.lessons ?? [];
+    for (let li = 0; li < lessons.length; li++) {
+      if (lessons[li].stream_id === streamId) { foundMi = mi; foundLi = li; break; }
+    }
+    if (foundMi >= 0) break;
   }
 
-  // DB-only update: mark video as approved
-  outline[moduleIdx].lessons[lessonIdx] = { ...lesson, video_status: 'approved' };
+  if (foundMi < 0) {
+    return NextResponse.json({ error: `Lesson with stream_id ${streamId} not found in course outline` }, { status: 404 });
+  }
+
+  // Mark approved
+  outline[foundMi].lessons[foundLi] = { ...outline[foundMi].lessons[foundLi], video_status: 'approved' };
 
   const { error: updateErr } = await supabase
     .from('mo_courses')

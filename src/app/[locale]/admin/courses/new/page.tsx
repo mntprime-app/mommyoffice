@@ -131,15 +131,20 @@ export default function NewCoursePage() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true); setError('');
-    const cleanOutline = outline.filter((m) => m.title.trim()).map((m) => ({
-      title: m.title.trim(),
-      lessons: m.lessons.filter((l) => l.title.trim()).map((l) => {
-        const lesson: OutlineLesson = { title: l.title.trim() };
-        if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
-        if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
-        return lesson;
-      }),
-    }));
+    // Always include lessons with stream_id even if title is blank (avoid orphaned videos)
+    const cleanOutline = outline
+      .filter((m) => m.title.trim() || m.lessons.some((l) => l.stream_id?.trim()))
+      .map((m) => ({
+        title: m.title.trim(),
+        lessons: m.lessons
+          .filter((l) => l.title.trim() || l.stream_id?.trim())
+          .map((l) => {
+            const lesson: OutlineLesson = { title: l.title.trim() };
+            if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
+            if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
+            return lesson;
+          }),
+      }));
     const { error: err } = await createCourse({
       title_mn: form.title_mn, title_en: form.title_en || null,
       description_mn: form.description_mn || null, description_en: form.description_en || null,
@@ -382,7 +387,7 @@ export default function NewCoursePage() {
                                       lessons: m.lessons.map((l, j) => j !== li ? l : ({
                                         ...l,
                                         stream_id: streamId,
-                                        video_status: 'pending' as const,
+                                        video_status: 'approved' as const, // auto-approve
                                       })),
                                     })));
                                   }}
@@ -391,60 +396,53 @@ export default function NewCoursePage() {
                               </div>
                             )}
 
-                            {/* STATE B: Pending (stream_id set, course not saved yet) */}
+                            {/* STATE C: Video uploaded → green card (auto-approved, instant publish) */}
                             {lesson.stream_id && (
                               <div style={{
-                                border: '1px solid rgba(245,158,11,0.3)',
+                                border: '1px solid rgba(16,185,129,0.25)',
                                 borderRadius: '8px',
-                                background: 'rgba(245,158,11,0.05)',
+                                background: 'rgba(16,185,129,0.05)',
                                 padding: '10px 12px',
                                 display: 'flex',
-                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
                                 gap: '8px',
+                                flexWrap: 'wrap',
                               }}>
-                                {/* Status */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#e5e5e5' }}>
-                                    🎬 CF Stream видео байршуулагдсан
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#10b981' }}>
+                                    ✓ Бэлэн — хадгалсны дараа харагдана
                                   </span>
-                                  <span style={{
-                                    fontSize: '11px', fontWeight: 700, color: '#f59e0b',
-                                    background: 'rgba(245,158,11,0.15)', padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap',
-                                  }}>
-                                    ⏳ Хянагдаж байна (Pending)
-                                  </span>
-                                </div>
-                                {/* Note + actions */}
-                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                                  <span style={{ fontSize: '11px', color: '#6b7280', flexShrink: 0 }}>Хадгалсны дараа edit хуудаснаас батална</span>
                                   <a
                                     href={`https://iframe.cloudflarestream.com/${lesson.stream_id}?controls=true`}
                                     target="_blank"
                                     rel="noreferrer"
                                     style={{
-                                      padding: '4px 10px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
+                                      padding: '3px 8px', borderRadius: '5px', fontSize: '10px', fontWeight: 700,
                                       background: 'rgba(59,130,246,0.12)', color: '#60a5fa',
                                       border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', whiteSpace: 'nowrap',
                                     }}
                                   >
                                     👁️ Үзэх
                                   </a>
+                                </div>
+                                <div style={{ display: 'flex', gap: '6px' }}>
                                   <button
                                     type="button"
                                     onClick={() => deleteStream(mi, li, 'Видеог устгаж шинээр оруулах уу?')}
                                     style={{
-                                      padding: '4px 10px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
+                                      padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
                                       background: 'rgba(59,130,246,0.08)', color: '#60a5fa',
                                       border: '1px solid rgba(59,130,246,0.2)', cursor: 'pointer', whiteSpace: 'nowrap',
                                     }}
                                   >
-                                    🔄 Солих
+                                    🔄 Видео солих
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => deleteStream(mi, li, 'Видеог CF Stream-аас устгах уу? Буцаах боломжгүй.')}
                                     style={{
-                                      padding: '4px 10px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
+                                      padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
                                       background: 'rgba(239,68,68,0.1)', color: '#f87171',
                                       border: '1px solid rgba(239,68,68,0.2)', cursor: 'pointer', whiteSpace: 'nowrap',
                                     }}

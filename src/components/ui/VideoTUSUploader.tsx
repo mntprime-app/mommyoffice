@@ -3,18 +3,18 @@
  * VideoTUSUploader — Direct Cloudflare Stream TUS upload (no Supabase Storage)
  *
  * Flow:
- *  1. User picks a video file
+ *  1. User picks a video file (validated: ≤4 GB, .mp4/.mov/.mkv/.webm)
  *  2. POST /api/video/request-upload → { uploadUrl, videoUid }
- *  3. TUS chunked PATCH directly to CF Stream (50 MB chunks, no size limit)
- *  4. onUploaded(videoUid) — parent stores stream_id and sets video_status='pending'
+ *  3. TUS chunked PATCH directly to CF Stream (50 MB chunks)
+ *  4. onUploaded(videoUid) — parent stores stream_id and sets video_status='approved' instantly
  *
- * CF Stream is completely invisible to the instructor.
- * No r2_key, no Supabase bucket dependency.
+ * Auto-approval: no pending gate — videos publish immediately on upload.
+ * Max file size: 4 GB (Kajabi standard).
  */
 
 import { useRef, useState, useCallback } from 'react';
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024 * 1024; // 10 GB
+const MAX_FILE_BYTES = 4 * 1024 * 1024 * 1024; // 4 GB (Kajabi standard)
 const ACCEPTED_TYPES = ['video/mp4', 'video/quicktime', 'video/x-matroska', 'video/webm'];
 const ACCEPTED_EXT = '.mp4, .mov, .mkv, .webm';
 const CHUNK_SIZE = 50 * 1024 * 1024; // 50 MB per chunk
@@ -36,7 +36,9 @@ export default function VideoTUSUploader({ onUploaded, onError, disabled }: Prop
     if (!ACCEPTED_TYPES.includes(file.type) && !file.name.match(/\.(mp4|mov|mkv|webm)$/i)) {
       return 'Зөвшөөрөгдсөн формат: MP4, MOV, MKV, WebM';
     }
-    if (file.size > MAX_FILE_BYTES) return 'Файлын хэмжээ 10 GB-аас бага байх ёстой';
+    if (file.size > MAX_FILE_BYTES) {
+      return '⚠️ Файлын хэмжээ хэтэрсэн байна. Дээд хэмжээ 4GB (Kajabi стандарт).';
+    }
     return null;
   }
 
@@ -102,7 +104,7 @@ export default function VideoTUSUploader({ onUploaded, onError, disabled }: Prop
 
     setUploading(false);
     onUploaded(videoUid);
-    // Parent now transitions to STATE B — this component will unmount
+    // Parent auto-approves and transitions to STATE C (green) — this component will unmount
   }, [onUploaded, onError]);
 
   function reset() { setErrMsg(''); setProgress(0); setStatusMsg(''); }

@@ -260,6 +260,16 @@ export async function deleteCourseById(id: string) {
   await supabase.from('mo_courses').delete().eq('id', id);
 }
 
+/** Patch only the course_outline_mn column — used for auto-save after video upload. */
+export async function saveCourseOutlinePatch(courseId: string, outline: unknown[] | null) {
+  const supabase = await createAdminClient();
+  const { error } = await supabase
+    .from('mo_courses')
+    .update({ course_outline_mn: outline, updated_at: new Date().toISOString() })
+    .eq('id', courseId);
+  return { error: error?.message ?? null };
+}
+
 // ─── VIDEOS ───────────────────────────────────────────────────────────────────
 
 /** Server-side slug generator. Strips non-ASCII then kebab-cases.
