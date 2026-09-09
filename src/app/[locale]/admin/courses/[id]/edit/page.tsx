@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getCourseById, updateCourse, deleteCourseById, getInstructors, saveCourseOutlinePatch } from '@/app/actions/admin';
 import { CoverImageSection } from '@/components/ui/CoverImagePicker';
@@ -503,29 +503,47 @@ export default function EditCoursePage() {
                               </div>
                             )}
 
-                            {/* STATE A: No video → TUS uploader */}
+                            {/* STATE A: No video → TUS uploader + manual stream_id link */}
                             {!lesson.stream_id && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ fontSize: '11px', color: '#6b7280' }}>🎬 Видео: — Байхгүй</span>
-                                <VideoTUSUploader
-                                  onUploaded={(streamId, fileName, fileSize) => {
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '11px', color: '#6b7280' }}>🎬 Видео: — Байхгүй</span>
+                                  <VideoTUSUploader
+                                    onUploaded={(streamId, fileName, fileSize) => {
+                                      setOutline((o) => {
+                                        const newO = o.map((m, i) => i !== mi ? m : ({
+                                          ...m,
+                                          lessons: m.lessons.map((l, j) => j !== li ? l : ({
+                                            ...l,
+                                            stream_id: streamId,
+                                            video_status: 'approved' as const,
+                                            file_name: fileName,
+                                            file_size: fileSize,
+                                          })),
+                                        }));
+                                        autoSaveOutlineWithStreamId(newO);
+                                        return newO;
+                                      });
+                                    }}
+                                    onError={(msg) => setLessonError(mi, li, msg)}
+                                  />
+                                </div>
+                                {/* Link existing CF Stream video without re-uploading */}
+                                <LinkStreamId
+                                  onLink={(streamId) => {
                                     setOutline((o) => {
                                       const newO = o.map((m, i) => i !== mi ? m : ({
                                         ...m,
                                         lessons: m.lessons.map((l, j) => j !== li ? l : ({
                                           ...l,
                                           stream_id: streamId,
-                                          video_status: 'approved' as const, // auto-approve
-                                          file_name: fileName,
-                                          file_size: fileSize,
+                                          video_status: 'approved' as const,
                                         })),
                                       }));
-                                      // Auto-save so stream_id + metadata persists in DB immediately
                                       autoSaveOutlineWithStreamId(newO);
                                       return newO;
                                     });
                                   }}
-                                  onError={(msg) => setLessonError(mi, li, msg)}
                                 />
                               </div>
                             )}
@@ -690,21 +708,8 @@ export default function EditCoursePage() {
             </SideCard>
 
 
-            {/* Video */}
-            <SideCard title="Видео">
-              <Field label="YouTube Trailer ID">
-                <input value={form.trailer_url} onChange={(e) => set('trailer_url', e.target.value)}
-                  style={{ ...inp, fontFamily: 'monospace', fontSize: '12px' }} placeholder="dQw4w9WgXcQ" />
-              </Field>
-              <Field label="Cloudflare Stream ID">
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <input value={form.cloudflare_stream_id} onChange={(e) => set('cloudflare_stream_id', e.target.value)}
-                    style={{ ...inp, fontFamily: 'monospace', fontSize: '12px', color: form.cloudflare_stream_id ? '#10b981' : '#e5e5e5' }}
-                    placeholder="a8765f2b3c4d..." />
-                  {form.cloudflare_stream_id && <span style={{ fontSize: '10px', color: '#10b981', whiteSpace: 'nowrap' }}>✓</span>}
-                </div>
-              </Field>
-            </SideCard>
+            {/* Trailer YouTube ID — hidden input to preserve DB value without exposing implementation detail */}
+            <input type="hidden" value={form.trailer_url} readOnly />
           </div>
         </div>
 
@@ -767,6 +772,36 @@ function Toggle({ checked, onChange, label, color }: { checked: boolean; onChang
         style={{ width: '14px', height: '14px', accentColor: color }} />
       <span style={{ fontSize: '13px', color: checked ? '#e5e5e5' : '#6b7280' }}>{label}</span>
     </label>
+  );
+}
+
+/** Small helper: paste an existing CF stream ID to link without re-uploading */
+function LinkStreamId({ onLink }: { onLink: (streamId: string) => void }) {
+  const [show, setShow] = React.useState(false);
+  const [val, setVal] = React.useState('');
+  if (!show) {
+    return (
+      <button type="button" onClick={() => setShow(true)}
+        style={{ fontSize: '11px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', textDecoration: 'underline' }}>
+        Аль хэдийн байршуулсан видео холбох
+      </button>
+    );
+  }
+  return (
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+      <input
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="Stream ID (CF dashboard-аас)"
+        style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #444', background: '#2a2a2a', color: '#e5e5e5', fontSize: '11px', fontFamily: 'monospace', flex: 1 }}
+      />
+      <button type="button" onClick={() => { if (val.trim()) { onLink(val.trim()); setVal(''); setShow(false); } }}
+        style={{ fontSize: '11px', background: 'rgba(0,181,173,0.15)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.3)', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 600 }}>
+        Холбох
+      </button>
+      <button type="button" onClick={() => setShow(false)}
+        style={{ fontSize: '11px', background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}>✕</button>
+    </div>
   );
 }
 
