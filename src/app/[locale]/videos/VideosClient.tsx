@@ -373,7 +373,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
         <div style={{ position:'relative', width:'100%', height:'240px', borderRadius:'14px', overflow:'hidden', background:'#0a0a0a', border:'1px solid rgba(255,255,255,0.06)' }}>
           {hero && getThumbHQ(hero) ? (
             <img src={getThumbHQ(hero)} alt={hero.title_mn ?? 'Hero'}
-              style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
+              style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center center' }} />
           ) : (
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
               <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%)` }} />
@@ -427,7 +427,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
             {/* Layer 1: Full-bleed cover image */}
             {hero && getThumbHQ(hero) ? (
               <img src={getThumbHQ(hero)} alt={hero.title_mn}
-                style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
+                style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center center' }} />
             ) : (
               <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
                 <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)` }} />

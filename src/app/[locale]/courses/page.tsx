@@ -141,7 +141,7 @@ export default async function CoursesPage({
                   }}>
                     {course.cover_image_url ? (
                       <img src={String(course.cover_image_url)} alt={title}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} />
                     ) : (
                       <span>{String(course.emoji || '📚')}</span>
                     )}
