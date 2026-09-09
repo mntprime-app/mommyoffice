@@ -233,6 +233,25 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-064 — Enterprise Staging Pipeline: Zero-Cost Supabase→CF Stream + Zero ID Exposure (RESOLVED 2026-09-09)
+
+**Symptom:** Instructors could see raw Cloudflare Stream IDs in admin UI; no approval gate before video went live; no cost control on CF Stream encoding.
+
+**Root cause:** VideoUploader uploaded directly to CF Stream with immediate stream_id visible in text input. No staging, no approval workflow.
+
+**Fix (3-layer architecture):**
+1. `VideoStagingUploader` component: file picker → `POST /api/course-staging/presign` → Supabase Storage direct upload (signed URL, no Vercel body limit). Lesson status = `pending`.
+2. Admin approval bar (lesson row): `👁️ Урьдчилан үзэх` (opens signed preview URL), `✅ БАТАЛГААЖУУЛАХ` (calls `/api/admin/approve-video`), `🗑️ Устгах`.
+3. `/api/admin/approve-video`: loads r2_key from DB → generates signed GET URL → calls CF Stream `/stream/copy` → saves stream_id → deletes staging file immediately (Supabase storage stays at ~0 MB). Lesson status = `approved`.
+
+**Also fixed:** `CoursePlayer` iframe URL changed from `videodelivery.net` to `cloudflarestream.com`. `request-upload` route: removed `requiresignedurls` flag that was blocking all video playback.
+
+**Requires:** Supabase Storage bucket `course-staging` (private) must be created manually in Supabase dashboard.
+
+**Commits:** `9e4fb70`
+
+---
+
 ## BUG-063 — Admin Lesson Video Row Invisible + Wrong Button (RESOLVED 2026-09-09)
 
 **Symptom:** In `/admin/courses/[id]/edit` and `/admin/courses/new`, the video upload row per lesson was a tiny 🎬 icon (11px gray) with a small teal-outline "📤 Upload" button — easy to miss, no status indicator.
