@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
 import { createCourse, uploadImage, getInstructors } from '@/app/actions/admin';
 import { CoverImageSection } from '@/components/ui/CoverImagePicker';
-import VideoStagingUploader from '@/components/ui/VideoStagingUploader';
+import VideoTUSUploader from '@/components/ui/VideoTUSUploader';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 const LEVELS = ['', 'Анхан шат', 'Дунд шат', 'Ахисан шат'];
@@ -17,20 +17,10 @@ const PLACEMENTS = [
 type OutlineLesson = {
   title: string;
   stream_id?: string;
-  r2_key?: string;
-  r2_filename?: string;
-  r2_size?: number;
   video_status?: 'none' | 'pending' | 'approved';
 };
 type OutlineModule = { title: string; lessons: OutlineLesson[] };
 type Instructor = { id: string; name_mn: string; name_en: string | null; title_mn: string | null };
-
-function formatBytes(bytes: number): string {
-  if (!bytes) return '';
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
-}
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -53,36 +43,22 @@ export default function NewCoursePage() {
     }), 8000);
   }
 
-  async function deleteStagedVideo(mi: number, li: number, storagePath: string) {
-    if (!confirm('Staged видеог устгах уу? Энэ үйлдлийг буцаах боломжгүй.')) return;
+  // Delete CF Stream video (no DB update — course not saved yet)
+  async function deleteStream(mi: number, li: number, confirmMsg: string) {
+    if (!confirm(confirmMsg)) return;
+    const streamId = outline[mi]?.lessons[li]?.stream_id;
+    if (!streamId) return;
     try {
-      await fetch('/api/admin/delete-staged-video', {
+      await fetch('/api/admin/delete-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storagePath }),
+        body: JSON.stringify({ streamId }),
       });
-    } catch { /* best-effort */ }
+    } catch { /* best-effort — stream cleanup, not critical */ }
     setOutline((o) => o.map((m, i) => i !== mi ? m : ({
       ...m,
       lessons: m.lessons.map((l, j) => j !== li ? l : ({
-        ...l, r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' as const,
-      })),
-    })));
-  }
-
-  async function replaceStagedVideo(mi: number, li: number, storagePath: string) {
-    if (!confirm('Одоогийн staged видеог устгаж шинээр оруулах уу?')) return;
-    try {
-      await fetch('/api/admin/delete-staged-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storagePath }),
-      });
-    } catch { /* best-effort */ }
-    setOutline((o) => o.map((m, i) => i !== mi ? m : ({
-      ...m,
-      lessons: m.lessons.map((l, j) => j !== li ? l : ({
-        ...l, r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' as const,
+        ...l, stream_id: '', video_status: 'none' as const,
       })),
     })));
   }
@@ -105,7 +81,7 @@ export default function NewCoursePage() {
     placement: 'standard', mo_instructor_id: '',
   });
 
-  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' });
+  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', video_status: 'none' });
   const [outline, setOutline] = useState<OutlineModule[]>([
     { title: '', lessons: [emptyLesson()] },
   ]);
@@ -160,9 +136,6 @@ export default function NewCoursePage() {
       lessons: m.lessons.filter((l) => l.title.trim()).map((l) => {
         const lesson: OutlineLesson = { title: l.title.trim() };
         if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
-        if (l.r2_key?.trim()) lesson.r2_key = l.r2_key.trim();
-        if (l.r2_filename?.trim()) lesson.r2_filename = l.r2_filename.trim();
-        if (l.r2_size) lesson.r2_size = l.r2_size;
         if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
         return lesson;
       }),
@@ -398,22 +371,17 @@ export default function NewCoursePage() {
                               </div>
                             )}
 
-                            {/* STATE A: No video → uploader */}
-                            {!lesson.stream_id && lesson.video_status !== 'pending' && !lesson.r2_key && (
+                            {/* STATE A: No video → TUS uploader */}
+                            {!lesson.stream_id && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ fontSize: '11px', color: '#6b7280' }}>🎬 Видео: — Байхгүй</span>
-                                <VideoStagingUploader
-                                  courseId="new"
-                                  moduleIdx={mi}
-                                  lessonIdx={li}
-                                  onStaged={(storagePath, filename, fileBytes) => {
+                                <VideoTUSUploader
+                                  onUploaded={(streamId) => {
                                     setOutline((o) => o.map((m, i) => i !== mi ? m : ({
                                       ...m,
                                       lessons: m.lessons.map((l, j) => j !== li ? l : ({
                                         ...l,
-                                        r2_key: storagePath,
-                                        r2_filename: filename,
-                                        r2_size: fileBytes,
+                                        stream_id: streamId,
                                         video_status: 'pending' as const,
                                       })),
                                     })));
@@ -423,8 +391,8 @@ export default function NewCoursePage() {
                               </div>
                             )}
 
-                            {/* STATE B: Pending → Connected Media Card */}
-                            {lesson.video_status === 'pending' && lesson.r2_key && !lesson.stream_id && (
+                            {/* STATE B: Pending (stream_id set, course not saved yet) */}
+                            {lesson.stream_id && (
                               <div style={{
                                 border: '1px solid rgba(245,158,11,0.3)',
                                 borderRadius: '8px',
@@ -434,16 +402,11 @@ export default function NewCoursePage() {
                                 flexDirection: 'column',
                                 gap: '8px',
                               }}>
-                                {/* File info */}
+                                {/* Status */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#e5e5e5', wordBreak: 'break-all' }}>
-                                    🎬 {lesson.r2_filename || 'видео файл'}
+                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#e5e5e5' }}>
+                                    🎬 CF Stream видео байршуулагдсан
                                   </span>
-                                  {lesson.r2_size ? (
-                                    <span style={{ fontSize: '11px', color: '#9ca3af', whiteSpace: 'nowrap' }}>
-                                      • {formatBytes(lesson.r2_size)}
-                                    </span>
-                                  ) : null}
                                   <span style={{
                                     fontSize: '11px', fontWeight: 700, color: '#f59e0b',
                                     background: 'rgba(245,158,11,0.15)', padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap',
@@ -454,9 +417,21 @@ export default function NewCoursePage() {
                                 {/* Note + actions */}
                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                                   <span style={{ fontSize: '11px', color: '#6b7280', flexShrink: 0 }}>Хадгалсны дараа edit хуудаснаас батална</span>
+                                  <a
+                                    href={`https://iframe.cloudflarestream.com/${lesson.stream_id}?controls=true`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{
+                                      padding: '4px 10px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
+                                      background: 'rgba(59,130,246,0.12)', color: '#60a5fa',
+                                      border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    👁️ Үзэх
+                                  </a>
                                   <button
                                     type="button"
-                                    onClick={() => replaceStagedVideo(mi, li, lesson.r2_key!)}
+                                    onClick={() => deleteStream(mi, li, 'Видеог устгаж шинээр оруулах уу?')}
                                     style={{
                                       padding: '4px 10px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
                                       background: 'rgba(59,130,246,0.08)', color: '#60a5fa',
@@ -467,7 +442,7 @@ export default function NewCoursePage() {
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => deleteStagedVideo(mi, li, lesson.r2_key!)}
+                                    onClick={() => deleteStream(mi, li, 'Видеог CF Stream-аас устгах уу? Буцаах боломжгүй.')}
                                     style={{
                                       padding: '4px 10px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
                                       background: 'rgba(239,68,68,0.1)', color: '#f87171',

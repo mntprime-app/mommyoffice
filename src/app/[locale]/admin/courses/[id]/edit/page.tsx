@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getCourseById, updateCourse, deleteCourseById, getInstructors } from '@/app/actions/admin';
 import { CoverImageSection } from '@/components/ui/CoverImagePicker';
-import VideoStagingUploader from '@/components/ui/VideoStagingUploader';
+import VideoTUSUploader from '@/components/ui/VideoTUSUploader';
 
 const CATEGORIES = ['Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 const LEVELS = ['', 'Анхан шат', 'Дунд шат', 'Ахисан шат'];
@@ -15,18 +15,8 @@ const PLACEMENTS = [
 type OutlineLesson = {
   title: string;
   stream_id?: string;
-  r2_key?: string;       // Supabase Storage path (while staging)
-  r2_filename?: string;  // original filename for display
-  r2_size?: number;      // file size in bytes for display
   video_status?: 'none' | 'pending' | 'approved';
 };
-
-function formatBytes(bytes: number): string {
-  if (!bytes) return '';
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
-}
 type OutlineModule = { title: string; lessons: OutlineLesson[] };
 type Instructor = { id: string; name_mn: string; name_en: string | null; title_mn: string | null };
 
@@ -109,9 +99,6 @@ export default function EditCoursePage() {
             : {
                 title: l.title || '',
                 stream_id: l.stream_id || '',
-                r2_key: l.r2_key || '',
-                r2_filename: l.r2_filename || '',
-                r2_size: l.r2_size || 0,
                 video_status: l.video_status || 'none' as const,
               }
           ),
@@ -150,82 +137,53 @@ export default function EditCoursePage() {
         body: JSON.stringify({ courseId: id, moduleIdx: mi, lessonIdx: li }),
       });
       const json = await res.json();
-      if (!res.ok || json.error) { setError(json.error ?? 'Баталгаажуулахад алдаа гарлаа'); return; }
-      // Update local state
-      setOutline((o) => o.map((m, i) => i !== mi ? m : {
+      if (!res.ok || json.error) { setLessonError(mi, li, json.error ?? 'Баталгаажуулахад алдаа гарлаа'); return; }
+      // DB updated — reflect in local state (stream_id already set from TUS upload)
+      setOutline((o) => o.map((m, i) => i !== mi ? m : ({
         ...m,
-        lessons: m.lessons.map((l, j) => j !== li ? l : {
-          ...l, stream_id: json.streamId, video_status: 'approved' as const, r2_key: '', r2_filename: '',
-        }),
-      }));
-      setSuccess('Видео амжилттай баталгаажлаа ✓ Хичээл дууслаа!');
+        lessons: m.lessons.map((l, j) => j !== li ? l : ({
+          ...l, video_status: 'approved' as const,
+        })),
+      })));
+      setSuccess('Видео амжилттай баталгаажлаа ✓ Сурагчдад харагдана!');
       setTimeout(() => setSuccess(''), 4000);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Баталгаажуулахад алдаа гарлаа');
+      setLessonError(mi, li, e instanceof Error ? e.message : 'Баталгаажуулахад алдаа гарлаа');
     } finally {
       setApprovingLessons((prev) => { const next = new Set(prev); next.delete(key); return next; });
     }
   }
 
-  // Deletes staged video from Supabase Storage then clears local state
-  async function deleteStagedVideo(mi: number, li: number, storagePath: string) {
-    if (!confirm('Staged видеог устгах уу? Энэ үйлдлийг буцаах боломжгүй.')) return;
+  // Deletes CF Stream video and clears DB + local state
+  async function rejectVideo(mi: number, li: number, confirmMsg: string) {
+    if (!confirm(confirmMsg)) return;
+    const key = `${mi}-${li}`;
+    setApprovingLessons((prev) => new Set([...prev, key]));
     try {
-      const res = await fetch('/api/admin/delete-staged-video', {
+      const res = await fetch('/api/admin/reject-video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storagePath }),
+        body: JSON.stringify({ courseId: id, moduleIdx: mi, lessonIdx: li }),
       });
       const json = await res.json();
       if (!res.ok || json.error) {
         setLessonError(mi, li, json.error ?? 'Устгахад алдаа гарлаа');
         return;
       }
-    } catch {
-      // If delete fails (e.g. bucket not set up yet), still clear local state
-      // so the UI doesn't get stuck
-    }
-    setOutline((o) => o.map((m, i) => i !== mi ? m : ({
-      ...m,
-      lessons: m.lessons.map((l, j) => j !== li ? l : ({
-        ...l, r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' as const,
-      })),
-    })));
-  }
-
-  // Replace: delete current staged file then reset to uploader
-  async function replaceStagedVideo(mi: number, li: number, storagePath: string) {
-    if (!confirm('Одоогийн staged видеог устгаж шинээр оруулах уу?')) return;
-    try {
-      await fetch('/api/admin/delete-staged-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storagePath }),
-      });
-    } catch { /* best-effort */ }
-    setOutline((o) => o.map((m, i) => i !== mi ? m : ({
-      ...m,
-      lessons: m.lessons.map((l, j) => j !== li ? l : ({
-        ...l, r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' as const,
-      })),
-    })));
-  }
-
-  async function rejectLesson(mi: number, li: number) {
-    const lesson = outline[mi]?.lessons[li];
-    if (lesson?.r2_key) {
-      await deleteStagedVideo(mi, li, lesson.r2_key);
-    } else {
       setOutline((o) => o.map((m, i) => i !== mi ? m : ({
         ...m,
         lessons: m.lessons.map((l, j) => j !== li ? l : ({
-          ...l, r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' as const,
+          ...l, stream_id: '', video_status: 'none' as const,
         })),
       })));
+    } catch (e: unknown) {
+      setLessonError(mi, li, e instanceof Error ? e.message : 'Устгахад алдаа гарлаа');
+    } finally {
+      setApprovingLessons((prev) => { const next = new Set(prev); next.delete(key); return next; });
     }
   }
 
-  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' });
+  const emptyLesson = (): OutlineLesson => ({ title: '', stream_id: '', video_status: 'none' });
   const addModule = () => setOutline((o) => [...o, { title: '', lessons: [emptyLesson()] }]);
   const removeModule = (mi: number) => setOutline((o) => o.filter((_, i) => i !== mi));
   const setModuleTitle = (mi: number, val: string) => setOutline((o) => o.map((m, i) => i === mi ? { ...m, title: val } : m));
@@ -242,9 +200,6 @@ export default function EditCoursePage() {
       lessons: m.lessons.filter((l) => l.title.trim()).map((l) => {
         const lesson: OutlineLesson = { title: l.title.trim() };
         if (l.stream_id?.trim()) lesson.stream_id = l.stream_id.trim();
-        if (l.r2_key?.trim()) lesson.r2_key = l.r2_key.trim();
-        if (l.r2_filename?.trim()) lesson.r2_filename = l.r2_filename.trim();
-        if (l.r2_size) lesson.r2_size = l.r2_size;
         if (l.video_status && l.video_status !== 'none') lesson.video_status = l.video_status;
         return lesson;
       }),
@@ -481,22 +436,17 @@ export default function EditCoursePage() {
                               </div>
                             )}
 
-                            {/* STATE A: No video → uploader */}
-                            {!lesson.stream_id && lesson.video_status !== 'pending' && !lesson.r2_key && (
+                            {/* STATE A: No video → TUS uploader */}
+                            {!lesson.stream_id && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ fontSize: '11px', color: '#6b7280' }}>🎬 Видео: — Байхгүй</span>
-                                <VideoStagingUploader
-                                  courseId={id}
-                                  moduleIdx={mi}
-                                  lessonIdx={li}
-                                  onStaged={(storagePath, filename, fileBytes) => {
+                                <VideoTUSUploader
+                                  onUploaded={(streamId) => {
                                     setOutline((o) => o.map((m, i) => i !== mi ? m : ({
                                       ...m,
                                       lessons: m.lessons.map((l, j) => j !== li ? l : ({
                                         ...l,
-                                        r2_key: storagePath,
-                                        r2_filename: filename,
-                                        r2_size: fileBytes,
+                                        stream_id: streamId,
                                         video_status: 'pending' as const,
                                       })),
                                     })));
@@ -506,8 +456,8 @@ export default function EditCoursePage() {
                               </div>
                             )}
 
-                            {/* STATE B: Pending → Connected Media Card */}
-                            {lesson.video_status === 'pending' && lesson.r2_key && !lesson.stream_id && (
+                            {/* STATE B: Pending (stream_id exists, not yet approved) → Connected Media Card */}
+                            {lesson.stream_id && lesson.video_status !== 'approved' && (
                               <div style={{
                                 border: '1px solid rgba(245,158,11,0.3)',
                                 borderRadius: '8px',
@@ -517,16 +467,11 @@ export default function EditCoursePage() {
                                 flexDirection: 'column',
                                 gap: '8px',
                               }}>
-                                {/* File info row */}
+                                {/* Status row */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#e5e5e5', wordBreak: 'break-all' }}>
-                                    🎬 {lesson.r2_filename || 'видео файл'}
+                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#e5e5e5' }}>
+                                    🎬 CF Stream видео байршуулагдсан
                                   </span>
-                                  {lesson.r2_size ? (
-                                    <span style={{ fontSize: '11px', color: '#9ca3af', whiteSpace: 'nowrap' }}>
-                                      • {formatBytes(lesson.r2_size)}
-                                    </span>
-                                  ) : null}
                                   <span style={{
                                     fontSize: '11px', fontWeight: 700, color: '#f59e0b',
                                     background: 'rgba(245,158,11,0.15)', padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap',
@@ -537,7 +482,7 @@ export default function EditCoursePage() {
                                 {/* Action buttons */}
                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                                   <a
-                                    href={`/api/admin/staging-preview?path=${encodeURIComponent(lesson.r2_key)}`}
+                                    href={`https://iframe.cloudflarestream.com/${lesson.stream_id}?controls=true`}
                                     target="_blank"
                                     rel="noreferrer"
                                     style={{
@@ -555,14 +500,16 @@ export default function EditCoursePage() {
                                     style={{
                                       padding: '5px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 800,
                                       background: approvingLessons.has(`${mi}-${li}`) ? '#374151' : '#10b981',
-                                      color: '#fff', border: 'none', cursor: approvingLessons.has(`${mi}-${li}`) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
+                                      color: '#fff', border: 'none',
+                                      cursor: approvingLessons.has(`${mi}-${li}`) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
                                     }}
                                   >
-                                    {approvingLessons.has(`${mi}-${li}`) ? '⏳ Шилжүүлж байна...' : '✅ Батлах'}
+                                    {approvingLessons.has(`${mi}-${li}`) ? '⏳ Баталж байна...' : '✅ Батлах'}
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => replaceStagedVideo(mi, li, lesson.r2_key!)}
+                                    disabled={approvingLessons.has(`${mi}-${li}`)}
+                                    onClick={() => rejectVideo(mi, li, 'Видеог устгаж шинээр оруулах уу?')}
                                     style={{
                                       padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
                                       background: 'rgba(59,130,246,0.08)', color: '#60a5fa',
@@ -573,7 +520,8 @@ export default function EditCoursePage() {
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => deleteStagedVideo(mi, li, lesson.r2_key!)}
+                                    disabled={approvingLessons.has(`${mi}-${li}`)}
+                                    onClick={() => rejectVideo(mi, li, 'Видеог CF Stream-аас устгах уу? Энэ үйлдлийг буцаах боломжгүй.')}
                                     style={{
                                       padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
                                       background: 'rgba(239,68,68,0.1)', color: '#f87171',
@@ -587,7 +535,7 @@ export default function EditCoursePage() {
                             )}
 
                             {/* STATE C: Approved → green card + replace option */}
-                            {(lesson.video_status === 'approved' || lesson.stream_id) && (
+                            {lesson.stream_id && lesson.video_status === 'approved' && (
                               <div style={{
                                 border: '1px solid rgba(16,185,129,0.25)',
                                 borderRadius: '8px',
@@ -599,20 +547,27 @@ export default function EditCoursePage() {
                                 gap: '8px',
                                 flexWrap: 'wrap',
                               }}>
-                                <span style={{ fontSize: '12px', fontWeight: 700, color: '#10b981' }}>
-                                  ✓ Бэлэн — сурагчдад харагдана
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#10b981' }}>
+                                    ✓ Бэлэн — сурагчдад харагдана
+                                  </span>
+                                  <a
+                                    href={`https://iframe.cloudflarestream.com/${lesson.stream_id}?controls=true`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{
+                                      padding: '3px 8px', borderRadius: '5px', fontSize: '10px', fontWeight: 700,
+                                      background: 'rgba(59,130,246,0.12)', color: '#60a5fa',
+                                      border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    👁️ Үзэх
+                                  </a>
+                                </div>
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    if (!confirm('Одоогийн видеог устгаж шинээр оруулах уу?')) return;
-                                    setOutline((o) => o.map((m, i) => i !== mi ? m : ({
-                                      ...m,
-                                      lessons: m.lessons.map((l, j) => j !== li ? l : ({
-                                        ...l, stream_id: '', r2_key: '', r2_filename: '', r2_size: 0, video_status: 'none' as const,
-                                      })),
-                                    })));
-                                  }}
+                                  disabled={approvingLessons.has(`${mi}-${li}`)}
+                                  onClick={() => rejectVideo(mi, li, 'Одоогийн видеог CF Stream-аас устгаж шинээр оруулах уу?')}
                                   style={{
                                     padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
                                     background: 'rgba(107,114,128,0.12)', color: '#9ca3af',

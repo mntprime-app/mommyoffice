@@ -233,6 +233,32 @@ Both `UniversalHero.tsx` and `VideosClient.tsx` now use CSS-class-based dual lay
 
 ---
 
+## BUG-066 — Direct CF Stream TUS Architecture: Drop Supabase Staging Bucket (RESOLVED 2026-09-09)
+
+**Pages affected:** `/admin/courses/[id]/edit`, `/admin/courses/new`
+
+**Root cause:** Supabase free tier enforces 50 MB max per file. Real course videos (200 MB–2 GB) hit "The object exceeded the maximum allowed size" immediately. Staging bucket architecture is fundamentally broken for video.
+
+**Architecture pivot (approved):** Drop Supabase staging entirely. Upload directly to Cloudflare Stream via TUS. Gate student access via DB `video_status` field (CoursePlayer already checks this).
+
+**New workflow:**
+1. Instructor uploads → `VideoTUSUploader` → TUS PATCH to CF Stream → `stream_id` + `video_status: 'pending'` saved in `course_outline_mn`
+2. Admin previews via `https://iframe.cloudflarestream.com/{stream_id}` link in lesson card
+3. Admin clicks ✅ Батлах → `POST /api/admin/approve-video` (DB-only: `video_status = 'approved'`)
+4. Admin clicks 🗑️ Устгах / 🔄 Солих → `POST /api/admin/reject-video` (CF Stream DELETE API + DB clear)
+5. New course page uses `POST /api/admin/delete-stream` (CF delete only, no DB — course not saved yet)
+
+**Files changed:**
+- NEW `src/components/ui/VideoTUSUploader.tsx` — compact inline TUS uploader; `onUploaded(streamId)` callback; no Supabase dependency
+- REWRITE `src/app/api/admin/approve-video/route.ts` — DB-only update (`video_status = 'approved'`); no CF Stream copy, no Supabase Storage
+- NEW `src/app/api/admin/reject-video/route.ts` — CF Stream DELETE + DB clear `stream_id`/`video_status`
+- NEW `src/app/api/admin/delete-stream/route.ts` — CF Stream DELETE only (for new-course page without a courseId)
+- UPDATED `edit/page.tsx` + `new/page.tsx` — `OutlineLesson` drops `r2_key`/`r2_filename`/`r2_size`; replaces `VideoStagingUploader` with `VideoTUSUploader`; 3-state video row uses `stream_id` presence (not `r2_key`)
+
+**Benchmark that drove the decision:** Kajabi allows 4 GB uploads; Skool multi-GB practical. 50 MB is unusable for real video.
+
+---
+
 ## BUG-065 — Lesson Video Management: No File Info, No Delete, Silent Errors (RESOLVED 2026-09-09)
 
 **Pages affected:** `/admin/courses/[id]/edit`, `/admin/courses/new`
