@@ -421,12 +421,13 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
 
       {/* ── DESKTOP HERO ─────────────────────────────────────────────────────── */}
       <div className="mo-hero-desktop" style={{ background:'#141414' }}>
-          <section style={{ position:'relative', width:'100%', height:'clamp(560px, 65vh, 760px)', overflow:'hidden', background:'#0a0a0a' }}>
+        <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'12px 2rem 0' }}>
+          <section style={{ position:'relative', width:'100%', height:'clamp(580px, 68vh, 780px)', overflow:'hidden', background:'#0a0a0a', borderRadius:'24px' }}>
 
-            {/* Layer 1: Full-bleed cover image — objectFit cover like Netflix */}
+            {/* Layer 1: Full-bleed cover image */}
             {hero && getThumbHQ(hero) ? (
               <img src={getThumbHQ(hero)} alt={hero.title_mn}
-                style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center center' }} />
+                style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} />
             ) : (
               <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)' }}>
                 <div style={{ position:'absolute', inset:0, backgroundImage:`radial-gradient(ellipse at 75% 35%, rgba(0,181,173,0.1) 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, rgba(255,217,61,0.06) 0%, transparent 45%)` }} />
@@ -447,7 +448,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
 
             {/* Layer 3: Asymmetric vignette */}
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.15) 55%, transparent 72%)', zIndex:1 }} />
-            <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'35%', background:'linear-gradient(to bottom, transparent 0%, #141414 100%)', zIndex:1 }} />
+            <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'18%', background:'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)', zIndex:1 }} />
 
             {/* TOP-LEFT: brand badge */}
             <div style={{ position:'absolute', top:'24px', left:'24px', zIndex:5, display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(0,181,173,0.18)', border:'1px solid rgba(0,181,173,0.45)', color:'#00B5AD', padding:'4px 12px', borderRadius:'4px', fontSize:'10px', fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', backdropFilter:'blur(6px)' }}>
@@ -498,6 +499,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
             )}
 
           </section>
+        </div>
       </div>
 
       {/* ══ GENRE PILLS ═══════════════════════════════════════════════════════ */}

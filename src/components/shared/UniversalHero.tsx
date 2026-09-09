@@ -124,7 +124,7 @@ export default function UniversalHero({
               style={{
                 position: 'absolute', inset: 0,
                 width: '100%', height: '100%',
-                objectFit: 'contain', objectPosition: 'center center',
+                objectFit: 'cover', objectPosition: 'center top',
               }}
             />
           ) : (
@@ -234,15 +234,17 @@ export default function UniversalHero({
           CSS class mo-hero-desktop: display:block on desktop, none on mobile.
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="mo-hero-desktop" style={{ background: '#141414' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '12px 2rem 0' }}>
           <section style={{
             position: 'relative',
             width: '100%',
-            height: 'clamp(560px, 65vh, 760px)',
+            height: 'clamp(580px, 68vh, 780px)',
             overflow: 'hidden',
             background: '#0a0a0a',
+            borderRadius: '24px',
           }}>
 
-            {/* Layer 1: Cover image — full-bleed, objectFit cover like Netflix */}
+            {/* Layer 1: Cover image — ALWAYS visible */}
             {coverImage ? (
               <img
                 src={coverImage}
@@ -250,7 +252,7 @@ export default function UniversalHero({
                 style={{
                   position: 'absolute', inset: 0,
                   width: '100%', height: '100%',
-                  objectFit: 'cover', objectPosition: 'center center',
+                  objectFit: 'cover', objectPosition: 'center top',
                 }}
               />
             ) : (
@@ -293,8 +295,8 @@ export default function UniversalHero({
               background: 'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.15) 55%, transparent 72%)',
             }} />
             <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0, height: '35%', zIndex: 1,
-              background: 'linear-gradient(to bottom, transparent 0%, #141414 100%)',
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: '18%', zIndex: 1,
+              background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)',
             }} />
 
             {/* TOP-LEFT: badge */}
@@ -421,6 +423,7 @@ export default function UniversalHero({
             )}
 
           </section>
+        </div>
       </div>
 
       {/* ── Media query switcher — CSS-based, zero hydration flash ── */}
