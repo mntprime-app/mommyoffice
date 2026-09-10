@@ -228,6 +228,21 @@ h1, h2, h3, h4, h5, h6 {
   .mo-cart-sidebar { width: 100% !important; position: static !important; top: auto !important; }
 }
 
+/* Cart item — on narrow mobile, action buttons drop below info row (no more overlap) */
+@media (max-width: 600px) {
+  .mo-cart-item { flex-wrap: wrap !important; }
+  .mo-cart-item-actions {
+    width: 100% !important;
+    flex-direction: row !important;
+    flex-shrink: 0 !important;
+  }
+  .mo-cart-item-actions a,
+  .mo-cart-item-actions button {
+    flex: 1 !important;
+    text-align: center !important;
+  }
+}
+
 /* Footer — tighter columns on mobile */
 @media (max-width: 640px) {
   .mo-footer-inner-cols {

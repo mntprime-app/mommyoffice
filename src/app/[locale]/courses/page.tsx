@@ -159,13 +159,15 @@ export default async function CoursesPage({
                     ) : (
                       <span>{String(course.emoji || '📚')}</span>
                     )}
-                    {/* Category badge */}
+                    {/* Category badge — maxWidth prevents overlap with ШИЛДЭГ on narrow cards */}
                     <span style={{
                       position: 'absolute', top: '10px', left: '10px',
-                      background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+                      background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(4px)',
                       color: '#fff', fontSize: '10px', fontWeight: 700,
                       padding: '3px 9px', borderRadius: '4px',
                       textTransform: 'uppercase', letterSpacing: '0.5px',
+                      maxWidth: isBestseller ? 'calc(100% - 78px)' : 'calc(100% - 22px)',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {String(course.category || '')}
                     </span>
@@ -177,6 +179,7 @@ export default async function CoursesPage({
                         fontSize: '9px', fontWeight: 800,
                         padding: '3px 7px', borderRadius: '3px',
                         textTransform: 'uppercase', letterSpacing: '0.5px',
+                        whiteSpace: 'nowrap',
                       }}>ШИЛДЭГ</span>
                     )}
                     {/* Discount badge */}

@@ -575,6 +575,8 @@ export default async function CourseDetailPage({
             </div>
           )}
         </div>
+        {/* "Сагсанд нэмэх" compact — only for paid courses */}
+        {price !== 0 && <AddToCartButton locale={locale} slug={slug} compact />}
         <Link href={`/${locale}/checkout/${slug}`} style={{
           flex: 1, display: 'block', textAlign: 'center',
           background: '#00B5AD', color: '#fff',

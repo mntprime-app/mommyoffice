@@ -4,9 +4,11 @@ import { useState } from 'react';
 interface AddToCartButtonProps {
   locale: string;
   slug: string;
+  /** compact=true: renders as a small pill for the mobile sticky bar */
+  compact?: boolean;
 }
 
-export function AddToCartButton({ locale, slug }: AddToCartButtonProps) {
+export function AddToCartButton({ locale, slug, compact = false }: AddToCartButtonProps) {
   const [toast, setToast] = useState(false);
 
   function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
@@ -31,7 +33,23 @@ export function AddToCartButton({ locale, slug }: AddToCartButtonProps) {
       <a
         href={`/${locale}/cart?add=${slug}`}
         onClick={handleClick}
-        style={{
+        style={compact ? {
+          background: 'rgba(255,255,255,0.08)',
+          color: '#e5e5e5',
+          padding: '13px 14px',
+          borderRadius: '10px',
+          fontWeight: 600,
+          textDecoration: 'none',
+          fontSize: '13px',
+          border: '1px solid rgba(255,255,255,0.18)',
+          textAlign: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '5px',
+          whiteSpace: 'nowrap',
+          flexShrink: 0,
+          transition: 'background 0.15s',
+        } : {
           background: 'rgba(255,255,255,0.06)',
           color: '#e5e5e5',
           padding: '13px',
@@ -44,10 +62,10 @@ export function AddToCartButton({ locale, slug }: AddToCartButtonProps) {
           display: 'block',
           transition: 'background 0.15s',
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = compact ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.06)'; }}
       >
-        🛒 Сагсанд нэмэх
+        {compact ? <>🛒 Сагсанд</> : <>🛒 Сагсанд нэмэх</>}
       </a>
 
       {/* Toast notification */}

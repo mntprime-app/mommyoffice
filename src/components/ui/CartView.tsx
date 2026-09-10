@@ -90,7 +90,7 @@ export function CartView({ locale }: { locale: string }) {
             const orig = course.original_price ?? 0;
             const discount = orig > price ? Math.round(((orig - price) / orig) * 100) : 0;
             return (
-              <div key={course.slug} style={{
+              <div key={course.slug} className="mo-cart-item" style={{
                 display: 'flex', gap: '16px', alignItems: 'flex-start',
                 background: '#1a1a1a', border: '1px solid #2a2a2a',
                 borderRadius: '10px', padding: '16px',
@@ -129,8 +129,8 @@ export function CartView({ locale }: { locale: string }) {
                     )}
                   </div>
                 </div>
-                {/* Actions */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
+                {/* Actions — drops below info row on mobile via .mo-cart-item-actions */}
+                <div className="mo-cart-item-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
                   <Link href={`/${locale}/checkout/${course.slug}`} style={{
                     display: 'block', background: '#00B5AD', color: '#fff',
                     padding: '8px 16px', borderRadius: '6px', fontWeight: 700,

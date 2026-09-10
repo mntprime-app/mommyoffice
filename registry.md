@@ -1025,3 +1025,39 @@ Changed `objectFit: 'contain'` → `objectFit: 'cover'`, `objectPosition: 'cente
 
 ### Prevention
 All hero images — desktop AND mobile — must use `objectFit: 'cover'`, `objectPosition: 'center top'`. Never use `contain` in a hero context.
+
+---
+
+## [BUG-074] Mobile UX fixes — category scroll, cart layout, button hierarchy, bulk QPay checkout
+
+**Status**: Resolved. Session 19. Commit: `TBD`
+**Module**: `courses/page.tsx`, `courses/[slug]/page.tsx`, `CartView.tsx`, `globals.css`, `AddToCartButton.tsx`, `api/qpay/create-bulk/route.ts`, `api/qpay/check/route.ts`, `[locale]/checkout/page.tsx`, `BulkCheckoutView.tsx`
+
+### What was fixed
+1. Category filter pills: `flexWrap: nowrap` + `overflowX: auto` + hidden scrollbar CSS — horizontal scroll on mobile
+2. Cart mobile layout: `mo-cart-wrap` / `mo-cart-sidebar` classNames + CSS — sidebar stacks below list on ≤700px
+3. Button hierarchy: `.mo-course-sidebar-ctas` hidden on ≤960px — sticky bar is sole CTA on mobile
+4. Bulk QPay checkout: single invoice for all cart items — `create-bulk` API, `check` handles sibling orders, new `/[locale]/checkout?slugs=` page + `BulkCheckoutView`
+
+---
+
+## [BUG-075] Mobile overlap fixes — badge collision, cart card layout, sticky bar dual CTA
+
+**Status**: Resolved. Session 19. Commit: `TBD`
+**Module**: `courses/page.tsx`, `CartView.tsx`, `globals.css`, `AddToCartButton.tsx`, `courses/[slug]/page.tsx`
+
+### Symptoms
+- Course card category badge ("ХУВИЙН ХӨГЖИЛ") overflowed into "ШИЛДЭГ" badge at same Y-position on narrow 2-col mobile cards
+- Cart (Миний сагс) "Худалдаж авах" + "Хасах" buttons visually overlapping course title on mobile — 3-col flex too cramped for 375px
+- "Сагсанд нэмэх" button missing from mobile after BUG-074 hid sidebar CTAs
+
+### Fixes
+1. **Badge**: Category badge gets `maxWidth: isBestseller ? 'calc(100% - 78px)' : 'calc(100% - 22px)'` + `overflow: hidden; textOverflow: ellipsis; whiteSpace: nowrap`
+2. **Cart card**: Added `.mo-cart-item` / `.mo-cart-item-actions` classNames. On ≤600px: `flex-wrap: wrap` on card; actions row becomes `flex-direction: row` full-width below info
+3. **Sticky bar**: `AddToCartButton` gains `compact` boolean prop (smaller pill style, "🛒 Сагсанд"). Added `{price !== 0 && <AddToCartButton compact />}` to `mo-mobile-buy` bar alongside the checkout link
+
+### Pattern: compact AddToCartButton
+```tsx
+// In mobile sticky bar (paid courses only):
+{price !== 0 && <AddToCartButton locale={locale} slug={slug} compact />}
+```
