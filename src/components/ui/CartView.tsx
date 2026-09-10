@@ -77,6 +77,16 @@ export function CartView({ locale }: { locale: string }) {
   }
 
   return (
+    <>
+      {/* ── Continue Shopping back link ── */}
+      <Link href={`/${locale}/courses`} style={{
+        display: 'inline-flex', alignItems: 'center', gap: '6px',
+        color: '#00B5AD', textDecoration: 'none', fontSize: '14px', fontWeight: 600,
+        marginBottom: '24px',
+      }}>
+        ← Үргэлжлүүлэн сургалт үзэх
+      </Link>
+
     <div className="mo-cart-wrap" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
       {/* Course list */}
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -188,11 +198,11 @@ export function CartView({ locale }: { locale: string }) {
           <Link href={`/${locale}/checkout/${courses[0].slug}`} style={{
             display: 'block', width: '100%', boxSizing: 'border-box',
             background: '#00B5AD', color: '#fff',
-            padding: '14px', borderRadius: '8px',
+            padding: '13px 16px', borderRadius: '10px',
             fontWeight: 800, textDecoration: 'none',
             fontSize: '15px', textAlign: 'center',
           }}>
-            QPay-р худалдаж авах →
+            Худалдаж авах — {total.toLocaleString()}₮
           </Link>
         ) : (
           <Link
@@ -200,19 +210,19 @@ export function CartView({ locale }: { locale: string }) {
             style={{
               display: 'block', width: '100%', boxSizing: 'border-box',
               background: '#00B5AD', color: '#fff',
-              padding: '14px', borderRadius: '8px',
+              padding: '13px 16px', borderRadius: '10px',
               fontWeight: 800, textDecoration: 'none',
               fontSize: '15px', textAlign: 'center',
-              boxShadow: '0 4px 20px rgba(0,181,173,0.3)',
             }}
           >
-            Нэг QR-р бүгдийг авах — {total.toLocaleString()}₮ →
+            Бүгдийг худалдаж авах — {total.toLocaleString()}₮
           </Link>
         )}
-        <p style={{ fontSize: '11px', color: '#555', textAlign: 'center', marginTop: '12px', lineHeight: 1.5 }}>
-          QPay-р дамжуулан аюулгүй төлбөр хийгдэнэ
+        <p style={{ fontSize: '11px', color: '#555', textAlign: 'center', marginTop: '10px', lineHeight: 1.5 }}>
+          🔒 Аюулгүй төлбөрийн систем
         </p>
       </div>
     </div>
+    </>
   );
 }

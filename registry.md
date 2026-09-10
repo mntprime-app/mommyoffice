@@ -1061,3 +1061,24 @@ All hero images — desktop AND mobile — must use `objectFit: 'cover'`, `objec
 // In mobile sticky bar (paid courses only):
 {price !== 0 && <AddToCartButton locale={locale} slug={slug} compact />}
 ```
+
+---
+
+## [BUG-076] Cart UX — non-intrusive add-to-cart, "Continue Shopping" link, neutral checkout button
+
+**Status**: Resolved. Session 20. Commit: `TBD`
+**Module**: `AddToCartButton.tsx`, `CartView.tsx`
+
+### Symptoms
+1. "Сагсанд" button forced immediate navigation to `/cart` — user could not continue browsing
+2. Cart page had no back/continue-shopping link — users were trapped with no path back to catalog
+3. Bulk checkout button said "Нэг QR-р бүгдийг авах" — hardcoded "QR/QPay" language; oversized padding
+
+### Fixes
+1. **AddToCartButton**: Removed `window.location.href` redirect. Now dispatches `storage` event so Navbar badge increments immediately, shows toast, and user stays on current page
+2. **CartView**: Added `← Үргэлжлүүлэн сургалт үзэх` Link at top of non-empty cart view
+3. **CartView**: Checkout button text changed to `"Худалдаж авах — X₮"` (single) / `"Бүгдийг худалдаж авах — X₮"` (multi). Padding normalized to `13px 16px`. Footer note changed to `"🔒 Аюулгүй төлбөрийн систем"` (vendor-neutral)
+
+### Pattern: non-intrusive add-to-cart
+Storage event fires → Navbar `onStorage` handler re-reads `mo_cart` → badge updates.
+No navigation. User stays on course detail page and can keep browsing.

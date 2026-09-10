@@ -21,11 +21,11 @@ export function AddToCartButton({ locale, slug, compact = false }: AddToCartButt
         localStorage.setItem('mo_cart', JSON.stringify(cart));
       }
     } catch {/* ignore */ }
-    // Show toast
+    // Fire storage event so Navbar badge increments immediately — no page redirect
+    window.dispatchEvent(new Event('storage'));
+    // Show toast — user stays on current page
     setToast(true);
     setTimeout(() => setToast(false), 2800);
-    // Navigate after brief delay
-    setTimeout(() => { window.location.href = `/${locale}/cart?add=${slug}`; }, 400);
   }
 
   return (
