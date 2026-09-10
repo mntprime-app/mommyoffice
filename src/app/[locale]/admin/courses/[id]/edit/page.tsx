@@ -57,6 +57,7 @@ export default function EditCoursePage() {
     lecture_count: '0', download_count: '0', exercise_count: '0',
     has_certificate: false, is_bestseller: false,
     is_published: false, show_outline: true,
+    show_about: true, show_features: true,
     placement: 'standard', mo_instructor_id: '',
   });
 
@@ -96,6 +97,8 @@ export default function EditCoursePage() {
         is_bestseller: Boolean(data.is_bestseller),
         is_published: Boolean(data.is_published),
         show_outline: data.show_outline !== false,
+        show_about: data.show_about !== false,
+        show_features: data.show_features !== false,
         placement: data.placement || 'standard',
         mo_instructor_id: data.mo_instructor_id || '',
       });
@@ -291,6 +294,7 @@ export default function EditCoursePage() {
       slug: form.slug, cover_image_url: form.cover_image_url,
       trailer_url: form.trailer_url, cloudflare_stream_id: form.cloudflare_stream_id,
       is_published: form.is_published, show_outline: form.show_outline,
+      show_about: form.show_about, show_features: form.show_features,
       placement: form.placement,
       course_outline_mn: cleanOutline.length > 0 ? cleanOutline : null,
       mo_instructor_id: form.mo_instructor_id || null,
@@ -716,6 +720,30 @@ export default function EditCoursePage() {
               </div>
             </SideCard>
 
+            {/* Section Visibility Toggles */}
+            <SideCard title="Хуудасны хэсгүүд">
+              <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 10px' }}>
+                Сурагчдад харуулах хэсгүүдийг тохируул
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <SectionToggle
+                  label="Хичээлийн агуулга харуулах"
+                  checked={form.show_outline}
+                  onChange={(v) => set('show_outline', v)}
+                />
+                <SectionToggle
+                  label="Сургалтын тухай харуулах"
+                  checked={form.show_about}
+                  onChange={(v) => set('show_about', v)}
+                />
+                <SectionToggle
+                  label="Сургалтад багтсан зүйлс харуулах"
+                  checked={form.show_features}
+                  onChange={(v) => set('show_features', v)}
+                />
+              </div>
+            </SideCard>
+
             {/* Pricing */}
             <SideCard title="Үнэ">
               <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -798,6 +826,33 @@ function Toggle({ checked, onChange, label, color }: { checked: boolean; onChang
         style={{ width: '14px', height: '14px', accentColor: color }} />
       <span style={{ fontSize: '13px', color: checked ? '#e5e5e5' : '#6b7280' }}>{label}</span>
     </label>
+  );
+}
+
+/** Section visibility toggle — pill-style ON/OFF switch */
+function SectionToggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+      <span style={{ fontSize: '12px', color: checked ? '#e5e5e5' : '#6b7280', lineHeight: 1.4 }}>{label}</span>
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        style={{
+          flexShrink: 0,
+          width: '40px', height: '22px', borderRadius: '11px', border: 'none', cursor: 'pointer',
+          background: checked ? '#00B5AD' : '#374151',
+          position: 'relative', transition: 'background 0.2s',
+        }}
+      >
+        <span style={{
+          position: 'absolute', top: '3px',
+          left: checked ? '21px' : '3px',
+          width: '16px', height: '16px', borderRadius: '50%',
+          background: '#fff', transition: 'left 0.2s',
+          display: 'block',
+        }} />
+      </button>
+    </div>
   );
 }
 

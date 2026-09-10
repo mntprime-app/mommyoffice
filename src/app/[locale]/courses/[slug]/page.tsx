@@ -167,8 +167,10 @@ export default async function CourseDetailPage({
   const lectureCount = Number(course.lecture_count) || 0;
   const level = course.level_mn || '';
 
-  // New fields (requires SQL migration: show_outline boolean, about_course_mn/en text)
-  const showOutline = course.show_outline !== false; // default true if column missing
+  // Section visibility flags — default true when column is missing (null !== false)
+  const showOutline   = course.show_outline   !== false;
+  const showAbout     = course.show_about     !== false;
+  const showFeatures  = course.show_features  !== false;
   const aboutCourse = locale === 'mn'
     ? (course.about_course_mn || '')
     : (course.about_course_en || course.about_course_mn || '');
@@ -256,7 +258,7 @@ export default async function CourseDetailPage({
             </div>
 
             {/* About course */}
-            {aboutCourse && (
+            {showAbout && aboutCourse && (
               <SectionCard title="Сургалтын тухай">
                 <div style={{ fontSize: '15px', color: '#ccc', lineHeight: 1.85, whiteSpace: 'pre-wrap' }}>
                   {aboutCourse}
@@ -265,7 +267,7 @@ export default async function CourseDetailPage({
             )}
 
             {/* Course includes */}
-            <SectionCard title="Сургалтад багтсан зүйлс">
+            {showFeatures && <SectionCard title="Сургалтад багтсан зүйлс">
               <div style={{ display: 'flex', flexWrap: 'wrap', borderTop: '1px solid #2a2a2a' }}>
                 {[
                   lectureCount > 0 && { icon: '📖', text: `${lectureCount} хичээл${durationText ? ` · ${durationText}` : ''}` },
@@ -279,7 +281,7 @@ export default async function CourseDetailPage({
                   </div>
                 ))}
               </div>
-            </SectionCard>
+            </SectionCard>}
 
             {/* What you'll learn */}
             {learnItems.length > 0 && (
