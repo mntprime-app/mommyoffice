@@ -1105,3 +1105,81 @@ No navigation. User stays on course detail page and can keep browsing.
 
 ### Zero logic changes
 QPay API calls, polling, order creation, sibling order handling — all untouched.
+
+---
+
+## [BUG-081] Build error — middleware.ts conflicts with existing proxy.ts
+
+**Status**: Resolved. Session 21. Commit: `c5a0250`
+**Module**: `src/proxy.ts`, `src/middleware.ts` (deleted)
+
+### Root cause
+Vercel treats `src/proxy.ts` as the edge middleware file (its convention). Creating a new `src/middleware.ts` alongside it triggers: `Error: Both middleware file "./src/src/middleware.ts" and proxy file "./src/src/proxy.ts" are detected. Please use "./src/src/proxy.ts" only.`
+
+This project uses `proxy.ts` (not `middleware.ts`) for all edge middleware logic including next-intl locale routing.
+
+### Fix
+Merged all new logic (admin Supabase guard) into `src/proxy.ts`. Deleted `src/middleware.ts` via `git rm`.
+
+### Rule — permanent
+> **Never create `src/middleware.ts` in this project.** All edge middleware lives in `src/proxy.ts`. This is non-negotiable — it is Vercel's convention for this repo.
+
+---
+
+## SECURITY STANDARDS — Session 21 (2026-09-10)
+
+### Standard: Admin route guard (edge, proxy.ts)
+All `/[locale]/admin/*` routes except `/admin/login` are protected at the edge in `src/proxy.ts` via Supabase `auth.getUser()`. Unauthenticated → redirect to `/${locale}/admin/login`.
+
+```typescript
+// In src/proxy.ts — admin guard pattern
+const adminPattern = /^\/(mn|en)\/admin(\/(?!login).*)?$/;
+if (adminPattern.test(pathname)) {
+  const supabase = createServerClient(...);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.redirect(new URL(`/${locale}/admin/login`, request.url));
+  return response;
+}
+return handleI18n(request);
+```
+
+### Standard: Student auth — HTTP-only cookie bridge
+MommyOffice uses **custom OTP auth** (Brevo → 6-digit code → `mo_auth_codes`), NOT Supabase auth for students.
+
+- After OTP verify: `/api/auth/verify-code` sets `mo_user_email` HTTP-only cookie (30 days, secure in prod, sameSite: lax)
+- Server components read `cookies().get('mo_user_email')` — never localStorage (server can't read it)
+- Admin users use Supabase auth (separate flow)
+
+**Rule:** Never use Supabase `auth.getUser()` to identify student users — they are NOT in Supabase auth.
+
+### Standard: Enrollment gate pattern (learn page)
+```typescript
+const cookieStore = await cookies();
+const userEmail = cookieStore.get('mo_user_email')?.value ?? null;
+if (!userEmail) redirect(`/${locale}/access?redirect=/courses/${slug}/learn`);
+const hasAccess = await checkAccess(course.id, userEmail);
+if (!hasAccess) redirect(`/${locale}/courses/${slug}?access=denied`);
+```
+`checkAccess()` checks `mo_access_tokens` (lifetime or unexpired) then `mo_enrollments` as fallback.
+
+### Standard: Stream token authorization
+`/api/stream/token` checks:
+1. `mo_user_email` cookie present (401 if missing)
+2. Fetches all enrolled course IDs from `mo_access_tokens`
+3. Checks both `cloudflare_stream_id` (course-level) AND `stream_id` inside `course_outline_mn` JSON (lesson-level)
+4. Returns 403 if videoId not found in any enrolled course
+
+### Standard: IP rate limiting
+`src/lib/rateLimit.ts` — in-memory Map, per serverless instance.
+- `send-code`: 5 requests per IP per 15 minutes
+- `verify-code`: 10 requests per IP per 15 minutes
+- Per-email DB rate limit (3 codes/5min) kept intact as second layer
+
+### Standard: Security headers (next.config.ts)
+Applied via `headers()` to all routes:
+- `X-Frame-Options: SAMEORIGIN`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+- `Strict-Transport-Security: max-age=31536000; includeSubDomains`
+- CSP: allows self, Supabase, Cloudflare Stream (`customer-*.cloudflarestream.com`), YouTube, Brevo API
