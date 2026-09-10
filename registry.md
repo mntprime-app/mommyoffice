@@ -958,6 +958,26 @@ How to avoid repeating this.
 
 ---
 
+## [BUG-073] Course landing page section visibility toggles
+
+**Status**: Resolved. Session 19. Commit: `269e2cd`
+**Module**: `src/app/[locale]/admin/courses/[id]/edit/page.tsx`, `src/app/[locale]/courses/[slug]/page.tsx`
+
+### What was built
+Admin section toggle panel "Хуудасны хэсгүүд" in the right sidebar with 3 pill-style ON/OFF switches:
+- **Хичээлийн агуулга харуулах** → `show_outline`
+- **Сургалтын тухай харуулах** → `show_about`
+- **Сургалтад багтсан зүйлс харуулах** → `show_features`
+
+Public course page reads all 3 flags and conditionally renders each section. Default is `true` (all visible) when DB column is null — uses `value !== false` pattern, no migration required.
+
+### Pattern for new section toggles
+1. Add `show_xxx: true` to form state, load with `data.show_xxx !== false`, save in `updateCourse` call
+2. Add `SectionToggle` row in "Хуудасны хэсгүүд" SideCard
+3. On public page: `const showXxx = course.show_xxx !== false;` then wrap section with `{showXxx && ...}`
+
+---
+
 ## [BUG-078] Hero revert — objectFit contain / Netflix full-bleed attempts
 
 **Status**: Resolved. Session 18. Commits: `a0479cd`
