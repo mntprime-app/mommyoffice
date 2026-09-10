@@ -11,6 +11,16 @@
 
 ## Session Log
 
+### Session 20 — 2026-09-10 — BUG-076 Cart UX + BUG-077 Checkout Payment Layout
+
+**Commits:** `f2fc4c5`, `ebabed5`
+
+BUG-076: Non-intrusive add-to-cart (no redirect, storage event fires Navbar badge), "← Үргэлжлүүлэн сургалт үзэх" back link on cart page, vendor-neutral checkout CTAs (no QPay hardcoding). BUG-077: Checkout payment page completely redesigned with two separate responsive layouts — desktop QR hero (260px, centered), mobile 3-col bank app grid first (all apps visible, Mobicom standard). Applied to both `CheckoutView.tsx` and `BulkCheckoutView.tsx`. User confirmed both screens live.
+
+**Pending:** Domain connect, missing lesson fix, instructor records, admin comments_enabled toggle.
+
+---
+
 ### Session 18 — 2026-09-09 — BUG-078 Revert + BUG-079 Discounted Prices + BUG-080 Videos Mobile Hero
 
 **Commits:** `a0479cd`, `835b87e`, `09686f7`
