@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase/server';
 import { CoursePlayer } from '@/components/ui/CoursePlayer';
 
@@ -26,6 +27,36 @@ async function getCourse(slug: string) {
   } catch { return null; }
 }
 
+/** Check if the given email has a valid access token or enrollment for this course. */
+async function checkAccess(courseId: string, email: string): Promise<boolean> {
+  try {
+    const supabase = await createAdminClient();
+    const now = new Date().toISOString();
+
+    // mo_access_tokens: lifetime (expires_at null) or not yet expired
+    const { data: token } = await supabase
+      .from('mo_access_tokens')
+      .select('id, expires_at')
+      .eq('course_id', courseId)
+      .eq('email', email)
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .limit(1)
+      .maybeSingle();
+
+    if (token) return true;
+
+    // mo_enrollments as fallback
+    const { data: enrollment } = await supabase
+      .from('mo_enrollments')
+      .select('id')
+      .eq('course_id', courseId)
+      .eq('email', email)
+      .maybeSingle();
+
+    return !!enrollment;
+  } catch { return false; }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -48,6 +79,23 @@ export default async function LearnPage({
   const { locale, slug } = await params;
   const course = await getCourse(slug);
   if (!course) notFound();
+
+  // ── Enrollment gate ────────────────────────────────────────────────────────
+  // Read the HTTP-only session cookie set by /api/auth/verify-code
+  const cookieStore = await cookies();
+  const userEmail = cookieStore.get('mo_user_email')?.value ?? null;
+
+  if (!userEmail) {
+    // Not authenticated at all — redirect to access page
+    redirect(`/${locale}/access?redirect=/courses/${slug}/learn`);
+  }
+
+  const hasAccess = await checkAccess(course.id, userEmail);
+  if (!hasAccess) {
+    // Authenticated but not enrolled for this course — redirect to course page
+    redirect(`/${locale}/courses/${slug}?access=denied`);
+  }
+  // ── End enrollment gate ────────────────────────────────────────────────────
 
   // Course-level CF Stream UID (trailer / fallback video)
   const courseStreamId: string = course.cloudflare_stream_id || '';

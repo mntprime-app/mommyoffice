@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,6 +15,13 @@ const supabaseAdmin = createClient(
 type Course = { courseId: string; courseSlug: string; courseTitleMn: string; coverImageUrl: string | null };
 
 export async function POST(req: NextRequest) {
+  // IP-based rate limit: max 10 verify attempts per IP per 15 minutes
+  const ip = getClientIp(req as unknown as Request);
+  const { limited } = checkRateLimit(`verify:${ip}`, 10, 15 * 60 * 1000);
+  if (limited) {
+    return NextResponse.json({ error: 'rate_limit' }, { status: 429 });
+  }
+
   try {
     const { email, code } = await req.json();
     if (!email || !code) {
@@ -86,7 +94,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ courses });
+    // Set a secure HTTP-only session cookie so server components can verify identity
+    const res = NextResponse.json({ courses });
+    res.cookies.set('mo_user_email', normalizedEmail, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+    });
+    return res;
   } catch (err) {
     console.error('[verify-code] Unexpected error:', err);
     return NextResponse.json({ error: 'server_error' }, { status: 500 });

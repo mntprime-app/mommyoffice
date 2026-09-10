@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -114,6 +115,13 @@ function buildEmailHtml(code: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  // IP-based rate limit: max 5 send attempts per IP per 15 minutes (prevents email bombing)
+  const ip = getClientIp(req as unknown as Request);
+  const { limited: ipLimited } = checkRateLimit(`send:${ip}`, 5, 15 * 60 * 1000);
+  if (ipLimited) {
+    return NextResponse.json({ error: 'rate_limit' }, { status: 429 });
+  }
+
   try {
     const { email } = await req.json();
     if (!email || typeof email !== 'string') {
@@ -122,7 +130,7 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Rate limit: max 3 active codes per email in the last 5 minutes
+    // Per-email rate limit: max 3 active codes per email in the last 5 minutes
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     const { count } = await supabaseAdmin
       .from('mo_auth_codes')

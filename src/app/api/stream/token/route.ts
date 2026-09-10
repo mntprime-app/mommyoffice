@@ -68,8 +68,72 @@ export async function GET(req: NextRequest) {
   if (!videoId) {
     return NextResponse.json({ error: 'Missing videoId' }, { status: 400 });
   }
+
+  // ── Enrollment gate ────────────────────────────────────────────────────────
+  // Read the HTTP-only session cookie set by /api/auth/verify-code
+  const userEmail = req.cookies.get('mo_user_email')?.value ?? null;
+  if (!userEmail) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Verify user has a valid access token for a course that contains this stream video
+  const { createClient } = await import('@supabase/supabase-js');
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+  const now = new Date().toISOString();
+
+  // Check if the videoId is a course-level stream_id the user is enrolled in
+  const { data: courseMatch } = await supabase
+    .from('mo_access_tokens')
+    .select(`course_id, mo_courses!inner(cloudflare_stream_id)`)
+    .eq('email', userEmail)
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
+    .limit(50);
+
+  // Also check if videoId is a lesson-level stream_id within a course the user owns
+  // We check course_outline_mn for any matching stream_id
+  const enrolledCourseIds = (courseMatch ?? []).map((r) => r.course_id);
+
+  let authorized = false;
+
+  if (enrolledCourseIds.length > 0) {
+    // Check course-level cloudflare_stream_id
+    const { data: courses } = await supabase
+      .from('mo_courses')
+      .select('id, cloudflare_stream_id, course_outline_mn')
+      .in('id', enrolledCourseIds);
+
+    for (const course of courses ?? []) {
+      // Match course-level stream
+      if (course.cloudflare_stream_id === videoId) { authorized = true; break; }
+
+      // Match lesson-level stream inside course_outline_mn
+      try {
+        const outline = typeof course.course_outline_mn === 'string'
+          ? JSON.parse(course.course_outline_mn)
+          : course.course_outline_mn;
+        if (Array.isArray(outline)) {
+          for (const mod of outline) {
+            for (const lesson of (mod?.lessons ?? [])) {
+              if (lesson?.stream_id === videoId) { authorized = true; break; }
+            }
+            if (authorized) break;
+          }
+        }
+      } catch { /* ignore parse errors */ }
+      if (authorized) break;
+    }
+  }
+
+  if (!authorized) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  // ── End enrollment gate ────────────────────────────────────────────────────
+
   if (!KEY_ID || !KEY_SECRET) {
-    // CF not configured yet — return a placeholder so the player can show a message
     return NextResponse.json(
       { error: 'CF_STREAM_KEY_ID / CF_STREAM_KEY_SECRET not configured' },
       { status: 503 },

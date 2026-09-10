@@ -3,6 +3,16 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { randomUUID } from 'crypto';
 
 export async function POST(req: NextRequest) {
+  // ── Internal-only guard ────────────────────────────────────────────────────
+  // This endpoint is called only by server-side QPay check flow.
+  // Reject any request that doesn't carry the internal secret.
+  const internalSecret = process.env.INTERNAL_API_SECRET;
+  const callerSecret = req.headers.get('x-internal-secret');
+  if (!internalSecret || callerSecret !== internalSecret) {
+    return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
+  }
+  // ── End internal-only guard ────────────────────────────────────────────────
+
   try {
     const { email, courseId } = await req.json();
 
