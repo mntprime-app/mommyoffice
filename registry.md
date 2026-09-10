@@ -1082,3 +1082,26 @@ All hero images — desktop AND mobile — must use `objectFit: 'cover'`, `objec
 ### Pattern: non-intrusive add-to-cart
 Storage event fires → Navbar `onStorage` handler re-reads `mo_cart` → badge updates.
 No navigation. User stays on course detail page and can keep browsing.
+
+---
+
+## [BUG-077] Checkout QR step — bank app deeplinks priority + QR centering
+
+**Status**: Resolved. Session 20. Commit: `TBD`
+**Module**: `CheckoutView.tsx`, `BulkCheckoutView.tsx`
+
+### Symptoms
+- Bank app deeplinks (Khan Bank, State Bank, XacBank, etc.) were buried below the QR box and steps — Mongolian mobile users had to scroll to reach primary payment action
+- QR code used `display: inline-flex` and was visually off-center on mobile narrow viewports
+
+### Fixes
+1. **Deeplinks moved to ①** — now the first visible element in the QR step, inside a prominent card ("📲 Банкны аппаар шууд төлнө үү"). Vertical icon+label layout, horizontal scroll row, all banks visible without scrolling.
+2. **QR code moved to ②** — wrapped in `display: flex; justify-content: center` (not `inline-flex`), with `maxWidth: 100%` so it never overflows on 375px.
+3. **Steps moved to ③** — compact (`#111` background, smaller text, lower visual weight) to reduce hierarchy noise.
+4. **Polling indicator at ④** — unchanged, bottom of left column.
+
+### New mobile layout order (both single + bulk checkout)
+① Bank app deeplinks → ② QR code (centered) → ③ Steps (compact) → ④ Polling indicator
+
+### Zero logic changes
+QPay API calls, polling, order creation, sibling order handling — all untouched.

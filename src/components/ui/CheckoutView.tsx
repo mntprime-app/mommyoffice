@@ -270,63 +270,82 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
   // ── STEP: QR ─────────────────────────────────────────────────────────────────
   if (step === 'qr') return (
     <div className="mo-checkout-wrap" style={{ maxWidth: '920px', margin: '0 auto', padding: '3rem 2rem' }}>
-      <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#e5e5e5', margin: '0 0 2rem' }}>📱 QPay QR кодоор төлнө үү</h1>
+      <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#e5e5e5', margin: '0 0 0.4rem' }}>Төлбөр хийх</h1>
+      <p style={{ fontSize: '15px', color: '#00B5AD', fontWeight: 700, margin: '0 0 1.8rem' }}>₮{course.price.toLocaleString()} нийт дүн</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '2.5rem', alignItems: 'flex-start' }}>
         <div>
-          {/* QR box */}
-          <div className="mo-qr-wrapper" style={{ marginBottom: '24px' }}>
-          <div style={{ background: '#fff', borderRadius: '20px', padding: '24px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '16px', boxShadow: '0 8px 40px rgba(0,181,173,0.2)' }}>
-            {qrImage ? (
-              <img src={`data:image/png;base64,${qrImage}`} alt="QPay QR" style={{ width: '240px', height: '240px' }} />
-            ) : (
-              <div style={{ width: '240px', height: '240px', background: '#f5f5f5', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px' }}>
-                <span style={{ fontSize: '2rem' }}>⟳</span>
-                <span style={{ fontSize: '13px', color: '#999' }}>QR ачааллаж байна...</span>
+          {/* ① BANK APP DEEPLINKS — primary action, always first */}
+          {deepLinks.length > 0 && (
+            <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
+              <p style={{ fontSize: '14px', fontWeight: 700, color: '#e5e5e5', margin: '0 0 14px' }}>
+                📲 Банкны аппаар шууд төлнө үү
+              </p>
+              <div className="mo-qr-deeplinks" style={{ display: 'flex', gap: '10px', flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: '4px' }}>
+                {deepLinks.map((dl) => (
+                  <a key={dl.name} href={dl.link} target="_blank" rel="noopener noreferrer"
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                      padding: '12px 16px', borderRadius: '12px',
+                      background: '#252525', border: '1px solid #333',
+                      textDecoration: 'none', fontSize: '11px', color: '#ccc', fontWeight: 600,
+                      flexShrink: 0, minWidth: '72px', textAlign: 'center',
+                      transition: 'border-color 0.15s, background 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#00B5AD'; e.currentTarget.style.background = 'rgba(0,181,173,0.08)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.background = '#252525'; }}
+                  >
+                    {dl.logo
+                      ? <img src={dl.logo} alt={dl.name} style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover' }} />
+                      : <span style={{ fontSize: '24px' }}>🏦</span>
+                    }
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '64px' }}>{dl.name}</span>
+                  </a>
+                ))}
               </div>
-            )}
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ fontSize: '13px', fontWeight: 700, color: '#333', margin: '0 0 2px' }}>₮{course.price.toLocaleString()} төлнө үү</p>
-              <p style={{ fontSize: '11px', color: '#999', margin: 0 }}>QPay апп → QR скан</p>
+              <p style={{ fontSize: '11px', color: '#555', margin: '10px 0 0' }}>
+                Аппаа нээгээд нэхэмжлэлийг баталгаажуулна уу
+              </p>
+            </div>
+          )}
+
+          {/* ② QR CODE — centered, for desktop or secondary device scan */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+            <div style={{ background: '#fff', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', boxShadow: '0 8px 40px rgba(0,181,173,0.2)', maxWidth: '100%' }}>
+              {qrImage ? (
+                <img src={`data:image/png;base64,${qrImage}`} alt="QPay QR" style={{ width: '220px', height: '220px', display: 'block' }} />
+              ) : (
+                <div style={{ width: '220px', height: '220px', background: '#f5f5f5', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px' }}>
+                  <span style={{ fontSize: '2rem' }}>⟳</span>
+                  <span style={{ fontSize: '13px', color: '#999' }}>QR ачааллаж байна...</span>
+                </div>
+              )}
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '14px', fontWeight: 700, color: '#222', margin: '0 0 3px' }}>₮{course.price.toLocaleString()} төлнө үү</p>
+                <p style={{ fontSize: '11px', color: '#888', margin: 0 }}>QPay апп → QR скан хийнэ үү</p>
+              </div>
             </div>
           </div>
-          </div>{/* end mo-qr-wrapper */}
 
-          {/* Steps */}
-          <div style={{ background: '#1a1a1a', border: '1px solid #222', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
-            <p style={{ fontSize: '13px', fontWeight: 700, color: '#aaa', margin: '0 0 14px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Төлбөр хийх алхамууд</p>
+          {/* ③ STEPS — compact, secondary */}
+          <div style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 700, color: '#555', margin: '0 0 10px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Төлбөр хийх алхамууд</p>
             {[
               ['1', 'QPay аппыг нээнэ үү'],
               ['2', 'QR код скан хийнэ үү'],
               ['3', 'Дүнг баталгаажуулна уу'],
               ['4', 'Төлбөр амжилттай — и-мэйл ирнэ'],
             ].map(([n, t]) => (
-              <div key={n} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderBottom: n !== '4' ? '1px solid #222' : 'none' }}>
-                <span style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'rgba(0,181,173,0.15)', border: '1px solid rgba(0,181,173,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, color: '#00B5AD', flexShrink: 0 }}>{n}</span>
-                <span style={{ fontSize: '14px', color: '#ccc' }}>{t}</span>
+              <div key={n} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: n !== '4' ? '1px solid #1e1e1e' : 'none' }}>
+                <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(0,181,173,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: '#00B5AD', flexShrink: 0 }}>{n}</span>
+                <span style={{ fontSize: '13px', color: '#888' }}>{t}</span>
               </div>
             ))}
           </div>
 
-          {/* Deep links (QPay bank apps) */}
-          {deepLinks.length > 0 && (
-            <div>
-              <p style={{ fontSize: '12px', color: '#555', fontWeight: 600, margin: '0 0 10px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Эсвэл банкны апп сонгох</p>
-              <div className="mo-qr-deeplinks" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {deepLinks.slice(0, 6).map((dl) => (
-                  <a key={dl.name} href={dl.link} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderRadius: '8px', background: '#1a1a1a', border: '1px solid #2a2a2a', textDecoration: 'none', fontSize: '12px', color: '#ccc', fontWeight: 600 }}>
-                    {dl.logo && <img src={dl.logo} alt={dl.name} style={{ width: '20px', height: '20px', borderRadius: '4px' }} />}
-                    {dl.name}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Polling indicator */}
-          <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '10px', color: '#555', fontSize: '13px' }}>
-            <span style={{ animation: 'pulse 1.5s ease-in-out infinite', display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#00B5AD' }} />
+          {/* ④ Polling indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#555', fontSize: '13px' }}>
+            <span style={{ animation: 'pulse 1.5s ease-in-out infinite', display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#00B5AD', flexShrink: 0 }} />
             Төлбөрийг хүлээж байна... (автоматаар шалгаж байна)
           </div>
         </div>
