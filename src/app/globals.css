@@ -100,6 +100,8 @@ h1, h2, h3, h4, h5, h6 {
     max-width: 100% !important;
     width: 100%;
   }
+  /* Sticky bar handles checkout on mobile — hide sidebar CTAs to avoid duplicates */
+  .mo-course-sidebar-ctas { display: none !important; }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -218,6 +220,12 @@ h1, h2, h3, h4, h5, h6 {
     flex-wrap: nowrap !important;
   }
   .mo-qr-deeplinks::-webkit-scrollbar { display: none; }
+}
+
+/* Cart — stack vertically on mobile, sidebar below course list */
+@media (max-width: 700px) {
+  .mo-cart-wrap { flex-direction: column !important; }
+  .mo-cart-sidebar { width: 100% !important; position: static !important; top: auto !important; }
 }
 
 /* Footer — tighter columns on mobile */

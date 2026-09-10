@@ -76,12 +76,19 @@ export default async function CoursesPage({
       />
 
       {/* ── CATEGORY FILTER PILLS ── */}
-      <div style={{
-        maxWidth: '1400px', margin: '0 auto',
-        padding: '1.5rem 2rem',
-        display: 'flex', gap: '0.5rem', flexWrap: 'wrap',
-        borderBottom: '1px solid #2a2a2a',
-      }}>
+      <div
+        className="mo-cat-filter"
+        style={{
+          maxWidth: '1400px', margin: '0 auto',
+          padding: '1.5rem 2rem',
+          display: 'flex', gap: '0.5rem',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch' as const,
+          scrollbarWidth: 'none' as const,
+          borderBottom: '1px solid #2a2a2a',
+        }}
+      >
         {CATEGORIES.map((cat) => {
           const isActive = category === cat || (!category && cat === 'Бүх ангилал');
           return (
@@ -89,6 +96,7 @@ export default async function CoursesPage({
               key={cat}
               href={cat === 'Бүх ангилал' ? `/${locale}/courses` : `/${locale}/courses?category=${encodeURIComponent(cat)}`}
               style={{
+                flexShrink: 0,
                 padding: '7px 16px', borderRadius: '20px',
                 fontSize: '13px', fontWeight: 600,
                 textDecoration: 'none', transition: 'all 0.15s',
@@ -102,6 +110,12 @@ export default async function CoursesPage({
           );
         })}
       </div>
+      <style>{`
+        .mo-cat-filter::-webkit-scrollbar { display: none; }
+        @media (max-width: 767px) {
+          .mo-cat-filter { padding-left: 1rem !important; padding-right: 1rem !important; }
+        }
+      `}</style>
 
       {/* ── COURSE GRID ── */}
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1rem' }}>

@@ -77,7 +77,7 @@ export function CartView({ locale }: { locale: string }) {
   }
 
   return (
-    <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+    <div className="mo-cart-wrap" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
       {/* Course list */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ color: '#888', fontSize: '14px', marginBottom: '20px' }}>
@@ -153,7 +153,7 @@ export function CartView({ locale }: { locale: string }) {
       </div>
 
       {/* Order summary sidebar */}
-      <div style={{
+      <div className="mo-cart-sidebar" style={{
         width: '300px', flexShrink: 0,
         position: 'sticky', top: '80px',
         background: '#1a1a1a', border: '1px solid #2a2a2a',
@@ -192,19 +192,22 @@ export function CartView({ locale }: { locale: string }) {
             fontWeight: 800, textDecoration: 'none',
             fontSize: '15px', textAlign: 'center',
           }}>
-            Худалдаж авах →
+            QPay-р худалдаж авах →
           </Link>
         ) : (
-          <div style={{
-            background: '#222', border: '1px solid #333',
-            borderRadius: '8px', padding: '14px',
-            textAlign: 'center',
-          }}>
-            <p style={{ fontSize: '13px', color: '#aaa', margin: 0, lineHeight: 1.6 }}>
-              Дээрх жагсаалтаас сургалт бүрийг тус тусад нь<br />
-              <strong style={{ color: '#00B5AD' }}>Худалдаж авах</strong> товч дарж авна уу.
-            </p>
-          </div>
+          <Link
+            href={`/${locale}/checkout?slugs=${courses.map(c => c.slug).join(',')}`}
+            style={{
+              display: 'block', width: '100%', boxSizing: 'border-box',
+              background: '#00B5AD', color: '#fff',
+              padding: '14px', borderRadius: '8px',
+              fontWeight: 800, textDecoration: 'none',
+              fontSize: '15px', textAlign: 'center',
+              boxShadow: '0 4px 20px rgba(0,181,173,0.3)',
+            }}
+          >
+            Нэг QR-р бүгдийг авах — {total.toLocaleString()}₮ →
+          </Link>
         )}
         <p style={{ fontSize: '11px', color: '#555', textAlign: 'center', marginTop: '12px', lineHeight: 1.5 }}>
           QPay-р дамжуулан аюулгүй төлбөр хийгдэнэ

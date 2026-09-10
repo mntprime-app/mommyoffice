@@ -414,8 +414,8 @@ export default async function CourseDetailPage({
                 )}
               </div>
 
-              {/* CTAs — full-width, bold, Fitts's Law */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
+              {/* CTAs — full-width, bold, Fitts's Law (hidden on mobile — sticky bar handles it) */}
+              <div className="mo-course-sidebar-ctas" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
                 {price === 0 ? (
                   <Link href={`/${locale}/checkout/${slug}`} style={{
                     background: '#00B5AD', color: '#fff',

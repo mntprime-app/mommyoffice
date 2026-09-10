@@ -228,6 +228,40 @@ export async function GET(req: NextRequest) {
         expires_at: expiresAt,
       });
 
+      // 4. Handle bulk siblings — find any pending orders sharing the same invoice
+      const { data: siblings } = await supabase
+        .from('mo_orders')
+        .select('id, course_id, buyer_email, user_id')
+        .eq('qpay_invoice_id', String(order.qpay_invoice_id))
+        .neq('id', orderId)
+        .eq('status', 'pending');
+
+      if (siblings?.length) {
+        const paidAt = new Date().toISOString();
+        for (const sib of siblings) {
+          const sibToken = randomUUID();
+          await supabase.from('mo_orders').update({
+            status: 'paid',
+            paid_at: paidAt,
+            access_token: sibToken,
+          }).eq('id', sib.id);
+
+          await supabase.from('mo_enrollments').upsert({
+            course_id: String(sib.course_id),
+            email: String(sib.buyer_email),
+            order_id: sib.id,
+            ...(sib.user_id ? { user_id: sib.user_id } : {}),
+          }, { onConflict: 'email,course_id' });
+
+          await supabase.from('mo_access_tokens').insert({
+            email: String(sib.buyer_email),
+            course_id: String(sib.course_id),
+            token: sibToken,
+            expires_at: null, // lifetime (inherit policy from primary course)
+          });
+        }
+      }
+
       const email = String(order.buyer_email);
       const orderUserId = (order as Record<string, unknown>).user_id as string | null;
 
