@@ -11,6 +11,25 @@
 
 ## Session Log
 
+### Session 21 — 2026-09-10 — Security Audit + Full Hardening
+
+**Commits:** `4d72a53`, `c5a0250`
+
+Full security audit before domain connect. 6 critical/important issues fixed:
+
+1. **Middleware admin guard** — `src/proxy.ts` updated with Supabase edge-level guard on all `/[locale]/admin/*` routes (except `/admin/login`). Previously the project used `proxy.ts` not `middleware.ts` — first commit created conflicting `middleware.ts` (build error: "Both middleware file and proxy file detected"), fixed in `c5a0250` by merging guard into `proxy.ts` and deleting `middleware.ts`.
+2. **Learn page enrollment gate** — `/[locale]/courses/[slug]/learn` now requires `mo_user_email` HTTP-only cookie (set on OTP verify) and checks `mo_access_tokens` + `mo_enrollments`. OTP auth uses custom flow (not Supabase auth) — session stored in `localStorage` as `mo_session`, so server-side check uses HTTP-only cookie bridge.
+3. **`/api/purchase` locked** — `INTERNAL_API_SECRET` header guard (endpoint is legacy dead code, `PurchaseButton.tsx` never imported).
+4. **`/api/stream/token` enrollment check** — verifies `mo_user_email` cookie + queries enrolled courses before signing Cloudflare Stream tokens. Checks both course-level `cloudflare_stream_id` and lesson-level `stream_id` inside `course_outline_mn` JSON.
+5. **Security headers** — `next.config.ts` `headers()` function: X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, HSTS (1yr), full CSP (Supabase, Cloudflare Stream, YouTube, Brevo).
+6. **IP rate limiting** — shared `src/lib/rateLimit.ts` in-memory Map. `send-code`: 5/IP/15min. `verify-code`: 10/IP/15min. Per-email DB rate limit (3 codes/5min) kept intact.
+
+Build was green (`c5a0250` — Ready, Production) at session close.
+
+**Pending:** Domain connect (`mommyoffice.com` → Vercel DNS), `NEXT_PUBLIC_SITE_URL` env var, Vercel Pro ($20/mo), Supabase Pro ($25/mo), missing lesson (Хичээл 2 — гарчиг), instructor records, admin `comments_enabled` toggle, `INTERNAL_API_SECRET` env var in Vercel.
+
+---
+
 ### Session 20 — 2026-09-10 — BUG-076 Cart UX + BUG-077 Checkout Payment Layout
 
 **Commits:** `f2fc4c5`, `ebabed5`
