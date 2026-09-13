@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import ShareButton from './ShareButton';
 import ViewCounter from './ViewCounter';
 import VideoComments from './VideoComments';
+import VideoReactions from './VideoReactions';
 import RelatedVideosRow from './RelatedVideosRow';
 import type { RelatedVideo } from './RelatedVideosRow';
 
@@ -191,6 +192,14 @@ export default async function VideoDetailPage({
 
       {/* View counter (client, non-blocking) */}
       <ViewCounter videoId={video.id} />
+
+      {/* Reactions */}
+      <VideoReactions
+        videoId={video.id}
+        initialSuper={video.super_likes_count ?? 0}
+        initialUp={video.upvotes_count ?? 0}
+        initialDown={video.downvotes_count ?? 0}
+      />
 
       {/* Comments */}
       <VideoComments

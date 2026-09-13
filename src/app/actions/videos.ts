@@ -139,6 +139,38 @@ export async function getPublicVideoBySlug(slug: string) {
   } catch { return null; }
 }
 
+// ─── REACT TO VIDEO ───────────────────────────────────────────────────────────
+
+export async function reactToVideo(
+  videoId: string,
+  type: 'super' | 'up' | 'down',
+): Promise<{ counts: { super_likes_count: number; upvotes_count: number; downvotes_count: number } | null; error: string | null }> {
+  try {
+    const supabase = await createAdminClient();
+    const col = type === 'super' ? 'super_likes_count' : type === 'up' ? 'upvotes_count' : 'downvotes_count';
+
+    const { data: cur } = await supabase
+      .from('mo_videos')
+      .select('super_likes_count, upvotes_count, downvotes_count')
+      .eq('id', videoId)
+      .single();
+
+    if (!cur) return { counts: null, error: 'Video not found' };
+
+    const updated = {
+      super_likes_count: cur.super_likes_count ?? 0,
+      upvotes_count: cur.upvotes_count ?? 0,
+      downvotes_count: cur.downvotes_count ?? 0,
+    };
+    updated[col as keyof typeof updated] += 1;
+
+    await supabase.from('mo_videos').update(updated).eq('id', videoId);
+    return { counts: updated, error: null };
+  } catch (e) {
+    return { counts: null, error: String(e) };
+  }
+}
+
 // ─── INCREMENT VIEW COUNT (client-triggered) ──────────────────────────────────
 
 export async function incrementVideoView(videoId: string): Promise<void> {
