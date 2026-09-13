@@ -1245,4 +1245,19 @@ in CSS — always use the CSS variable from `next/font`.
 ### Resolved bug: BUG-082
 - **Date:** 2026-09-13 (Session 22)
 - **Commits:** `924bd4c` (bad fix — subset param ignored), `20598d8` (real fix — next/font)
+
+## [BUG-083] Shop coming-soon page — content update & button removal
+
+**Status:** Resolved. 2026-09-13 (Session 23).
+**Module:** `src/app/[locale]/shop/page.tsx`
+
+### What changed
+- Replaced generic placeholder description with full Mongolian copy covering:
+  - General audience intro (ээжүүд, охид бүсгүйчүүд, гэр бүл)
+  - Business/brand section with value propositions (bid system, referral, Messenger shop)
+  - Contact email: info.mommyoffice@gmail.com (mailto link)
+- Removed "Сургалтуудыг үзэх →" button — shop page is self-contained, no redirect needed
+- Business features block styled in a teal-border card for visual hierarchy
+- `maxWidth` widened from 520px → 620px to accommodate the longer structured content
+- Removed unused `Link` import (no links remain in the component)
 - **Root cause:** `<link>` + Vercel Edge cache = Latin-only font for all users
