@@ -384,19 +384,7 @@ export default async function ArticleDetailPage({
             </section>
           )}
 
-          {/* Newsletter */}
-          <div style={{ marginTop: '3rem', padding: '2rem', background: 'linear-gradient(135deg, #0d2537, #1a4a6b)', borderRadius: '14px', border: '1px solid rgba(0,181,173,0.2)', textAlign: 'center' }}>
-            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>📬 Шинэ нийтлэлийг хамгийн түрүүнд аваарай</p>
-            <p style={{ fontSize: '13px', color: '#aaa', margin: '0 0 20px' }}>7 хоног бүр эрүүл мэнд, амьдралын хэв маяг, гэр бүлийн мэдээлэл — шууд цахим шуудан руу чинь</p>
-            <form action="#" className="mo-newsletter-form" style={{ display: 'flex', gap: '8px', maxWidth: '420px', margin: '0 auto' }}>
-              <input type="email" placeholder="Цахим шуудан хаяг" required
-                style={{ flex: 1, padding: '11px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.35)', color: '#fff', fontSize: '14px', outline: 'none' }} />
-              <button type="submit"
-                style={{ padding: '11px 20px', borderRadius: '8px', background: '#00B5AD', border: 'none', color: '#fff', fontWeight: 700, fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                Бүртгүүлэх
-              </button>
-            </form>
-          </div>
+          {/* Newsletter removed — not needed pre-launch */}
         </article>
 
         {/* ══ RIGHT: Sticky sidebar ══ */}
@@ -465,12 +453,6 @@ export default async function ArticleDetailPage({
         @media (max-width: 1024px) {
           .mo-meta-bar { flex-direction: column; align-items: flex-start; gap: 10px; }
           .mo-meta-share { align-self: flex-start; }
-        }
-
-        /* ── MOBILE: newsletter form stacks ── */
-        @media (max-width: 520px) {
-          .mo-newsletter-form { flex-direction: column; }
-          .mo-newsletter-form input, .mo-newsletter-form button { width: 100%; box-sizing: border-box; }
         }
 
         /* ── MOBILE: article body font scaling ── */
