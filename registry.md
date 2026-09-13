@@ -1261,3 +1261,15 @@ in CSS — always use the CSS variable from `next/font`.
 - `maxWidth` widened from 520px → 620px to accommodate the longer structured content
 - Removed unused `Link` import (no links remain in the component)
 - **Root cause:** `<link>` + Vercel Edge cache = Latin-only font for all users
+
+---
+
+## [BUG-084] About page — "Нийтлэлүүд" service card awkward copy
+
+**Status:** Resolved. 2026-09-13 (Session 23).
+**Module:** `src/app/[locale]/about/page.tsx`
+
+### What changed
+- Replaced old description: `"Хүүхэд өсүмж, гэр бүлийн харилцаа, эрүүл мэнд болон амьдралын зөв хэв маягийн тухай хэрэгтэй зөвлөгөө, мэдээллүүд."`
+- New description: `"Хүүхэд хүмүүжүүлэх ухаан, гэр бүлийн нандин харилцаа, эрүүл мэнд болон амьдралын зөв хэв маягийн тухай хэрэгтэй зөвлөгөө, сонирхолтой мэдээллүүд."`
+- More professional, warmer tone — "хүмүүжүүлэх ухаан" and "нандин" added; "сонирхолтой" rounds out the list naturally
