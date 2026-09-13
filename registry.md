@@ -1087,7 +1087,7 @@ No navigation. User stays on course detail page and can keep browsing.
 
 ## [BUG-077] Checkout QR step — bank app deeplinks priority + QR centering
 
-**Status**: Resolved. Session 20. Commit: `TBD`
+**Status**: Resolved. Sessions 20 + 13 Sep 2026. Commits: `f2fc4c5`, `ebabed5` (S20), `8671b7f` (BUG-077d S22)
 **Module**: `CheckoutView.tsx`, `BulkCheckoutView.tsx`
 
 ### Symptoms

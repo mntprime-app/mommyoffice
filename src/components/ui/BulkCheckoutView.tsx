@@ -249,9 +249,7 @@ export function BulkCheckoutView({ locale, courses }: BulkCheckoutViewProps) {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         input:focus { border-color: #00B5AD !important; box-shadow: 0 0 0 3px rgba(0,181,173,0.15); }
-        @media (max-width: 700px) {
-          div[style*="grid-template-columns: 1fr 320px"] { grid-template-columns: 1fr !important; }
-        }
+        @media (max-width: 700px) { input { font-size: 16px; } }
       `}</style>
     </div>
   );
