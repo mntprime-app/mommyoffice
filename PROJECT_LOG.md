@@ -11,6 +11,49 @@
 
 ## Session Log
 
+### Session 23 — 2026-09-13 — Footer Redesign, Content Pages, BUG-083/084/085, Facebook Cover Prompts
+
+**Commits:** `ae1524b`, `e10fb8e`, `20b4f2d`, `b9e6d7c`, `7a79917`, `3bc07ff`, `602af8d`
+
+**Video Reactions parity (carried from Session 22):** Added `upvotes_count`, `downvotes_count`, `super_likes_count` columns to `mo_videos` table. Created `VideoReactions.tsx` component and `reactToVideo` server action to match article reactions — consistent UX across both content types. Reaction system upgraded to junction-table architecture (`mo_article_reactions`, `mo_video_reactions` with composite PK `(resource_id, user_id)`) — DB-enforced one-reaction-per-user, auth-gated, persists across devices. Handles Postgres error `23505` gracefully.
+
+**BUG-083 — Shop coming-soon page content update:** Replaced placeholder text with full Mongolian copy (general + business audience). Added teal-border business features card. Widened `maxWidth` 520px → 620px. Removed "Сургалтуудыг үзэх" button. Commit `20b4f2d`.
+
+**Full footer redesign + 4 content pages (commit `b9e6d7c`):**
+- `Footer.tsx` rewritten as async server component — pulls tagline, social links, contact email from `mo_site_settings` via `getSiteSettings()`. 4-column layout: Brand, Платформ, Компани, Нийгмийн сүлжээ. Organization JSON-LD injected. YouTube + TikTok hidden if empty.
+- `src/app/[locale]/about/page.tsx` — Full About Us page: mission/vision, 4 services grid, business CTA. AboutPage + Organization JSON-LD, `generateMetadata`.
+- `src/app/[locale]/privacy/page.tsx` — 6-section Privacy Policy with data collected, usage, third-party, cookies, user rights.
+- `src/app/[locale]/terms/page.tsx` — 7-section Terms of Service. QPay payment, digital content = no-refund policy, Mongolian civil law.
+- `src/app/[locale]/contact/page.tsx` — Two email cards, response time notice, social links. ContactPage JSON-LD.
+- `src/app/[locale]/admin/footer/page.tsx` — Client-side editor: 6 fields (tagline, email, Facebook, Instagram, YouTube, TikTok). Live preview strip. Saves via `updateSiteSetting(key, value)` upsert.
+- Admin dashboard quick-action card added for Footer тохиргоо.
+
+**BUG-084 — About page "Нийтлэлүүд" copy fix:** Replaced awkward description with professional Mongolian copy. Commit `7a79917`.
+
+**BUG-085 — QPay bank logos blocked by CSP:** `img-src` in `next.config.ts` didn't include QPay's CDN. All 20+ bank logos broken silently on checkout. Fixed by adding `https://qpay.mn https://*.qpay.mn` to `img-src`. User confirmed logos loading. Commit `3bc07ff`.
+
+**Facebook cover image prompts:** Iterated VEO 3 / Gemini image generation prompts for MommyOffice Facebook cover — desk setup concept (teal, popcorn, monitor overlay) and editorial concept (Mongolian woman, champagne-gold silk dress, dark teal background, pointing left for logo overlay). Final prompt generated realistic result in Gemini. No code changes.
+
+**Pending:** Domain cutover (mommyoffice.com → Vercel DNS), `NEXT_PUBLIC_SITE_URL` env var, Supabase/Vercel Pro upgrades, `INTERNAL_API_SECRET` Vercel env, missing lesson fix (Хичээл 2), instructor records, 5 articles populate, mobile audit (KNOWN-003), video card reaction counts.
+
+---
+
+### Session 22 — 2026-09-13 — Video Reactions + Junction Table Security + Shop Page
+
+**Commits:** `ae1524b`, `e10fb8e`, `20b4f2d`
+
+Session resumed from compaction. Continued implementing video reactions parity and upgrading the reaction security model.
+
+**Video Reactions:** Added 3 count columns to `mo_videos` via Supabase SQL. Created `VideoReactions.tsx` client component and `reactToVideo` server action — mirrors `ArticleReactions.tsx` pattern. Wired into `/mn/videos/[slug]/page.tsx`. Reaction counts visible on video detail page.
+
+**Reaction security upgrade (junction table model):** Old system used pure `useState` — no uniqueness, reset on refresh. New system: `mo_article_reactions` and `mo_video_reactions` tables, each with `PRIMARY KEY (resource_id, user_id)`. Auth required to react. Unauthenticated users see sign-in prompt. Page load fetches existing reaction from DB (device-persistent). Server action catches Postgres `23505` unique-key violation and returns gracefully.
+
+**BUG-083 — Shop coming-soon content update:** Updated shop placeholder content, widened layout, removed unused button. Commit `20b4f2d`.
+
+**Pending:** Footer redesign, About/Privacy/Terms/Contact content pages, admin footer editor (carried into Session 23).
+
+---
+
 ### Session 21 — 2026-09-10 — Security Audit + Full Hardening
 
 **Commits:** `4d72a53`, `c5a0250`

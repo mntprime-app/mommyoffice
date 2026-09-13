@@ -1273,3 +1273,23 @@ in CSS — always use the CSS variable from `next/font`.
 - Replaced old description: `"Хүүхэд өсүмж, гэр бүлийн харилцаа, эрүүл мэнд болон амьдралын зөв хэв маягийн тухай хэрэгтэй зөвлөгөө, мэдээллүүд."`
 - New description: `"Хүүхэд хүмүүжүүлэх ухаан, гэр бүлийн нандин харилцаа, эрүүл мэнд болон амьдралын зөв хэв маягийн тухай хэрэгтэй зөвлөгөө, сонирхолтой мэдээллүүд."`
 - More professional, warmer tone — "хүмүүжүүлэх ухаан" and "нандин" added; "сонирхолтой" rounds out the list naturally
+
+---
+
+## [BUG-085] Checkout page — QPay bank logos blocked by CSP
+
+**Status:** Resolved. 2026-09-13 (Session 23).
+**Module:** `next.config.ts`
+**Commit:** `3bc07ff`
+
+### Root cause
+QPay's API returns bank logo image URLs from `https://qpay.mn/...` CDN paths. During Session 21 security hardening, a strict `img-src` CSP was applied that whitelisted only known domains (Supabase, YouTube, Cloudflare, Unsplash). QPay's domain was not included. The browser silently blocked every logo request — no console error to the user, just broken image icons on all 20+ bank buttons.
+
+### What changed
+Added `https://qpay.mn` and `https://*.qpay.mn` to the `img-src` directive in `next.config.ts`:
+
+```
+img-src 'self' data: blob: ... https://qpay.mn https://*.qpay.mn
+```
+
+All bank logos (Khan Bank, State Bank, XacBank, Bogd Bank, etc.) confirmed loading correctly post-fix. User verified on checkout page.
