@@ -1183,3 +1183,66 @@ Applied via `headers()` to all routes:
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 - `Strict-Transport-Security: max-age=31536000; includeSubDomains`
 - CSP: allows self, Supabase, Cloudflare Stream (`customer-*.cloudflarestream.com`), YouTube, Brevo API
+
+---
+
+## FONT STANDARD — Mongolian Cyrillic (MANDATORY — DO NOT CHANGE)
+
+**Rule: ALWAYS use `next/font/google`. NEVER use `<link href="fonts.googleapis.com/...">` tags.**
+
+### Why `<link>` tags break Mongolian characters (ү Ү ö öö)
+
+Google Fonts CSS2 API serves different `@font-face` blocks based on the requesting
+browser's `Accept-Language` header. Vercel's Edge Network **caches** the font CSS
+response using its own server headers (`en-US`). Result: every user worldwide receives
+a Latin-only font file. Characters ü (U+04AF), Ü (U+04AE), ö (U+04E9) fall back to
+Arial — which renders them poorly on Windows. This is silent: no build error, no
+console warning, just bad-looking Mongolian text on production.
+
+`subset=cyrillic,cyrillic-ext` appended to the URL does NOT fix this — the `subset`
+parameter is ignored by the CSS2 API.
+
+### Correct pattern (current — do not change)
+
+```typescript
+// src/app/layout.tsx
+import { Noto_Sans } from 'next/font/google';
+
+const notoSans = Noto_Sans({
+  subsets: ['latin', 'cyrillic', 'cyrillic-ext'],  // ALL THREE required
+  weight: ['400', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-noto-sans',
+});
+
+// Apply to <html> element:
+<html lang="mn" className={notoSans.variable}>
+```
+
+```css
+/* src/app/globals.css — use the CSS variable, never hardcode 'Noto Sans' */
+body {
+  font-family: var(--font-noto-sans), Arial, 'Helvetica Neue', Helvetica, sans-serif;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-noto-sans), Arial, 'Helvetica Neue', Helvetica, sans-serif;
+}
+```
+
+### Why `next/font/google` works
+
+Downloads ALL specified subset font files at **Vercel build time**. Self-hosts them at
+`/_next/static/media/`. Injects correct `@font-face` with `unicode-range` directly
+into the page. No runtime Google Fonts request. No Accept-Language detection. Cyrillic
+characters are always served from Noto Sans — guaranteed.
+
+### Adding any new font in future
+
+Same rule applies. Use `next/font/google` with all required subsets listed explicitly.
+Never add a `<link>` tag for any web font. Never hardcode a font family name string
+in CSS — always use the CSS variable from `next/font`.
+
+### Resolved bug: BUG-082
+- **Date:** 2026-09-13 (Session 22)
+- **Commits:** `924bd4c` (bad fix — subset param ignored), `20598d8` (real fix — next/font)
+- **Root cause:** `<link>` + Vercel Edge cache = Latin-only font for all users
