@@ -4,6 +4,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getSiteSettings } from '@/app/actions/admin';
+import ArticleComments from '@/components/ui/ArticleComments';
+import ArticleReactions from '@/components/ui/ArticleReactions';
 
 // ── Data fetchers ─────────────────────────────────────────────────────────────
 
@@ -12,7 +14,7 @@ async function getArticle(slug: string) {
     const supabase = await createAdminClient();
     const { data, error } = await supabase
       .from('mo_articles')
-      .select('id, title_mn, title_en, body_mn, body_en, excerpt_mn, excerpt_en, cover_image_url, mobile_cover_image, slug, category, published_at, author_name')
+      .select('id, title_mn, title_en, body_mn, body_en, excerpt_mn, excerpt_en, cover_image_url, mobile_cover_image, slug, category, published_at, author_name, comments_enabled, upvotes_count, downvotes_count, super_likes_count')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
@@ -384,7 +386,20 @@ export default async function ArticleDetailPage({
             </section>
           )}
 
-          {/* Newsletter removed — not needed pre-launch */}
+          {/* Reactions */}
+          <ArticleReactions
+            articleId={article.id}
+            initialSuper={article.super_likes_count ?? 0}
+            initialUp={article.upvotes_count ?? 0}
+            initialDown={article.downvotes_count ?? 0}
+          />
+
+          {/* Comments */}
+          <ArticleComments
+            articleId={article.id}
+            commentsEnabled={article.comments_enabled ?? true}
+            locale={locale}
+          />
         </article>
 
         {/* ══ RIGHT: Sticky sidebar ══ */}
