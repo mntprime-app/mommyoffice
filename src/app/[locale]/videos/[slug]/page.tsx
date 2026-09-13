@@ -199,6 +199,7 @@ export default async function VideoDetailPage({
         initialSuper={video.super_likes_count ?? 0}
         initialUp={video.upvotes_count ?? 0}
         initialDown={video.downvotes_count ?? 0}
+        locale={locale}
       />
 
       {/* Comments */}

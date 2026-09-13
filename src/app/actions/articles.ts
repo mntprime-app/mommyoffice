@@ -70,42 +70,64 @@ export async function deleteArticleComment(
   return { error: error?.message ?? null };
 }
 
+// ─── GET CURRENT USER'S REACTION ─────────────────────────────────────────────
+
+export async function getMyArticleReaction(
+  articleId: string,
+): Promise<'super' | 'up' | 'down' | null> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data } = await supabase
+      .from('mo_article_reactions')
+      .select('type')
+      .eq('article_id', articleId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    return (data?.type as 'super' | 'up' | 'down') ?? null;
+  } catch { return null; }
+}
+
 // ─── REACT TO ARTICLE ─────────────────────────────────────────────────────────
 
 export async function reactToArticle(
   articleId: string,
   type: 'super' | 'up' | 'down',
-): Promise<{ counts: { super_likes_count: number; upvotes_count: number; downvotes_count: number } | null; error: string | null }> {
+): Promise<{
+  counts: { super_likes_count: number; upvotes_count: number; downvotes_count: number } | null;
+  error: string | null;
+  alreadyReacted?: boolean;
+}> {
   const supabase = await createClient();
 
-  const col = type === 'super' ? 'super_likes_count' : type === 'up' ? 'upvotes_count' : 'downvotes_count';
+  // Auth required — same pattern as comments
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { counts: null, error: 'Нэвтрэх шаардлагатай.' };
 
-  // Increment via RPC — avoids race conditions
-  const { data, error } = await supabase.rpc('increment_article_reaction', {
-    p_article_id: articleId,
-    p_column: col,
-  });
+  // Insert into junction table — PRIMARY KEY (article_id, user_id) enforces uniqueness at DB level
+  const { error: insertError } = await supabase
+    .from('mo_article_reactions')
+    .insert({ article_id: articleId, user_id: user.id, type });
 
-  if (error) {
-    // Fallback: manual increment
-    const { data: cur } = await supabase
-      .from('mo_articles')
-      .select('super_likes_count, upvotes_count, downvotes_count')
-      .eq('id', articleId)
-      .single();
-
-    if (!cur) return { counts: null, error: error.message };
-
-    const updated = {
-      super_likes_count: cur.super_likes_count ?? 0,
-      upvotes_count: cur.upvotes_count ?? 0,
-      downvotes_count: cur.downvotes_count ?? 0,
-    };
-    updated[col as keyof typeof updated] += 1;
-
-    await supabase.from('mo_articles').update(updated).eq('id', articleId);
-    return { counts: updated, error: null };
+  if (insertError) {
+    // Postgres unique violation code — already reacted
+    if (insertError.code === '23505') return { counts: null, error: null, alreadyReacted: true };
+    return { counts: null, error: insertError.message };
   }
 
-  return { counts: data, error: null };
+  // Recount from junction table (source of truth) and sync to article columns for card display
+  const { data: rows } = await supabase
+    .from('mo_article_reactions')
+    .select('type')
+    .eq('article_id', articleId);
+
+  const counts = {
+    super_likes_count: rows?.filter(r => r.type === 'super').length ?? 0,
+    upvotes_count:     rows?.filter(r => r.type === 'up').length ?? 0,
+    downvotes_count:   rows?.filter(r => r.type === 'down').length ?? 0,
+  };
+
+  await supabase.from('mo_articles').update(counts).eq('id', articleId);
+  return { counts, error: null };
 }

@@ -139,33 +139,66 @@ export async function getPublicVideoBySlug(slug: string) {
   } catch { return null; }
 }
 
+// ─── GET CURRENT USER'S VIDEO REACTION ───────────────────────────────────────
+
+export async function getMyVideoReaction(
+  videoId: string,
+): Promise<'super' | 'up' | 'down' | null> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data } = await supabase
+      .from('mo_video_reactions')
+      .select('type')
+      .eq('video_id', videoId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    return (data?.type as 'super' | 'up' | 'down') ?? null;
+  } catch { return null; }
+}
+
 // ─── REACT TO VIDEO ───────────────────────────────────────────────────────────
 
 export async function reactToVideo(
   videoId: string,
   type: 'super' | 'up' | 'down',
-): Promise<{ counts: { super_likes_count: number; upvotes_count: number; downvotes_count: number } | null; error: string | null }> {
+): Promise<{
+  counts: { super_likes_count: number; upvotes_count: number; downvotes_count: number } | null;
+  error: string | null;
+  alreadyReacted?: boolean;
+}> {
   try {
-    const supabase = await createAdminClient();
-    const col = type === 'super' ? 'super_likes_count' : type === 'up' ? 'upvotes_count' : 'downvotes_count';
+    const supabase = await createClient();
 
-    const { data: cur } = await supabase
-      .from('mo_videos')
-      .select('super_likes_count, upvotes_count, downvotes_count')
-      .eq('id', videoId)
-      .single();
+    // Auth required
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { counts: null, error: 'Нэвтрэх шаардлагатай.' };
 
-    if (!cur) return { counts: null, error: 'Video not found' };
+    // Insert into junction table — PRIMARY KEY (video_id, user_id) enforces uniqueness at DB level
+    const { error: insertError } = await supabase
+      .from('mo_video_reactions')
+      .insert({ video_id: videoId, user_id: user.id, type });
 
-    const updated = {
-      super_likes_count: cur.super_likes_count ?? 0,
-      upvotes_count: cur.upvotes_count ?? 0,
-      downvotes_count: cur.downvotes_count ?? 0,
+    if (insertError) {
+      if (insertError.code === '23505') return { counts: null, error: null, alreadyReacted: true };
+      return { counts: null, error: insertError.message };
+    }
+
+    // Recount from junction table and sync to video columns
+    const { data: rows } = await supabase
+      .from('mo_video_reactions')
+      .select('type')
+      .eq('video_id', videoId);
+
+    const counts = {
+      super_likes_count: rows?.filter(r => r.type === 'super').length ?? 0,
+      upvotes_count:     rows?.filter(r => r.type === 'up').length ?? 0,
+      downvotes_count:   rows?.filter(r => r.type === 'down').length ?? 0,
     };
-    updated[col as keyof typeof updated] += 1;
 
-    await supabase.from('mo_videos').update(updated).eq('id', videoId);
-    return { counts: updated, error: null };
+    await supabase.from('mo_videos').update(counts).eq('id', videoId);
+    return { counts, error: null };
   } catch (e) {
     return { counts: null, error: String(e) };
   }

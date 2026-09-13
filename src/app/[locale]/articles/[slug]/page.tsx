@@ -392,6 +392,7 @@ export default async function ArticleDetailPage({
             initialSuper={article.super_likes_count ?? 0}
             initialUp={article.upvotes_count ?? 0}
             initialDown={article.downvotes_count ?? 0}
+            locale={locale}
           />
 
           {/* Comments */}
