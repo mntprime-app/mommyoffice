@@ -1,5 +1,13 @@
 import type { Metadata } from 'next';
+import { Noto_Sans } from 'next/font/google';
 import './globals.css';
+
+const notoSans = Noto_Sans({
+  subsets: ['latin', 'cyrillic', 'cyrillic-ext'],
+  weight: ['400', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-noto-sans',
+});
 
 export const metadata: Metadata = {
   title: "Mommyoffice",
@@ -8,15 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="mn">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&subset=cyrillic,cyrillic-ext&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="mn" className={notoSans.variable}>
       <body>{children}</body>
     </html>
   );
