@@ -13,43 +13,6 @@ type Ad = {
 
 type BannerType = 'leaderboard' | 'sidebar' | 'footer' | 'mobile';
 
-const PLACEHOLDER: Record<BannerType, { w: string; h: string; label: string }> = {
-  leaderboard: { w: '100%', h: '80px',  label: '728×90' },
-  sidebar:     { w: '100%', h: '250px', label: '300×250' },
-  footer:      { w: '100%', h: '80px',  label: '970×90' },
-  mobile:      { w: '100%', h: '120px', label: '320×100' },
-};
-
-function Placeholder({ type }: { type: BannerType }) {
-  const p = PLACEHOLDER[type];
-  const isSidebar = type === 'sidebar';
-  return (
-    <div style={{
-      width: p.w, minHeight: p.h,
-      background: 'rgba(255,255,255,0.025)',
-      border: '1px dashed rgba(255,255,255,0.1)',
-      borderRadius: '10px',
-      display: 'flex',
-      flexDirection: isSidebar ? 'column' : 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: isSidebar ? '6px' : '12px',
-      padding: '16px',
-      boxSizing: 'border-box',
-    }}>
-      {!isSidebar && (
-        <div style={{ width: '32px', height: '32px', background: 'rgba(0,181,173,0.08)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span style={{ fontSize: '14px' }}>📢</span>
-        </div>
-      )}
-      <div style={{ textAlign: isSidebar ? 'center' : 'left' }}>
-        <p style={{ fontSize: '11px', fontWeight: 700, color: '#444', margin: '0 0 2px', letterSpacing: '1.2px', textTransform: 'uppercase' }}>Сурталчилгааны зай</p>
-        <p style={{ fontSize: '10px', color: '#333', margin: 0 }}>{p.label} · info.mommyoffice@gmail.com</p>
-      </div>
-    </div>
-  );
-}
-
 interface LiveAdBannerProps {
   slot: string;
   type?: BannerType;
@@ -58,7 +21,17 @@ interface LiveAdBannerProps {
 
 export default function LiveAdBanner({ slot, type = 'leaderboard', style }: LiveAdBannerProps) {
   const [ad, setAd] = useState<Ad | null | 'loading'>('loading');
+  const [isMobile, setIsMobile] = useState(false);
 
+  // Detect and track mobile viewport
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Fetch active ad for this slot
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/ads/${encodeURIComponent(slot)}`)
@@ -68,14 +41,16 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
     return () => { cancelled = true; };
   }, [slot]);
 
-  // Still fetching — render placeholder silently so layout doesn't shift
-  if (ad === 'loading') return <Placeholder type={type} />;
+  // Still fetching — render nothing (zero height, no layout shift)
+  if (ad === 'loading') return null;
 
-  // No active ad — show placeholder
-  if (!ad) return <Placeholder type={type} />;
+  // No active ad — collapse completely, leave no space
+  if (!ad) return null;
+
+  // Mobile: video ads suppressed — image-only on small screens
+  if (isMobile && ad.media_type === 'video') return null;
 
   const isSidebar = type === 'sidebar';
-  const isVideo = ad.media_type === 'video';
 
   return (
     <a
@@ -93,12 +68,8 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
         background: '#111',
         ...style,
       }}
-      onClick={() => {
-        // Fire impression log (fire-and-forget)
-        fetch(`/api/ads/${encodeURIComponent(slot)}/click?id=${ad.id}`, { method: 'POST' }).catch(() => {});
-      }}
     >
-      {isVideo ? (
+      {ad.media_type === 'video' ? (
         <video
           src={ad.media_url}
           autoPlay
