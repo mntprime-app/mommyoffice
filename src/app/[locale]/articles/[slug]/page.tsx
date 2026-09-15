@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { getSiteSettings } from '@/app/actions/admin';
 import ArticleComments from '@/components/ui/ArticleComments';
 import ArticleReactions from '@/components/ui/ArticleReactions';
+import LiveAdBanner from '@/components/ui/LiveAdBanner';
 
 // ── Data fetchers ─────────────────────────────────────────────────────────────
 
@@ -362,10 +363,8 @@ export default async function ArticleDetailPage({
           </div>
 
           {/* Mobile-only: Ad Banner (hidden on desktop — sidebar shows it) */}
-          <div className="mo-mobile-ad" style={{ marginTop: '2.5rem', background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-            <span style={{ fontSize: '10px', color: '#333', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Сурталчилгааны зай</span>
-            <span style={{ fontSize: '11px', color: '#2a2a2a' }}>320×100</span>
-            <span style={{ fontSize: '10px', color: '#222' }}>info.mommyoffice@gmail.com</span>
+          <div className="mo-mobile-ad" style={{ marginTop: '2.5rem' }}>
+            <LiveAdBanner slot="article_body_mobile" type="mobile" />
           </div>
 
           {/* Mobile-only: Related articles (hidden on desktop — sidebar shows it) */}
@@ -406,10 +405,8 @@ export default async function ArticleDetailPage({
         {/* ══ RIGHT: Sticky sidebar ══ */}
         <aside style={{ position: 'sticky', top: '80px', display: 'flex', flexDirection: 'column', gap: '0' }}>
           {/* 1. Ad Banner — top slot */}
-          <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '250px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '24px' }}>
-            <span style={{ fontSize: '10px', color: '#333', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Сурталчилгааны зай</span>
-            <span style={{ fontSize: '11px', color: '#2a2a2a' }}>300×250</span>
-            <span style={{ fontSize: '10px', color: '#222', marginTop: '4px' }}>info.mommyoffice@gmail.com</span>
+          <div style={{ marginBottom: '24px' }}>
+            <LiveAdBanner slot="article_sidebar" type="sidebar" />
           </div>
           {/* 2. ИХ УНШИГДСАН — trending list */}
           <SidebarTrending articles={trending as Record<string, unknown>[]} locale={locale} />

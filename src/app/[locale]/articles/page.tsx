@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
 import UniversalHero from '@/components/shared/UniversalHero';
 import { CategoryBadge } from '@/components/ui/CategoryBadge';
+import LiveAdBanner from '@/components/ui/LiveAdBanner';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -85,44 +86,6 @@ function articleReadTime(a: Record<string, unknown>, locale: string) {
 function formatDate(dateStr: string | null, locale: string) {
   if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString(locale === 'mn' ? 'mn-MN' : 'en-US', { month: 'short', day: 'numeric' });
-}
-
-// ── Ad Banner ──
-function AdBanner({ type }: { type: 'leaderboard' | 'sidebar' | 'footer' }) {
-  if (type === 'sidebar') {
-    return (
-      <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '250px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '20px', marginTop: '24px' }}>
-        <span style={{ fontSize: '10px', color: '#444', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Сурталчилгааны зай</span>
-        <span style={{ fontSize: '11px', color: '#333' }}>300×250</span>
-        <span style={{ fontSize: '10px', color: '#2a2a2a', marginTop: '6px' }}>info.mommyoffice@gmail.com</span>
-      </div>
-    );
-  }
-  if (type === 'footer') {
-    return (
-      <div style={{ margin: '0 0 2rem', background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '16px', width: '100%', boxSizing: 'border-box' }}>
-        <div style={{ width: '36px', height: '36px', background: 'rgba(0,181,173,0.08)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span style={{ fontSize: '16px' }}>📢</span>
-        </div>
-        <div>
-          <p style={{ fontSize: '12px', fontWeight: 700, color: '#444', margin: '0 0 2px' }}>Сурталчилгааны зай</p>
-          <p style={{ fontSize: '10px', color: '#333', margin: 0 }}>info.mommyoffice@gmail.com</p>
-        </div>
-      </div>
-    );
-  }
-  // leaderboard
-  return (
-    <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '16px', margin: '24px 0', width: '100%', boxSizing: 'border-box' }}>
-      <div style={{ width: '32px', height: '32px', background: 'rgba(0,181,173,0.08)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: '14px' }}>📢</span>
-      </div>
-      <div>
-        <p style={{ fontSize: '11px', fontWeight: 700, color: '#444', margin: '0 0 2px' }}>Сурталчилгааны зай</p>
-        <p style={{ fontSize: '10px', color: '#333', margin: 0 }}>info.mommyoffice@gmail.com</p>
-      </div>
-    </div>
-  );
 }
 
 // ── Rich article card (main feed) ──
@@ -436,7 +399,7 @@ export default async function ArticlesPage({
                 ))}
 
                 {/* Mid-feed ad */}
-                {!isFiltered && <AdBanner type="leaderboard" />}
+                {!isFiltered && <LiveAdBanner slot="articles_leaderboard" type="leaderboard" style={{ margin: '24px 0' }} />}
 
                 {mainFeedArticles.slice(4).map((a, i) => (
                   <ArticleCard key={String(a.id || i + 4)} a={a} locale={locale} />
@@ -460,7 +423,7 @@ export default async function ArticlesPage({
             </div>
 
             {/* 300×250 ad */}
-            <AdBanner type="sidebar" />
+            <LiveAdBanner slot="articles_sidebar" type="sidebar" style={{ marginTop: '24px' }} />
 
             {/* Editor's Pick */}
             <EditorsPick a={editorsPick} locale={locale} />
@@ -484,8 +447,8 @@ export default async function ArticlesPage({
         )}
 
         {/* ── FOOTER AD ── */}
-        <div style={{ paddingTop: '1rem' }}>
-          <AdBanner type="footer" />
+        <div style={{ paddingTop: '1rem', marginBottom: '2rem' }}>
+          <LiveAdBanner slot="articles_footer" type="footer" />
         </div>
       </div>
 

@@ -8,6 +8,7 @@ import type { Video } from './page';
 import CarouselRow from '@/components/shared/CarouselRow';
 import { getPublicVideoEpisodes, type PublicEpisode } from '@/app/actions/videos';
 import type { ModalEpisode } from '@/components/ui/HeroDetailModal';
+import LiveAdBanner from '@/components/ui/LiveAdBanner';
 
 // ─── types ───────────────────────────────────────────────────────────────────
 
@@ -527,6 +528,11 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
             </div>
           );
         })}
+      </div>
+
+      {/* ══ AD BANNER ════════════════════════════════════════════════════════ */}
+      <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'0 2rem 1rem' }}>
+        <LiveAdBanner slot="videos_sidebar" type="leaderboard" />
       </div>
 
       {/* ══ COMING SOON: MOVIES ═══════════════════════════════════════════════ */}

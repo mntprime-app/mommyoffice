@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
 import UniversalHero from '@/components/shared/UniversalHero';
+import LiveAdBanner from '@/components/ui/LiveAdBanner';
 
 const CATEGORIES = ['Бүх ангилал', 'Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 
@@ -241,6 +242,11 @@ export default async function CoursesPage({
               </Link>
             );
           })}
+        </div>
+
+        {/* ── FOOTER AD ── */}
+        <div style={{ marginTop: '1rem' }}>
+          <LiveAdBanner slot="courses_sidebar" type="footer" />
         </div>
       </div>
       <style>{`
