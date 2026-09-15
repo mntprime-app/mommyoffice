@@ -1293,3 +1293,41 @@ img-src 'self' data: blob: ... https://qpay.mn https://*.qpay.mn
 ```
 
 All bank logos (Khan Bank, State Bank, XacBank, Bogd Bank, etc.) confirmed loading correctly post-fix. User verified on checkout page.
+
+---
+
+## [BUG-086] Course player — video blocked ("This content is blocked")
+
+**Status:** Resolved. 2026-09-15 (Session 24).
+**Module:** `src/components/ui/CoursePlayer.tsx`, `src/app/api/stream/token/route.ts`
+**Commit:** `faeb862`
+
+### Root cause
+Two-part issue introduced by the Session 22 SECURITY commit (`4d72a53`):
+
+1. `/api/stream/token` was built to sign RS256 JWTs for Cloudflare Stream but `CoursePlayer.tsx` was **never updated to call it**. The player kept using the old unsigned `https://iframe.cloudflarestream.com/VIDEO_ID` URL format.
+2. The CSP `frame-src` directive (added in the same SECURITY commit) only allows `https://customer-*.cloudflarestream.com` — the customer-specific subdomain URL that signed tokens use. The legacy `iframe.cloudflarestream.com` unsigned URL is allowed by CSP only because CF redirects it to the customer URL, but Cloudflare Stream blocks the video playback because the video requires signed tokens or has Allowed Origins set.
+
+Result: CF Stream player loads inside the iframe but shows "This content is blocked. Contact the site owner to fix the issue."
+
+### What changed
+**`CoursePlayer.tsx`:**
+- Moved `activeLesson`, `currentYoutubeId`, `currentStreamId` derivations above the useEffect hooks (required for the dependency array to reference them without TDZ error)
+- Added `streamSrc` and `streamLoading` state
+- Added `useEffect` that fires when `currentStreamId` changes: fetches `/api/stream/token?videoId=...`, sets `streamSrc` from the returned `iframeUrl`
+- Video area now shows loading spinner → signed iframe → error fallback (instead of direct unsigned URL)
+- Abort controller cancels in-flight fetches when the user switches lessons quickly
+
+**`stream/token/route.ts`:**
+- Added `iframeUrl` to the JSON response: `https://customer-${CF_CUSTOMER_SUBDOMAIN}.cloudflarestream.com/${token}/iframe`
+- Falls back to `https://iframe.cloudflarestream.com/${token}/iframe` if `CF_CUSTOMER_SUBDOMAIN` env var is missing
+
+### Required env vars (must exist in `.env.local` + Vercel)
+- `CF_STREAM_KEY_ID` — signing key ID
+- `CF_STREAM_KEY_SECRET` — base64url-encoded private key JWK
+- `CF_CUSTOMER_SUBDOMAIN` — e.g. `abc123xyz` (from stream embed URL)
+
+### CF dashboard check (if videos still blocked after deploy)
+Go to **Cloudflare Stream → Signing Keys** → confirm allowed origins includes:
+- `mommyoffice-smoky.vercel.app` (for staging)
+- `mommyoffice.com` (for production)
