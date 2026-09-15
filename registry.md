@@ -1666,3 +1666,57 @@ ALTER TABLE mo_courses ADD COLUMN revenue_share_pct INTEGER DEFAULT 70;
 5. **Student count never shown** — not in admin, not in creator portal, not on public pages
 6. **`MC_ENCRYPTION_KEY` never changes** after first QPay credential save
 
+
+---
+
+## BUG-090 — Course deletion fails silently (FK constraint violations) — Session 24, 2026-09-15
+
+**Status:** ✅ RESOLVED — commit `571f706`
+
+**Symptom:** Clicking "Устгах" in `/admin/courses` showed the confirmation dialog, user confirmed, course disappeared from local state — but reloading the page showed the course still present in DB.
+
+**Root cause:** `deleteCourse()` in `admin/courses/actions.ts` called `supabase.from('mo_courses').delete()` directly. Postgres FK constraints on `mo_access_tokens.course_id` and `mo_orders.course_id` blocked the delete. The old function discarded the error and returned nothing — so the UI thought it succeeded.
+
+**Fix:** Cascade-delete child rows first in order (reviews → access_tokens → orders), then delete the parent course. Each step returns `{ error }` and propagates immediately on failure. UI shows `alert()` on error instead of silently updating local state.
+
+**Cascade order:**
+```
+mo_reviews (course_id) → mo_access_tokens (course_id) → mo_orders (course_id) → mo_courses (id)
+```
+
+---
+
+## Ad Monetization System — Session 24, 2026-09-15
+
+**Status:** ✅ LIVE — commits `a69607a`, `1ea02e3`
+
+### Architecture
+- **`mo_ads` table** — `id`, `slot` (text enum), `title`, `target_url`, `media_url`, `media_type` ('image'|'video'), `is_active`, `starts_at`, `ends_at`, `created_at`, `updated_at`
+- **`/api/ads/[slot]/route.ts`** — public GET, returns active ad for slot, 60s CDN cache
+- **`src/components/ui/LiveAdBanner.tsx`** — client component, fetches on mount
+- **`/admin/ads/page.tsx` + `actions.ts`** — full CRUD, image/video upload, scheduling
+
+### Ad Slots
+| Slot key | Page | Type |
+|---|---|---|
+| `articles_leaderboard` | Articles list | Mid-feed (728×90) |
+| `articles_sidebar` | Articles list | Right sidebar (300×250) |
+| `articles_footer` | Articles list | Footer |
+| `article_body_mobile` | Article detail | Mobile inline |
+| `article_sidebar` | Article detail | Right sidebar (300×250) |
+| `courses_sidebar` | Courses list | Footer leaderboard |
+| `videos_sidebar` | Videos page | Between rows and Coming Soon |
+| `home_below_hero` | Home page | Below hero (reserved) |
+
+### Behavior rules
+- **Empty slot** → `null` (zero height, no placeholder, no dead space)
+- **Loading** → `null` (no layout shift)
+- **Mobile (<768px) + video** → `null` (image-only on mobile — performance rule)
+- **Desktop** → image and video both supported
+
+### Admin
+- `/mn/admin/ads` — accessible from admin dashboard via "📢 Сурталчилгаа" button
+- Media upload reuses existing `uploadImage()` action → `mommyoffice-media` bucket, `ads/` folder
+- Supports direct URL paste as alternative to upload
+- Per-slot status overview card shows active/inactive/empty count
+

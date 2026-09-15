@@ -431,15 +431,39 @@ default           → blue-navy
 
 ---
 
+### Session 24 — 2026-09-15 — BUG-090, Ad Monetization System, Regression Fix
+
+**Commits pushed:**
+- `5ef8450` — Expired access banner on course detail page (`?access=denied`)
+- `376178c` — Regression fix: section toggles restored in `/admin/courses/new` + parallel-file rule in registry
+- `fbf74e6` — Registry: multi-tenant roadmap + architecture invariants documented
+- `571f706` — BUG-090: cascade-delete for course deletion + error propagation to UI
+- `a69607a` — feat: full ad monetization system — LiveAdBanner + admin CRUD + API route
+- `1ea02e3` — fix: LiveAdBanner — collapse when no ad, image-only on mobile
+
+**Features shipped:**
+- Expired access banner: red gradient bar with CTA at top of course detail page
+- Section toggles (`show_about`, `show_features`) restored to `/admin/courses/new` (parity with edit page)
+- BUG-090 fixed: course deletion now cascade-deletes reviews → access_tokens → orders before deleting course; FK violations surfaced as readable error alerts
+- Full ad monetization system: `mo_ads` Supabase table, `/api/ads/[slot]` API, `LiveAdBanner` client component, `/admin/ads` CRUD panel, 8 slots wired across Articles/Videos/Courses
+- LiveAdBanner: auto-collapse when no ad (zero height), image-only on mobile (<768px)
+
+**DB changes:**
+- `mo_ads` table created via SQL migration in Supabase
+
+**Parallel-file rule established:** `new/page.tsx` and `edit/page.tsx` must always be updated together — any feature added to one must be ported to the other in the same commit.
+
+---
+
 ## Next Session Start Command
 
 ```
 Alex, resume MommyOffice
 ```
 
-Read `PROJECT_LOG.md`, `registry.md`, and `docs/sessions/SESSION_NOTES_2026_09_06.md`. Session 14 done (commit 30f3093, Vercel deployed). Next priorities: 🔴 Checkout page `/checkout/[slug]`, Cart page `/cart`. Also: fill `duration_text` for all 5 uploaded videos via admin edit form.
+Read `PROJECT_LOG.md`, `registry.md`, and `docs/sessions/SESSION_NOTES_2026_09_15_S24.md`. Session 24 done (last commit `1ea02e3`, Vercel deployed). Next priorities: 🔴 Mobile audit (`/mn/courses`, `/mn/videos`, `/mn`), domain cutover (`mommyoffice.com`), populate 5 articles, add instructor records.
 
 ---
 
-*Last updated: 2026-09-06 — Session 14*
+*Last updated: 2026-09-15 — Session 24*
 *Project code: MO | Differentiated from: M10, MNT Prime*
