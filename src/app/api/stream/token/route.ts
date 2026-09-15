@@ -141,7 +141,11 @@ export async function GET(req: NextRequest) {
   }
   try {
     const token = await signToken(videoId);
-    return NextResponse.json({ token }, {
+    const customerSub = process.env.CF_CUSTOMER_SUBDOMAIN ?? '';
+    const iframeUrl = customerSub
+      ? `https://customer-${customerSub}.cloudflarestream.com/${token}/iframe`
+      : `https://iframe.cloudflarestream.com/${token}/iframe`; // fallback if env not set
+    return NextResponse.json({ token, iframeUrl }, {
       headers: { 'Cache-Control': 'private, max-age=14400' },
     });
   } catch (err) {

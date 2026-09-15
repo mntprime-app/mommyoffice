@@ -66,8 +66,33 @@ export function CoursePlayer({
   const [completed, setCompleted] = useState<Set<number>>(new Set());
   const [openSections, setOpenSections] = useState<Set<number>>(new Set(sections.map((_, i) => i)));
   const [activeLessonIdx, setActiveLessonIdx] = useState(0);
+  const [streamSrc, setStreamSrc] = useState<string | null>(null);
+  const [streamLoading, setStreamLoading] = useState(false);
+
+  // Derive active lesson + video IDs early so hooks can reference them
+  const activeLesson = allLessons[activeLessonIdx];
+  const currentYoutubeId = activeLesson?.youtube_id || '';
+  const currentStreamId = (!currentYoutubeId && (activeLesson?.stream_id || courseStreamId)) || '';
 
   useEffect(() => { setCompleted(loadCompleted(slug)); }, [slug]);
+
+  // Fetch signed Cloudflare Stream token whenever the lesson changes
+  useEffect(() => {
+    if (!currentStreamId) { setStreamSrc(null); return; }
+    let cancelled = false;
+    setStreamLoading(true);
+    setStreamSrc(null);
+    fetch(`/api/stream/token?videoId=${encodeURIComponent(currentStreamId)}`)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then((data: { iframeUrl?: string }) => {
+        if (!cancelled) {
+          setStreamSrc(data.iframeUrl ?? null);
+          setStreamLoading(false);
+        }
+      })
+      .catch(() => { if (!cancelled) setStreamLoading(false); });
+    return () => { cancelled = true; };
+  }, [currentStreamId]);
 
   function toggleLesson(globalIdx: number) {
     setCompleted(prev => {
@@ -95,11 +120,6 @@ export function CoursePlayer({
 
   const doneCount = completed.size;
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-  const activeLesson = allLessons[activeLessonIdx];
-
-  // Determine video source: lesson youtube_id → lesson stream_id → course-level stream_id fallback
-  const currentYoutubeId = activeLesson?.youtube_id || '';
-  const currentStreamId = (!currentYoutubeId && (activeLesson?.stream_id || courseStreamId)) || '';
 
   return (
     <div style={{ minHeight: '100vh', background: '#111' }}>
@@ -153,14 +173,33 @@ export function CoursePlayer({
                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
               />
             ) : currentStreamId ? (
-              <iframe
-                key={currentStreamId}
-                src={`https://iframe.cloudflarestream.com/${currentStreamId}?controls=true&preload=metadata`}
-                title={activeLesson?.title || title}
-                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-              />
+              streamLoading ? (
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: '#0a0a0a',
+                }}>
+                  <span style={{ color: '#555', fontSize: '14px' }}>Видео ачааллаж байна...</span>
+                </div>
+              ) : streamSrc ? (
+                <iframe
+                  key={currentStreamId}
+                  src={`${streamSrc}?controls=true&preload=metadata`}
+                  title={activeLesson?.title || title}
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                />
+              ) : (
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  background: '#0a0a0a',
+                }}>
+                  <span style={{ fontSize: '32px', marginBottom: '12px' }}>⚠️</span>
+                  <p style={{ color: '#555', fontSize: '14px', margin: 0 }}>Видео ачаалах боломжгүй байна</p>
+                </div>
+              )
             ) : (
               <div style={{
                 position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
