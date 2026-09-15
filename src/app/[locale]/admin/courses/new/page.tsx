@@ -43,6 +43,7 @@ export default function NewCoursePage() {
 
   // Per-lesson inline error messages (keyed by "mi-li")
   const [lessonErrors, setLessonErrors] = useState<Record<string, string>>({});
+  const [showStreamId, setShowStreamId] = useState(false);
   function setLessonError(mi: number, li: number, msg: string) {
     setLessonErrors((prev) => ({ ...prev, [`${mi}-${li}`]: msg }));
     setTimeout(() => setLessonErrors((prev) => {
@@ -576,9 +577,22 @@ export default function NewCoursePage() {
                   style={{ ...inp, fontFamily: 'monospace', fontSize: '12px' }} placeholder="dQw4w9WgXcQ" />
               </Field>
               <Field label="Cloudflare Stream ID">
-                <input value={form.cloudflare_stream_id} onChange={(e) => set('cloudflare_stream_id', e.target.value)}
-                  style={{ ...inp, fontFamily: 'monospace', fontSize: '12px', color: form.cloudflare_stream_id ? '#10b981' : '#e5e5e5' }}
-                  placeholder="a8765f2b3c4d..." />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showStreamId ? 'text' : 'password'}
+                    value={form.cloudflare_stream_id}
+                    onChange={(e) => set('cloudflare_stream_id', e.target.value)}
+                    style={{ ...inp, fontFamily: 'monospace', fontSize: '12px', color: form.cloudflare_stream_id ? '#10b981' : '#e5e5e5', paddingRight: '68px' }}
+                    placeholder="a8765f2b3c4d..."
+                  />
+                  <button type="button" onClick={() => setShowStreamId(v => !v)} style={{
+                    position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', color: '#666', fontSize: '11px',
+                    cursor: 'pointer', padding: '2px 6px', borderRadius: '4px',
+                  }}>
+                    {showStreamId ? '🙈 Hide' : '👁 Show'}
+                  </button>
+                </div>
               </Field>
             </SideCard>
           </div>

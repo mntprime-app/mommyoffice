@@ -129,10 +129,14 @@ function SectionCard({ title, children }: { title: string; children: React.React
 
 export default async function CourseDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale, slug } = await params;
+  const sp = searchParams ? await searchParams : {};
+  const accessDenied = sp['access'] === 'denied';
   const course = await getCourse(slug);
   if (!course) notFound();
 
@@ -200,6 +204,36 @@ export default async function CourseDetailPage({
 
   return (
     <div className="mo-course-page" style={{ background: '#141414', minHeight: '100vh' }}>
+
+      {/* ── EXPIRED ACCESS BANNER ── */}
+      {accessDenied && (
+        <div style={{
+          background: 'linear-gradient(90deg, rgba(239,68,68,0.15), rgba(239,68,68,0.08))',
+          borderBottom: '1px solid rgba(239,68,68,0.35)',
+          padding: '14px 4%',
+        }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '18px' }}>⏰</span>
+              <div>
+                <p style={{ margin: 0, color: '#f87171', fontWeight: 700, fontSize: '14px' }}>
+                  Таны хандах хугацаа дууссан байна
+                </p>
+                <p style={{ margin: 0, color: '#aaa', fontSize: '12px', marginTop: '2px' }}>
+                  Сургалтыг үргэлжлүүлэн үзэхийн тулд дахин худалдан авна уу.
+                </p>
+              </div>
+            </div>
+            <a href={`/${locale}/courses/${slug}#pricing`} style={{
+              background: '#ef4444', color: '#fff', padding: '8px 18px',
+              borderRadius: '6px', textDecoration: 'none', fontSize: '13px',
+              fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0,
+            }}>
+              Дахин авах →
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* ── HEADER — full-width: back link, badges, title, description, meta ── */}
       <div style={{ borderBottom: '1px solid #1a1a1a' }}>
