@@ -1331,3 +1331,46 @@ Result: CF Stream player loads inside the iframe but shows "This content is bloc
 Go to **Cloudflare Stream → Signing Keys** → confirm allowed origins includes:
 - `mommyoffice-smoky.vercel.app` (for staging)
 - `mommyoffice.com` (for production)
+
+---
+
+## [BUG-087] Video player — 503 token signing fails (CF signing keys never configured)
+
+**Status:** Configuration fix required (user action). 2026-09-15 (Session 24).
+**Module:** Vercel env vars + `.env.local`
+**No code change** — root cause is missing environment variables.
+
+### Root cause
+`/api/stream/token` builds RS256 JWTs using `CF_STREAM_KEY_ID` and `CF_STREAM_KEY_SECRET`.
+These vars were never generated from the Cloudflare Stream dashboard and were never added to `.env.local` or Vercel environment variables.
+
+**Confirmed via live network inspection:**
+- Token API called with real videoId `5d0659f1c43b8d748ba0792cd5e1c9eb`
+- Response: `503 {"error":"CF_STREAM_KEY_ID / CF_STREAM_KEY_SECRET not configured"}`
+- `.env.local` has `CF_ACCOUNT_ID`, `CF_STREAM_API_TOKEN`, `CF_CUSTOMER_SUBDOMAIN`, `CF_WEBHOOK_SECRET` — but NOT the signing key pair
+- Vercel env vars: same — signing key pair absent
+
+### Fix (user must do in dashboards)
+
+**Step 1 — Generate signing key in Cloudflare:**
+1. Go to https://dash.cloudflare.com → Stream → Signing Keys
+2. Click **Generate Signing Key**
+3. Copy **Key ID** → this is `CF_STREAM_KEY_ID`
+4. Copy **Private Key** (base64url JWK) → this is `CF_STREAM_KEY_SECRET`
+
+**Step 2 — Add to `.env.local`:**
+```
+CF_STREAM_KEY_ID=<paste key id>
+CF_STREAM_KEY_SECRET=<paste private key>
+```
+
+**Step 3 — Add to Vercel:**
+Vercel dashboard → mommyoffice → Settings → Environment Variables → Add:
+- `CF_STREAM_KEY_ID` — Production + Preview + Development
+- `CF_STREAM_KEY_SECRET` — Production + Preview + Development
+
+**Step 4 — Redeploy:**
+Vercel will auto-deploy on the next git push, OR trigger a manual redeploy from the Deployments tab.
+
+### Note on video privacy settings
+In CF Stream dashboard, check each video's settings. If "Require Signed URLs" is OFF (video is public), the signed token approach still works — signed tokens are always accepted. If "Require Signed URLs" is ON, unsigned URLs are rejected (which was causing the original "This content is blocked" on the old unsigned embed URL).
