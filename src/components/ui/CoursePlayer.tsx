@@ -76,9 +76,7 @@ export function CoursePlayer({
 
   useEffect(() => { setCompleted(loadCompleted(slug)); }, [slug]);
 
-  // Verify enrollment via token API, then load video with direct embed
-  // BUG-089 workaround: signed tokens not working on Vercel — using direct embed URL.
-  // The enrollment gate is still enforced: 401/403 from token API shows error, not video.
+  // Fetch signed Cloudflare Stream token whenever the lesson changes
   useEffect(() => {
     if (!currentStreamId) { setStreamSrc(null); return; }
     let cancelled = false;
@@ -86,20 +84,13 @@ export function CoursePlayer({
     setStreamSrc(null);
     fetch(`/api/stream/token?videoId=${encodeURIComponent(currentStreamId)}`)
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
-      .then(() => {
-        // Enrollment confirmed — use direct embed (requireSignedURLs disabled on CF)
+      .then((data: { iframeUrl?: string }) => {
         if (!cancelled) {
-          setStreamSrc(`https://iframe.cloudflarestream.com/${currentStreamId}`);
+          setStreamSrc(data.iframeUrl ?? null);
           setStreamLoading(false);
         }
       })
-      .catch(() => {
-        // Not enrolled or API error — do not show video
-        if (!cancelled) {
-          setStreamSrc(null);
-          setStreamLoading(false);
-        }
-      });
+      .catch(() => { if (!cancelled) { setStreamSrc(null); setStreamLoading(false); } });
     return () => { cancelled = true; };
   }, [currentStreamId]);
 
