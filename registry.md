@@ -1409,3 +1409,88 @@ Fixed by adding `https://iframe.cloudflarestream.com` to all three CSP directive
 4. **Vercel env vars** for CF signing keys must exactly match `.env.local`. Check Vercel dashboard → Settings → Environment Variables after any key rotation.
 5. **`verify-cf-body.ps1`** in the mommyoffice folder tests whether a locally-signed token produces the video player or the "blocked" page — run this first when debugging CF Stream issues.
 6. All diagnostic PS scripts (`disable-signed-urls.ps1`, `clear-allowed-origins.ps1`, etc.) are in the mommyoffice root. Delete sensitive ones before launch.
+
+---
+
+## SOP — CF Stream Video Integration Pipeline
+
+> Follow this SOP exactly whenever adding, replacing, or debugging course videos. Deviating from any step is what caused BUG-086 through BUG-089.
+
+### Architecture overview
+
+```
+Student browser
+  │
+  ├─ 1. GET /mn/courses/{slug}/learn   ← server component checks enrollment in mo_access_tokens
+  │                                      redirects to /mn/courses/{slug} if not enrolled
+  │
+  ├─ 2. GET /api/stream/token?videoId=  ← checks enrollment again (defense in depth)
+  │       └─ signs RS256 JWT (sub=videoId, kid=KEY_ID, exp=now+4h, accessRules=[allow any])
+  │       └─ returns { token, iframeUrl: "https://customer-{sub}.cloudflarestream.com/{JWT}/iframe" }
+  │
+  └─ 3. <iframe src={iframeUrl}/>       ← CF validates JWT, serves video player
+```
+
+### Required environment variables
+
+Set in BOTH `.env.local` AND Vercel dashboard (Settings → Environment Variables → Production+Preview+Development):
+
+| Variable | Source | Notes |
+|---|---|---|
+| `CF_STREAM_KEY_ID` | CF dashboard → Stream → Signing Keys | Short hex string, e.g. `3fc5449a...` |
+| `CF_STREAM_KEY_SECRET` | CF dashboard → Stream → Signing Keys | Long base64 JWK — paste with NO trailing newline or space |
+| `CF_CUSTOMER_SUBDOMAIN` | CF Stream embed URL, e.g. `customer-{this}.cloudflarestream.com` | `ivpigj2fofxpnwyw` |
+| `CF_STREAM_API_TOKEN` | CF dashboard → My Profile → API Tokens | Used only by PS scripts, NOT by app code |
+| `CF_ACCOUNT_ID` | CF dashboard → right sidebar | `642ba259ca6ae24cd02dc58ef37bf84e` |
+
+**CRITICAL:** After pasting `CF_STREAM_KEY_SECRET` into Vercel, verify it round-trips correctly. In Vercel's env var viewer, the value should start with `eyJ` (base64 of `{"use":"sig"`). If it looks truncated or garbled, delete and re-paste.
+
+### CF Stream dashboard settings (per video)
+
+| Setting | Required value | Why |
+|---|---|---|
+| `requireSignedURLs` | **true** | Forces CF to validate the JWT — unsigned URLs return "blocked" |
+| `allowedOrigins` | **[]** (empty) | MO uses signed tokens for access control, not origin matching — empty means all origins can request, but only valid tokens play |
+
+**Do NOT set `allowedOrigins`** to specific domains. It creates a secondary Referer-based check that breaks when `Referrer-Policy` sends origin-only or no-referrer. The JWT is the gate.
+
+### CSP requirements in `next.config.ts`
+
+`iframe.cloudflarestream.com` and `customer-*.cloudflarestream.com` are **different hostnames** — both must be in all three directives:
+
+```typescript
+"script-src  ... https://customer-*.cloudflarestream.com https://embed.cloudflarestream.com https://iframe.cloudflarestream.com",
+"frame-src   ... https://customer-*.cloudflarestream.com https://embed.cloudflarestream.com https://iframe.cloudflarestream.com ...",
+"connect-src ... https://customer-*.cloudflarestream.com https://iframe.cloudflarestream.com",
+```
+
+**Visual symptom guide:**
+- Gray broken-document icon in video area → CSP `frame-src` is missing the iframe's hostname
+- "This content is blocked" text inside iframe → CF rejected the JWT (bad key, wrong videoId, or token expired)
+- MO's own "⚠️ Видео ачаалах боломжгүй байна" UI → `/api/stream/token` returned 401/403 (not enrolled or cookie missing)
+- Black screen / spinner that never resolves → iframe URL is loading but video hasn't started (check `autoplay` or `preload` params)
+
+### Adding a new video to a course
+
+1. Upload video to CF Stream dashboard → note the **Video UID** (32-char hex)
+2. In the CF dashboard, enable **Require Signed URLs** on that video
+3. In Supabase admin panel, add the Video UID to `course_outline_mn` as `stream_id` on the lesson, OR set `cloudflare_stream_id` on the course row for a course-level intro video
+4. Verify: open the learn page as an enrolled user → video plays
+
+### Smoke test before any CF/Vercel change
+
+Run `verify-cf-body.ps1` from the mommyoffice folder:
+```powershell
+.\verify-cf-body.ps1
+```
+It signs a token locally using `.env.local` keys and fetches the CF iframe URL. Expected output: "✅ Video player HTML detected". If it shows "❌ Contains 'blocked'", the local keys are invalid — regenerate CF signing keys and update `.env.local` + Vercel.
+
+### Restoring signed tokens (when reverting the BUG-089 workaround)
+
+BUG-089 workaround (commit 72ff9c3) switched to unsigned direct embed. To restore proper signed-token security:
+
+1. Fix Vercel env vars (re-paste `CF_STREAM_KEY_SECRET` from `.env.local` — verify no whitespace)
+2. Re-enable `requireSignedURLs: true` on all CF videos (run the inline script above)
+3. In `CoursePlayer.tsx`, restore `.then()` to use `data.iframeUrl` instead of the hardcoded direct URL
+4. Run `verify-cf-body.ps1` to confirm local signing works
+5. Deploy to Vercel and test on the live learn page before marking complete
