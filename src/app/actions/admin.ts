@@ -199,6 +199,8 @@ export async function createCourse(data: {
   slug: string;
   is_published: boolean;
   show_outline: boolean;
+  show_about: boolean;
+  show_features: boolean;
   placement: string;
   course_outline_mn: unknown[] | null;
   mo_instructor_id: string | null;
@@ -242,6 +244,8 @@ export async function updateCourse(id: string, data: {
   cloudflare_stream_id: string;
   is_published: boolean;
   show_outline: boolean;
+  show_about: boolean;
+  show_features: boolean;
   placement: string;
   course_outline_mn: unknown[] | null;
   mo_instructor_id: string | null;

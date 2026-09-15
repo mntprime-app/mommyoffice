@@ -1494,3 +1494,56 @@ BUG-089 workaround (commit 72ff9c3) switched to unsigned direct embed. To restor
 3. In `CoursePlayer.tsx`, restore `.then()` to use `data.iframeUrl` instead of the hardcoded direct URL
 4. Run `verify-cf-body.ps1` to confirm local signing works
 5. Deploy to Vercel and test on the live learn page before marking complete
+
+---
+
+## Regression Prevention & Code Integrity
+
+**Root cause of session-24 regression:** The admin "new course" page (`new/page.tsx`) and the admin "edit course" page (`edit/page.tsx`) are parallel sibling files. Any feature added to edit must be manually ported to new (and vice versa). When fixing one file in isolation — e.g. adding CF Stream ID masking — the session context loses track of the other file and features silently disappear.
+
+### Parallel-file rule (PERMANENT)
+
+The following files MUST always stay in feature parity:
+
+| New page | Edit page | Shared action |
+|---|---|---|
+| `src/app/[locale]/admin/courses/new/page.tsx` | `src/app/[locale]/admin/courses/[id]/edit/page.tsx` | `src/app/actions/admin.ts` |
+
+**Whenever either admin course page is modified**, immediately grep the other page for the same field names. If the other page is missing the field, add it before committing.
+
+```powershell
+# Run this after every admin/courses change:
+Select-String -Path "src\app\[locale]\admin\courses\new\page.tsx","src\app\[locale]\admin\courses\[id]\edit\page.tsx","src\app\actions\admin.ts" -Pattern "show_outline|show_about|show_features|cloudflare_stream_id|access_duration_days|mo_instructor_id"
+```
+
+### Pre-deployment regression checklist
+
+Run before every `git push` that touches any admin panel or course-related file:
+
+- [ ] `form` state in `new/page.tsx` matches field set in `edit/page.tsx` (no missing keys)
+- [ ] `handleSave` in `new/page.tsx` passes all `form.*` fields that `createCourse` type requires
+- [ ] `createCourse` type in `admin.ts` matches `updateCourse` type for shared fields
+- [ ] `show_outline`, `show_about`, `show_features` toggles are present in BOTH admin pages and both action types
+- [ ] `showStreamId` state and the CF Stream ID masked input exist in BOTH admin pages
+- [ ] No section is accidentally removed by a context-window truncation — read the full file before editing, not just the target section
+- [ ] The course display page (`/courses/[slug]/page.tsx`) reads all three `show_*` columns — if a new `show_*` field is added, add it there too
+
+### Canonical section visibility fields
+
+The following `mo_courses` DB columns control section visibility. ALL must be in form state, handleSave, and both action types at all times:
+
+| Column | Default (null → display treats as) | Toggle label (MN) |
+|---|---|---|
+| `show_outline` | `true` | Хичээлийн агуулга харуулах |
+| `show_about` | `true` | Сургалтын тухай харуулах |
+| `show_features` | `true` | Сургалтад багтсан зүйлс харуулах |
+
+Display page logic: `course.show_outline !== false` — null and true both show the section; only explicit `false` hides it.
+
+### Never truncate a file during edit
+
+When editing `new/page.tsx` or `edit/page.tsx` (both are 700+ lines), ALWAYS:
+1. Read the FULL file first to confirm current state
+2. Use targeted `Edit` (old_string → new_string) — never overwrite the whole file
+3. After each edit, `grep` for the key field to verify it's present
+
