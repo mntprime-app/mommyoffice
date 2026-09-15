@@ -596,7 +596,10 @@ export default function NewCoursePage() {
             </SideCard>
 
 
-            {/* Video */}
+            {/* Video — INTERNAL MO ADMIN ONLY
+                 cloudflare_stream_id = course-level promo/intro video UID (CF trade secret)
+                 Per-lesson stream_ids are written automatically by VideoTUSUploader → course_outline_mn
+                 NEVER expose cloudflare_stream_id in any external creator portal */}
             <SideCard title="Видео">
               <Field label="YouTube Trailer ID" hint="Зөвхөн ID: dQw4w9WgXcQ">
                 <input value={form.trailer_url} onChange={(e) => set('trailer_url', e.target.value)}

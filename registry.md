@@ -1547,3 +1547,122 @@ When editing `new/page.tsx` or `edit/page.tsx` (both are 700+ lines), ALWAYS:
 2. Use targeted `Edit` (old_string → new_string) — never overwrite the whole file
 3. After each edit, `grep` for the key field to verify it's present
 
+
+---
+
+## Multi-Tenant Architecture Roadmap (Udemy/Skool Model)
+
+### Master plan
+MommyOffice launches internally (Phase 1), then opens to external course creators (Phase 2), then becomes a full marketplace with revenue sharing (Phase 3). Every architectural decision in Phase 1 must support Phases 2 and 3 without rewrites.
+
+---
+
+### Phase 1 — Current (Internal MO Admin only)
+
+**Who has access:** Amaraa + MO team only. All admin accounts are manually created.
+
+**Auth model:** `proxy.ts` checks `supabase.auth.getUser()` — authenticated = full admin. No role column yet.
+
+**Routes:**
+- `/[locale]/admin/*` — full CMS (courses, videos, articles, instructors, orders)
+- `/[locale]/courses/*` — student-facing (purchase, learn, video)
+- `/[locale]/videos/*` — free video browse
+
+**CF Stream ID visibility:** Masked in admin panel (Show/Hide toggle). Internal-only field. Per-lesson stream_ids are written automatically by VideoTUSUploader into `course_outline_mn[].lessons[].stream_id` — creators never touch these raw UIDs.
+
+**Rule:** Never expose `cloudflare_stream_id` (course-level) or any per-lesson `stream_id` values outside the `/admin` section. These are infrastructure secrets.
+
+---
+
+### Phase 2 — External Creator Portal (Target: post-launch MVP)
+
+**New route:** `/[locale]/creator/*` — completely separate from `/admin`. Creators never see `/admin`.
+
+**Role model to build:**
+
+Add `role` column to `mo_users` Supabase table (or create `mo_user_roles` table):
+
+| Role | Access |
+|---|---|
+| `super_admin` | Full `/admin` access. Sees CF Stream IDs (masked). Can approve/reject content. Can see all creators. |
+| `creator` | `/creator` portal only. Can create/edit their own courses. Can upload videos via TUS. Revenue dashboard. NO CF infrastructure details. |
+| `student` | `/courses`, `/videos`, `/learn` only. |
+
+**`proxy.ts` change needed for Phase 2:**
+```typescript
+// After getUser() succeeds, fetch role from mo_users:
+const { data: profile } = await supabase
+  .from('mo_users')
+  .select('role')
+  .eq('id', user.id)
+  .single();
+
+if (pathname includes '/admin' && profile?.role !== 'super_admin') {
+  return redirect to 403 or home;
+}
+if (pathname includes '/creator' && !['super_admin','creator'].includes(profile?.role)) {
+  return redirect to login;
+}
+```
+
+**Supabase RLS rules needed for Phase 2:**
+- `mo_courses`: creators can SELECT/UPDATE/INSERT only rows where `creator_id = auth.uid()`
+- `mo_access_tokens`: students SELECT only their own rows
+- `mo_orders`: creators SELECT only orders for their courses (revenue view only, no payment details)
+- `mo_reviews`: creators SELECT only reviews on their courses
+
+**Creator portal screens (`/creator`):**
+- `/creator/courses` — list of their courses + status (draft / under review / published)
+- `/creator/courses/new` — course creation (NO CF Stream ID field, NO placement, NO pricing control — MO sets price)
+- `/creator/courses/[id]/edit` — edit own course
+- `/creator/earnings` — revenue dashboard (MO's rev share %)
+- `/creator/profile` — bio, photo, expertise
+
+**What creators CAN do:**
+- ✅ Create courses with title, description, what you'll learn, requirements
+- ✅ Upload lesson videos via TUS (stream_id stored invisibly)
+- ✅ Set course outline (modules + lessons)
+- ✅ Upload cover image
+- ✅ Submit for review
+- ❌ Set pricing (MO controls pricing)
+- ❌ Publish directly (MO approves before publishing)
+- ❌ See CF Stream IDs, account IDs, or any infrastructure details
+- ❌ Access any other creator's content
+
+**Content review workflow:**
+1. Creator submits course → `is_published = false`, `review_status = 'pending'`
+2. MO admin reviews at `/admin/courses` → approves → `is_published = true`, `review_status = 'approved'`
+3. Student can now purchase and watch
+
+**New DB columns needed for Phase 2:**
+```sql
+ALTER TABLE mo_courses ADD COLUMN creator_id UUID REFERENCES auth.users(id);
+ALTER TABLE mo_courses ADD COLUMN review_status TEXT DEFAULT 'draft';
+-- review_status: 'draft' | 'pending' | 'approved' | 'rejected'
+ALTER TABLE mo_courses ADD COLUMN rejection_note TEXT;
+ALTER TABLE mo_courses ADD COLUMN revenue_share_pct INTEGER DEFAULT 70;
+-- 70 = creator gets 70%, MO keeps 30%
+```
+
+---
+
+### Phase 3 — Full Marketplace
+
+- Public creator registration (application form → MO approves creator account)
+- Creator profile pages (`/creators/[slug]`)
+- Bundle pricing (buy multiple courses)
+- Subscription tier (monthly access to all courses)
+- Automated payout system (QPay or bank transfer to creator)
+- Affiliate / referral links per creator
+
+---
+
+### Architecture invariants (never break these across all phases)
+
+1. **CF Stream IDs never leave `/admin`** — not in creator portal, not in API responses to students, not in page source
+2. **Video signing always required** — `requireSignedURLs: true` on all CF Stream videos. Students only get time-limited JWTs, never raw stream IDs
+3. **Enrollment gate always enforced** — `/api/stream/token` checks `mo_access_tokens` regardless of how the request arrives
+4. **RLS from day one** — even in Phase 1, Supabase RLS policies should be written assuming multi-tenant access; don't rely solely on server-side auth checks
+5. **Student count never shown** — not in admin, not in creator portal, not on public pages
+6. **`MC_ENCRYPTION_KEY` never changes** after first QPay credential save
+
