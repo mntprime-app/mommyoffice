@@ -42,8 +42,12 @@ export default function AdminCoursesPage() {
   }
 
   async function handleDelete(id: string, title: string) {
-    if (!confirm(`"${title}" хичээлийг устгах уу?`)) return;
-    await deleteCourse(id);
+    if (!confirm(`"${title}" хичээлийг устгах уу?\n\nЭнэ үйлдэл хичээлтэй холбоотой бүх захиалга, хандалтын токен, үнэлгээг бүрмөсөн устгана.`)) return;
+    const { error } = await deleteCourse(id);
+    if (error) {
+      alert(`Устгах боломжгүй байна:\n${error}`);
+      return;
+    }
     setCourses((prev) => prev.filter((c) => c.id !== id));
   }
 
