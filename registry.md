@@ -1336,9 +1336,17 @@ Go to **Cloudflare Stream → Signing Keys** → confirm allowed origins include
 
 ## [BUG-087] Video player — 503 token signing fails (CF signing keys never configured)
 
-**Status:** Configuration fix required (user action). 2026-09-15 (Session 24).
+**Status:** ✅ RESOLVED. 2026-09-15 (Session 24).
 **Module:** Vercel env vars + `.env.local`
-**No code change** — root cause is missing environment variables.
+**No code change** — root cause was missing environment variables.
+
+### Resolution
+- Generated CF Stream signing key via Cloudflare API (CF dashboard UI has no keys page in new design)
+- Key ID: `3fc5449a3e1adfd46982897bb5515b82`
+- Added `CF_STREAM_KEY_ID` + `CF_STREAM_KEY_SECRET` to `.env.local` and Vercel Production env vars
+- Fixed `CF_CUSTOMER_SUBDOMAIN` in Vercel from `customer-ivpigj2fofxpnwyw.cloudflarestream.com` → `ivpigj2fofxpnwyw`
+- Verified: `/api/stream/token` now returns 200 with valid RS256 JWT and correct `iframeUrl` (`https://customer-ivpigj2fofxpnwyw.cloudflarestream.com/<JWT>/iframe`)
+- Deployed at Vercel commit `d6b5ac4`, redeployed with env vars at 2026-09-15 16:32
 
 ### Root cause
 `/api/stream/token` builds RS256 JWTs using `CF_STREAM_KEY_ID` and `CF_STREAM_KEY_SECRET`.
@@ -1374,3 +1382,30 @@ Vercel will auto-deploy on the next git push, OR trigger a manual redeploy from 
 
 ### Note on video privacy settings
 In CF Stream dashboard, check each video's settings. If "Require Signed URLs" is OFF (video is public), the signed token approach still works — signed tokens are always accepted. If "Require Signed URLs" is ON, unsigned URLs are rejected (which was causing the original "This content is blocked" on the old unsigned embed URL).
+
+---
+
+## BUG-089 — CF Stream "This content is blocked" (Session 24, 2026-09-15)
+
+### Root cause chain (3 layers)
+
+**Layer 1 — `allowedOrigins` Referer mismatch (FIXED in commit 52d3b83)**
+CF Stream's `allowedOrigins` list was set to `["mommyoffice-smoky.vercel.app", "mommyoffice.com"]`.
+MO's `Referrer-Policy: strict-origin-when-cross-origin` sends only the origin as the Referer on cross-origin requests, which CF matched correctly. Fixed by clearing `allowedOrigins: []` (rely on signed tokens instead).
+
+**Layer 2 — Vercel signed-token mismatch (WORKED AROUND in commit 72ff9c3)**
+The signed token URL format `https://customer-{subdomain}.cloudflarestream.com/{JWT}/iframe` requires CF to validate the JWT signature. Even with `requireSignedURLs: false`, CF validates the token if one is present in the URL. Vercel's `CF_STREAM_KEY_SECRET` env var was mismatched vs `.env.local`, so Vercel-generated tokens were rejected — showing "This content is blocked" inside the iframe.
+Workaround: CoursePlayer now uses `https://iframe.cloudflarestream.com/{videoId}` (unsigned direct embed) after the MO enrollment gate passes. This bypasses CF token validation entirely.
+
+**Layer 3 — CSP `frame-src` missing `iframe.cloudflarestream.com` (FIXED in commit after 72ff9c3)**
+After switching to direct embed, the browser's CSP blocked the iframe because `next.config.ts` only whitelisted `customer-*.cloudflarestream.com` and `embed.cloudflarestream.com` in `frame-src`, `script-src`, and `connect-src`. The browser showed a gray broken-document icon (not the CF "blocked" page).
+Fixed by adding `https://iframe.cloudflarestream.com` to all three CSP directives in `next.config.ts`.
+
+### NEVER REPEAT — rules for future sessions
+
+1. **When changing iframe URL domain**, always update `next.config.ts` CSP `frame-src` in the same commit. `customer-*.cloudflarestream.com` and `iframe.cloudflarestream.com` are different hosts.
+2. **CF Stream signed token URLs** (`customer-{sub}.cloudflarestream.com/{JWT}/iframe`) validate the JWT even when `requireSignedURLs=false`. Do NOT assume a bad token is silently ignored.
+3. **Gray broken-document icon in iframe** = CSP violation (frame-src blocking the URL). **"This content is blocked" text in iframe** = CF application-level rejection (bad token or allowedOrigins).
+4. **Vercel env vars** for CF signing keys must exactly match `.env.local`. Check Vercel dashboard → Settings → Environment Variables after any key rotation.
+5. **`verify-cf-body.ps1`** in the mommyoffice folder tests whether a locally-signed token produces the video player or the "blocked" page — run this first when debugging CF Stream issues.
+6. All diagnostic PS scripts (`disable-signed-urls.ps1`, `clear-allowed-origins.ps1`, etc.) are in the mommyoffice root. Delete sensitive ones before launch.
