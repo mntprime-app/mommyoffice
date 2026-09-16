@@ -22,7 +22,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://customer-*.cloudflarestream.com https://embed.cloudflarestream.com https://iframe.cloudflarestream.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in https://i.ytimg.com https://img.youtube.com https://images.unsplash.com https://customer-*.cloudflarestream.com https://qpay.mn https://*.qpay.mn",
-      "media-src 'self' blob: https://customer-*.cloudflarestream.com",
+      "media-src 'self' blob: https://customer-*.cloudflarestream.com https://*.supabase.co https://*.supabase.in",
       "frame-src https://customer-*.cloudflarestream.com https://embed.cloudflarestream.com https://iframe.cloudflarestream.com https://www.youtube.com https://youtube.com",
       "connect-src 'self' https://*.supabase.co https://*.supabase.in https://merchant.qpay.mn https://api.brevo.com https://customer-*.cloudflarestream.com https://iframe.cloudflarestream.com https://upload.cloudflarestream.com",
       "font-src 'self' data:",
