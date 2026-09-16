@@ -67,6 +67,6 @@ export const config = {
     '/api/admin/:path*',
     '/api/video/request-upload',
     '/api/course-staging/presign',
-    '/((?!api|_next|_vercel|.*\\..*)(.*))' ,
+    '/((?!api|_next|_vercel|.*\\..*).*)',
   ],
 };
