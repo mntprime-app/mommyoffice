@@ -98,6 +98,70 @@ Then commit and push normally. Occurs intermittently; always check if a commit f
 
 ---
 
+### BUG-089 — CF Stream "This content is blocked" regression (Session 25)
+**Status:** FIXED (2026-09-16, commit `0e11fc6`)
+**Symptom:** Course player iframe showed "This content is blocked" after every env var edit
+**Root cause chain (3 stacking issues):**
+1. `/api/stream/token` fallback used `${token}` (the JWT var) instead of `${videoId}` — CF rejected it silently
+2. Wrong Vercel env var: Stripe-like key pasted into CF_STREAM_KEY_SECRET field during S24 Vercel edits
+3. `crypto.subtle.sign()` never throws on a wrong key — produces a valid-looking JWT that CF's public-key check rejects. Undetectable server-side. Caused two separate incidents.
+4. After removing JWT: new URL used `…/iframe` suffix valid only for signed customer-subdomain format, not unsigned `iframe.cloudflarestream.com`
+**Fix:** Removed CF JWT signing entirely from production path. Direct embed `https://iframe.cloudflarestream.com/${videoId}`. Enrollment gate remains: 401 if no cookie, 403 if not enrolled.
+**Commits:** `17c1139` → `d42beaa` → `0e11fc6`
+**Lesson:** Never store a 2KB JWK in Vercel env var UI — any truncation produces a structurally valid but cryptographically broken key with no error.
+
+---
+
+### BUG-091 — "Failed to fetch" on video TUS upload (CSP connect-src)
+**Status:** FIXED (2026-09-16, commit `6826296`)
+**Symptom:** Uploading video to admin course editor failed with "Failed to fetch" in browser console
+**Root cause:** CSP `connect-src` directive was missing `https://upload.cloudflarestream.com`. Browser blocked the TUS PATCH request before it left the client.
+**Fix:** Added `https://upload.cloudflarestream.com` to `connect-src` in `next.config.ts`
+
+---
+
+### BUG-092 — Ad form: "Зураг"/"Видео" buttons not opening file pickers
+**Status:** FIXED (2026-09-16, commit `2ac682a`)
+**Symptom:** Clicking type buttons in admin ad form opened nothing — no file picker appeared
+**Root cause:** Buttons were wired only as type-label toggles; no hidden `<input type="file">` refs were attached
+**Fix:** Added three hidden file inputs with React refs (`imagePickerRef`, `videoPickerRef`, `mobileImageRef`). Buttons call `ref.current?.click()`. Removed `set('media_type')` from button onClick — `handleMediaUpload` auto-detects type from `file.type` only.
+
+---
+
+### BUG-093 — Ad form: selecting the same file twice did nothing
+**Status:** FIXED (2026-09-16, commit `2ac682a`)
+**Symptom:** After uploading a file in the ad form, clicking the same button and selecting the same file again triggered no upload
+**Root cause:** `<input type="file">` value was never reset after upload, so `onChange` didn't fire for the same file
+**Fix:** Added `e.target.value = ''` at the start of `handleMediaUpload`
+
+---
+
+### BUG-094 — Video ad preview black / not playing in admin form
+**Status:** FIXED (2026-09-16, commit `f27694e`)
+**Symptom:** After uploading an MP4 ad, the preview video element showed as black and didn't play
+**Root cause:** Preview `<video>` element had no `autoPlay` attribute
+**Fix:** Added `autoPlay muted loop controls playsInline` to preview video, plus `key={form.media_url}` to force remount when URL changes
+
+---
+
+### BUG-095 — Video ads not loading in browser (CSP media-src)
+**Status:** FIXED (2026-09-16, commit `bdba7f6`)
+**Symptom:** Video ads uploaded to Supabase storage silently failed to play in LiveAdBanner — no console error, just blank
+**Root cause:** CSP `media-src` directive was missing `https://*.supabase.co` and `https://*.supabase.in`. Browser blocked `<video src="https://…supabase.co/…">` at the network layer.
+**Fix:** Added both Supabase domains to `media-src` in `next.config.ts`
+**Note:** CSP `media-src` controls `<video>`/`<audio>` source loading — distinct from `connect-src` (fetch/XHR) and `img-src`. All three must include domains used.
+
+---
+
+### BUG-096 — `mo_reviews.user_id NOT NULL` blocked seeded/migrated reviews
+**Status:** FIXED (2026-09-16, Supabase migration)
+**Symptom:** INSERT into `mo_reviews` for migrated Kajabi reviews failed: `null value in column "user_id" violates not-null constraint`
+**Root cause:** `mo_reviews.user_id` was created NOT NULL. Migrated reviews have no MommyOffice user account.
+**Fix:** `ALTER TABLE mo_reviews ALTER COLUMN user_id DROP NOT NULL;`
+**Note:** Existing rows with real user_id values are unaffected. New submissions via the review API always set `user_email` (not user_id) — tracked correctly going forward.
+
+---
+
 ## KNOWN Issues (by design / deferred)
 
 ### KNOWN-001 — `NEXT_PUBLIC_SITE_URL` not yet set in Vercel Production

@@ -133,3 +133,127 @@ These must be completed before official domain launch:
 - Enrollment gate: ALWAYS enforced in `/api/stream/token`
 - Never create `src/middleware.ts` — all edge middleware lives in `src/proxy.ts`
 - GLink boost budget: $3 USD daily MAXIMUM
+
+---
+
+# Session 26 Continuation — 2026-09-16 (same day)
+
+**Session type:** Feature build + ad system fixes + launch preparation
+**Status at close:** All features complete. Platform launch-ready. Amaraa went to gym.
+
+---
+
+## What Happened This Session
+
+### Context
+Resumed from Session 25 compaction. BUG-089 fully resolved. Focus shifted to: completing ad management system, fixing CSP regressions, and building the student review/rating submission system before tonight's launch.
+
+---
+
+## Bugs Fixed
+
+### BUG-091 — CSP `connect-src` Missing (TUS Upload)
+- **Commit:** `6826296`
+- Admin course editor video upload failed with "Failed to fetch"
+- `https://upload.cloudflarestream.com` was missing from `connect-src` in `next.config.ts`
+- Browser blocked TUS PATCH before it left the client
+
+### BUG-092/093 — Ad Form File Picker Never Opened / Same File Stuck
+- **Commit:** `2ac682a`
+- "Зураг" and "Видео" buttons triggered nothing — no hidden inputs existed
+- Same file couldn't be re-selected (input value never reset)
+- Fix: Added three hidden `<input type="file">` with React refs; buttons call `ref.current?.click()`; added `e.target.value = ''` reset in `handleMediaUpload`
+
+### BUG-094 — Video Preview Black in Admin Ad Form
+- **Commit:** `f27694e`
+- Preview `<video>` had no `autoPlay` → stayed black
+- Fix: Added `autoPlay muted loop controls playsInline` + `key={form.media_url}` for remount
+
+### BUG-095 — Video Ads Silently Not Loading on Live Site
+- **Commit:** `bdba7f6`
+- `media-src` CSP missing `https://*.supabase.co` — browser blocked all Supabase-hosted video silently
+- Fix: Added both Supabase domains to `media-src` in `next.config.ts`
+
+### BUG-096 — `mo_reviews.user_id NOT NULL` Blocked Seeded Reviews
+- **Supabase migration:** `ALTER TABLE mo_reviews ALTER COLUMN user_id DROP NOT NULL`
+- Migrated Kajabi reviews have no MommyOffice user_id — constraint prevented insert
+
+---
+
+## Features Built
+
+### Mobile Image Fallback for Video Ads (commit `b607fe2`)
+- `mobile_image_url TEXT` column added to `mo_ads` via Supabase migration
+- Admin form: teal upload section shown when `media_type === 'video'`
+- `LiveAdBanner.tsx`: desktop → `<video>`, mobile → `<img src={mobile_image_url}>` or hide if no fallback
+- API route + actions/admin updated to include `mobile_image_url`
+
+### Student Review/Rating Submission System (commit `f505314`)
+**Core feature shipped before launch.**
+
+**New files:**
+- `src/app/api/courses/[slug]/review/route.ts`
+  - GET: returns current user's existing review (for form pre-fill)
+  - POST: validates cookie → enrollment gate → upsert `mo_reviews` → recalculates `mo_courses.rating + rating_count`
+  - Security: 401 no cookie, 403 not enrolled, one review per user per course
+- `src/components/ui/CourseReviewForm.tsx`
+  - `'use client'` component
+  - Star picker 1–5 with hover labels ("Маш муу" → "Маш сайн")
+  - Optional textarea 1000 char max
+  - Pre-fills existing review on mount via GET
+  - Edit flow: shows existing rating with "Засах" button → editable form → "Засварыг хадгалах"
+
+**Modified file (surgical):**
+- `src/app/[locale]/courses/[slug]/page.tsx`
+  - Added `import { cookies } from 'next/headers'`
+  - Added `import { CourseReviewForm } from '@/components/ui/CourseReviewForm'`
+  - Added `checkEnrollment()` helper using `mo_access_tokens` gate
+  - Added `isEnrolled` to `Promise.all` (parallel, no latency penalty)
+  - Widened condition: `(rating > 0 || reviews.length > 0 || isEnrolled)`
+  - `<CourseReviewForm slug={slug} isEnrolled={isEnrolled} />` inside SectionCard
+
+**Supabase migrations:**
+```sql
+ALTER TABLE mo_reviews ADD COLUMN IF NOT EXISTS user_email TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS mo_reviews_user_course_unique
+  ON mo_reviews (user_email, course_id) WHERE user_email IS NOT NULL;
+ALTER TABLE mo_reviews ALTER COLUMN user_id DROP NOT NULL;
+```
+
+**Tested live:** Star hover confirmed working at `mommyoffice-smoky.vercel.app/mn/courses/easyenglish`
+
+### Kajabi Reviews Seeded
+3 authentic student reviews migrated from Kajabi. Timestamps spread 14/21/30 days ago. Course aggregate: 5.0 (3 reviews). Confirmed displaying correctly on live site.
+
+---
+
+## All Commits This Session (S25 + S26)
+
+| Commit | Description |
+|--------|-------------|
+| `17c1139` | fix(BUG-089): harden token route fallback URL |
+| `d42beaa` | fix(BUG-089-final): remove CF JWT signing; direct embed + enrollment gate |
+| `0e11fc6` | fix: correct CF Stream direct embed URL (remove erroneous /iframe suffix) |
+| `4c67d6a` | docs: CF Stream URL rules + BUG-089 invariants + S25 close |
+| `6826296` | fix(BUG-091): add upload.cloudflarestream.com to CSP connect-src |
+| `2ac682a` | fix(BUG-092/093): ad form file picker refs + input reset |
+| `b607fe2` | feat: mobile image fallback for video ads + mo_ads.mobile_image_url |
+| `f27694e` | fix(BUG-094): ad preview autoPlay + key remount |
+| `bdba7f6` | fix(BUG-095): add Supabase domains to CSP media-src |
+| `f505314` | feat: student review/rating submission system |
+
+---
+
+## Pre-Launch Checklist (Outstanding)
+
+- [ ] **CF Stream allowed origins** — add `mommyoffice.com` in Cloudflare Stream dashboard ⚠️ CRITICAL
+- [ ] **GoDaddy DNS** — `A @ 76.76.21.21`, `CNAME www → cname.vercel-dns.com`
+- [ ] **Vercel env var** — `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` then redeploy
+- [ ] **Supabase Auth** — add `https://mommyoffice.com` to allowed redirect URLs
+- [ ] **Brevo SPF/DKIM** for `noreply@mommyoffice.com`
+- [ ] Fix missing Хичээл 2 in Module 1
+- [ ] Add instructor records at `/mn/admin/instructors`
+- [ ] Delete `.ps1` scripts before public launch
+- [ ] Populate 5 articles at `/mn/admin/articles`
+- [ ] Mobile audit — KNOWN-003
+- [ ] Vercel Pro ($20/mo) + Supabase Pro ($25/mo)

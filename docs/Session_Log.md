@@ -2,6 +2,78 @@
 
 ---
 
+## Session 2026-09-16 S25+S26 (Amaraa) — Ad System, Video CSP, Review/Rating Feature, Launch Prep
+
+**Commits:** `6826296`, `2ac682a`, `b607fe2`, `f27694e`, `bdba7f6`, `f505314`
+**Status at close:** All 6 bugs fixed. Review/rating system fully shipped and tested live. 3 Kajabi reviews seeded. Launch-ready pending DNS cutover.
+
+### Completed Work
+
+#### 1. BUG-089 — CF Stream Regression Fully Resolved (S25)
+Root cause was a 3-issue chain: wrong fallback URL in token route, corrupted JWK in Vercel env var, and `crypto.subtle.sign()` silently producing bad JWTs. Resolved by removing CF JWT signing entirely — direct unsigned embed with Supabase enrollment gate. Commits `17c1139` → `d42beaa` → `0e11fc6`. See S25 session notes for full detail.
+
+#### 2. BUG-091 — CSP `connect-src` Missing for TUS Video Upload
+Admin course video upload ("Failed to fetch") caused by browser blocking TUS PATCH to `upload.cloudflarestream.com`. Fixed by adding that domain to `connect-src` in `next.config.ts`. Commit `6826296`.
+
+#### 3. Ad Management Form — Full File Picker Overhaul (commit `2ac682a`)
+- Added three hidden `<input type="file">` with React refs (`imagePickerRef`, `videoPickerRef`, `mobileImageRef`)
+- Buttons now trigger `ref.current?.click()` — type buttons no longer pre-set `media_type`
+- `handleMediaUpload` auto-detects type from `file.type.startsWith('video/')` — sole source of truth
+- Added `e.target.value = ''` reset so same file can be re-selected
+- Fixes BUG-092 (picker never opened) and BUG-093 (same file re-select silently failed)
+
+#### 4. Mobile Image Fallback for Video Ads (commit `b607fe2`)
+- Added `mobile_image_url` column to `mo_ads` table via Supabase migration
+- `AdPayload` type and `listAds` select updated in `actions/admin.ts`
+- `/api/ads/[slot]/route.ts` returns `mobile_image_url`
+- `LiveAdBanner.tsx`: desktop shows video, mobile shows `mobile_image_url` fallback (or hides if no fallback set)
+- Admin form shows teal upload section when `media_type === 'video'`
+
+#### 5. BUG-094 — Video Preview Black in Admin Form (commit `f27694e`)
+Added `autoPlay muted loop controls playsInline` to preview `<video>` element and `key={form.media_url}` to force remount on URL change.
+
+#### 6. BUG-095 — Video Ads Silently Not Loading on Live Site (commit `bdba7f6`)
+CSP `media-src` was missing `https://*.supabase.co` and `https://*.supabase.in`. Browser blocked `<video src>` from Supabase storage at network layer with no console error. Fixed in `next.config.ts`.
+
+#### 7. Review/Rating Submission System — Full Build (commit `f505314`)
+**Pre-launch core feature — built and tested live.**
+
+New files (2):
+- `src/app/api/courses/[slug]/review/route.ts` — POST (enrollment-gated upsert, auto-approved, recalculates aggregate rating) + GET (returns existing review for form pre-fill)
+- `src/components/ui/CourseReviewForm.tsx` — client component: star picker (1–5, hover labels in Mongolian), optional textarea (1000 char), submit + edit flow
+
+Modified file (1, surgical):
+- `src/app/[locale]/courses/[slug]/page.tsx` — added `cookies()` import, `checkEnrollment()` helper (same `mo_access_tokens` gate as stream/token), parallel enrollment check in `Promise.all`, widened section condition to include `|| isEnrolled`, added `<CourseReviewForm>` inside SectionCard
+
+Supabase migrations run:
+```sql
+ALTER TABLE mo_reviews ADD COLUMN IF NOT EXISTS user_email TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS mo_reviews_user_course_unique
+  ON mo_reviews (user_email, course_id) WHERE user_email IS NOT NULL;
+ALTER TABLE mo_reviews ALTER COLUMN user_id DROP NOT NULL;  -- BUG-096
+```
+
+Security: 401 if no `mo_user_email` cookie, 403 if not enrolled, one review per user per course (upsert).
+
+#### 8. Kajabi Reviews Seeded (SQL)
+3 authentic student reviews migrated from previous Kajabi platform for `easyenglish` course. Seeded with correct timestamps (14/21/30 days ago). Course aggregate rating recalculated to 5.0 (3 reviews). Confirmed displaying live at `/mn/courses/easyenglish`.
+
+### Pre-Launch Checklist (Still Pending)
+
+- [ ] **CF Stream allowed origins** — add `mommyoffice.com` in Cloudflare Stream dashboard (CRITICAL before DNS cutover)
+- [ ] **GoDaddy DNS cutover** — `A @ 76.76.21.21`, `CNAME www → cname.vercel-dns.com`
+- [ ] **Vercel env var** — `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` then redeploy
+- [ ] **Supabase Auth** — add `https://mommyoffice.com` to allowed redirect URLs
+- [ ] **Brevo SPF/DKIM** for `noreply@mommyoffice.com` (BUG-008)
+- [ ] Fix missing Хичээл 2 in Module 1
+- [ ] Add instructor records at `/mn/admin/instructors`
+- [ ] Delete `.ps1` scripts before public launch
+- [ ] Populate 5 articles at `/mn/admin/articles`
+- [ ] Mobile audit — KNOWN-003
+- [ ] Vercel Pro ($20/mo) + Supabase Pro ($25/mo)
+
+---
+
 ## Session 2026-08-31 (Alex) — Video Upload Pipeline Launch + Cloudflare Setup
 
 ### Completed Work
