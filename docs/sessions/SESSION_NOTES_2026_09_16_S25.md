@@ -257,3 +257,111 @@ ALTER TABLE mo_reviews ALTER COLUMN user_id DROP NOT NULL;
 - [ ] Populate 5 articles at `/mn/admin/articles`
 - [ ] Mobile audit — KNOWN-003
 - [ ] Vercel Pro ($20/mo) + Supabase Pro ($25/mo)
+
+---
+
+# Session 27 Continuation — 2026-09-16 (same day)
+
+**Session type:** Feature build — Manual Course Access Grant
+**Commit:** `0d82ccc`
+**Status at close:** Feature complete and live on Vercel.
+
+---
+
+## What Happened This Session
+
+Resumed from context compaction (S26 end). Built the Manual Course Access Grant admin feature as specified.
+
+### Research basis
+- Kajabi "Grant Product Access" pattern: email + product + lifetime/expiry + optional email
+- Skool invite pattern: email + group + optional notification
+- MommyOffice enrollment gate: `mo_access_tokens` table (email, course_id, token UUID, expires_at)
+- Authoritative insert pattern from `src/app/api/qpay/check/route.ts`
+
+### Architecture decision
+Manual grant = admin-side insert into `mo_access_tokens`. Same table, same shape as QPay. No new table, no schema migration needed. The enrollment gate already reads this table for video, review, and course access.
+
+---
+
+## New Files
+
+### `src/app/[locale]/admin/access/page.tsx` (NEW)
+Full `'use client'` component. Two sections:
+
+**Grant Form:**
+- Email input (required, `type="email"`)
+- Course dropdown (auto-loaded from `getAdminCourses()` on mount)
+- Duration: "Насан туршийн" radio OR "Хязгаарлагдмал — [N] өдрөөр" radio + number input
+- "Тавтай морил и-мэйл илгээх" checkbox (default checked)
+- Submit calls `grantCourseAccess()` server action; shows success/error inline
+- Dedup-aware: shows "шинэчлэгдлээ" vs "нэмэгдлээ" in success message
+
+**Grants Table:**
+- Loads from `listAccessGrants()` on mount; 300 rows max, sorted newest-first
+- Columns: И-мэйл | Сургалт | Статус | Дуусах | (revoke button)
+- Status badges: purple (Насан туршийн) / green (Идэвхтэй) / amber (≤7 days) / red (Дуусcан)
+- Two-step inline revoke: first click → "Тийм / Үгүй" confirmation; confirm → `revokeAccessGrant()` → row removed from local state
+- Expired rows rendered at 55% opacity
+
+---
+
+## Modified Files
+
+### `src/app/actions/admin.ts` — 4 new functions appended after line 441
+
+```typescript
+getAdminCourses()         // SELECT id, title_mn, slug FROM mo_courses ORDER BY title_mn
+listAccessGrants()        // SELECT from mo_access_tokens + course name join, 300 rows desc
+grantCourseAccess(...)    // Check existing → update or insert; optional Brevo welcome email
+revokeAccessGrant(id)     // DELETE from mo_access_tokens WHERE id = tokenId
+```
+
+**`grantCourseAccess` key behaviors:**
+- `durationDays: null` → `expires_at: null` (lifetime)
+- `durationDays: N` → `expires_at: now + N days`
+- Existing token found → UPDATE (token refreshed, expiry updated)
+- No existing token → INSERT
+- `sendEmail: true` → fires Brevo API POST with branded HTML email
+
+**Welcome email template:**
+- Sender: `noreply@mommyoffice.com`
+- Subject: `MommyOffice — "${courseTitle}" сургалтад тавтай морил!`
+- Shows course title, expiry date (or "Насан туршийн"), CTA button to `/mn/courses`
+- Email failure is non-fatal (wrapped in try/catch); access is already granted before email attempt
+
+### `src/app/[locale]/admin/page.tsx` — 2-line change
+- Added `🎫 Эрх олгох` to `quickActions` array with teal gradient styling
+- Fixed border renderer: `a.border ?? (a.bg === '#2a2a2a' ? ...)` so gradient tiles use their own border
+
+---
+
+## Commits This Session
+
+| Commit | Description |
+|--------|-------------|
+| `0d82ccc` | feat: manual course access grant admin panel |
+
+---
+
+## BUG-001 Pattern (recurring)
+VS Code holds `.git/index.lock` open when repo is loaded. Fix: close VS Code, then:
+```powershell
+Remove-Item ".git\index.lock" -Force
+```
+(`-Force` is needed; `-ErrorAction SilentlyContinue` silently fails when the file is held.)
+
+---
+
+## Pre-Launch Checklist (Outstanding — unchanged from S26)
+
+- [ ] **CF Stream allowed origins** — add `mommyoffice.com` in CF Stream dashboard ⚠️ CRITICAL
+- [ ] **GoDaddy DNS** — `A @ 76.76.21.21`, `CNAME www → cname.vercel-dns.com`
+- [ ] **Vercel env var** — `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` then redeploy
+- [ ] **Supabase Auth** — add `https://mommyoffice.com` to allowed redirect URLs
+- [ ] **Brevo SPF/DKIM** for `noreply@mommyoffice.com`
+- [ ] Fix missing Хичээл 2 in Module 1
+- [ ] Add instructor records at `/mn/admin/instructors`
+- [ ] Delete `.ps1` scripts before public launch
+- [ ] Populate 5 articles at `/mn/admin/articles`
+- [ ] Mobile audit — KNOWN-003
+- [ ] Vercel Pro ($20/mo) + Supabase Pro ($25/mo)

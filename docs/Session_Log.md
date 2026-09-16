@@ -2,6 +2,28 @@
 
 ---
 
+## Session 2026-09-16 S27 (Amaraa) — Manual Course Access Grant Admin Panel
+
+**Commit:** `0d82ccc`
+**Status at close:** Feature complete, committed, pushed. Vercel deploy in progress.
+
+### Completed Work
+- **Manual Course Access Grant** — new admin page at `/mn/admin/access`
+  - Grant form: email, course dropdown, lifetime vs. N-day duration, welcome email toggle
+  - Smart dedup: if user already has a token, updates expiry instead of erroring
+  - Optional Brevo welcome email with course name and expiry date
+  - Grants table: 300 most recent tokens, color-coded status badges, two-step inline revoke
+  - 4 new server actions appended to `admin.ts` (zero existing code touched)
+  - `🎫 Эрх олгох` tile added to admin dashboard quickActions
+- **BUG-001 workaround** — `Remove-Item ".git\index.lock" -Force` required (VS Code holds lock)
+
+### Files Changed
+- `src/app/[locale]/admin/access/page.tsx` — NEW (full client component)
+- `src/app/actions/admin.ts` — appended `getAdminCourses`, `listAccessGrants`, `grantCourseAccess`, `revokeAccessGrant`
+- `src/app/[locale]/admin/page.tsx` — added 1 quickAction tile, fixed border renderer
+
+---
+
 ## Session 2026-09-16 S25+S26 (Amaraa) — Ad System, Video CSP, Review/Rating Feature, Launch Prep
 
 **Commits:** `6826296`, `2ac682a`, `b607fe2`, `f27694e`, `bdba7f6`, `f505314`
