@@ -30,8 +30,19 @@ export default async function middleware(request: NextRequest) {
     );
 
     const { data: { user } } = await supabase.auth.getUser();
+    const locale = pathname.split('/')[1] || 'mn';
+
+    // Gate 1: must be logged in
     if (!user) {
-      const locale = pathname.split('/')[1] || 'mn';
+      return NextResponse.redirect(new URL(`/${locale}/admin/login`, request.url));
+    }
+
+    // Gate 2: must be an allowed admin email (defence-in-depth — blocks any
+    // Supabase account that isn't the owner, even if signups are accidentally open).
+    // Falls back to the owner address so the gate is always active even without the env var.
+    const rawList = process.env.ADMIN_EMAILS || 'info.mommyoffice@gmail.com';
+    const allowed = rawList.split(',').map((e) => e.trim().toLowerCase());
+    if (!allowed.includes((user.email ?? '').toLowerCase())) {
       return NextResponse.redirect(new URL(`/${locale}/admin/login`, request.url));
     }
 

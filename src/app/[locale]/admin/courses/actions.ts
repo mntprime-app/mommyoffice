@@ -1,7 +1,9 @@
 'use server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { assertAdmin } from '@/lib/adminGuard';
 
 export async function listCourses() {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { data } = await supabase
     .from('mo_courses')
@@ -11,11 +13,13 @@ export async function listCourses() {
 }
 
 export async function toggleCoursePublish(id: string, current: boolean) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   await supabase.from('mo_courses').update({ is_published: !current }).eq('id', id);
 }
 
 export async function deleteCourse(id: string): Promise<{ error: string | null }> {
+  await assertAdmin();
   const supabase = await createAdminClient();
 
   // Cascade-delete child rows first — FK constraints block the course delete otherwise.

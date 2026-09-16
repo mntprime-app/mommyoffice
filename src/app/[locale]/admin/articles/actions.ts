@@ -1,7 +1,9 @@
 'use server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { assertAdmin } from '@/lib/adminGuard';
 
 export async function listArticles() {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { data } = await supabase
     .from('mo_articles')
@@ -11,6 +13,7 @@ export async function listArticles() {
 }
 
 export async function toggleArticlePublish(id: string, current: boolean) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   await supabase.from('mo_articles').update({
     is_published: !current,
@@ -19,11 +22,13 @@ export async function toggleArticlePublish(id: string, current: boolean) {
 }
 
 export async function deleteArticleById(id: string) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   await supabase.from('mo_articles').delete().eq('id', id);
 }
 
 export async function getArticleById(id: string) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { data } = await supabase.from('mo_articles').select('*').eq('id', id).single();
   return data || null;
@@ -47,6 +52,7 @@ export async function updateArticle(id: string, data: {
   is_pinned_trending: boolean;
   pin_rank: number | null;
 }) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase.from('mo_articles').update(data).eq('id', id);
   if (error) return { error: error.message };
@@ -71,6 +77,7 @@ export async function createArticle(data: {
   is_pinned_trending: boolean;
   pin_rank: number | null;
 }) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase.from('mo_articles').insert(data);
   if (error) return { error: error.message };

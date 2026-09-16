@@ -1,5 +1,6 @@
 'use server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { assertAdmin } from '@/lib/adminGuard';
 import { SETTING_DEFAULTS } from '@/lib/constants';
 import { HOME_CONFIG_DEFAULTS, type HomeConfig } from '@/lib/homeConfig';
 export type { HomeConfig };
@@ -17,6 +18,7 @@ export async function getSiteSettings(): Promise<Record<string, string>> {
 }
 
 export async function updateSiteSetting(key: string, value: string): Promise<void> {
+  await assertAdmin();
   const supabase = await createAdminClient();
   await supabase.from('mo_site_settings').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 }
@@ -35,6 +37,7 @@ export async function getHomeConfig(): Promise<HomeConfig> {
 
 export async function saveHomeConfig(config: Partial<HomeConfig>): Promise<{ error: string | null }> {
   try {
+    await assertAdmin();
     const supabase = await createAdminClient();
     const { error } = await supabase.from('mo_home_config').upsert(
       { id: 1, ...config, updated_at: new Date().toISOString() },
@@ -50,6 +53,7 @@ export async function saveHomeConfig(config: Partial<HomeConfig>): Promise<{ err
 const BUCKET = 'mommyoffice-media';
 
 export async function uploadImage(formData: FormData, folder: string): Promise<{ error: string | null; url: string | null }> {
+  await assertAdmin();
   const file = formData.get('file') as File | null;
   if (!file) return { error: 'Файл олдсонгүй', url: null };
 
@@ -133,6 +137,7 @@ export async function listInstructors() {
 }
 
 export async function approveInstructor(id: string) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase
     .from('mo_instructors')
@@ -147,6 +152,7 @@ export async function approveInstructor(id: string) {
 }
 
 export async function suspendInstructor(id: string) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase
     .from('mo_instructors')
@@ -157,6 +163,7 @@ export async function suspendInstructor(id: string) {
 }
 
 export async function deleteInstructorById(id: string) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   await supabase.from('mo_instructors').delete().eq('id', id);
 }
@@ -205,6 +212,7 @@ export async function createCourse(data: {
   course_outline_mn: unknown[] | null;
   mo_instructor_id: string | null;
 }) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase.from('mo_courses').insert(data);
   if (error) {
@@ -250,6 +258,7 @@ export async function updateCourse(id: string, data: {
   course_outline_mn: unknown[] | null;
   mo_instructor_id: string | null;
 }) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase
     .from('mo_courses')
@@ -260,12 +269,14 @@ export async function updateCourse(id: string, data: {
 }
 
 export async function deleteCourseById(id: string) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   await supabase.from('mo_courses').delete().eq('id', id);
 }
 
 /** Patch only the course_outline_mn column — used for auto-save after video upload. */
 export async function saveCourseOutlinePatch(courseId: string, outline: unknown[] | null) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase
     .from('mo_courses')
@@ -321,6 +332,7 @@ export async function createVideo(data: {
   content_type?: string;
   season_count?: number;
 }) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   // Auto-generate slug server-side if admin left it blank
   const payload = { ...data, slug: data.slug?.trim() || autoSlug(data.title_mn) };
@@ -340,6 +352,7 @@ export async function toggleVideoPublished(id: string, current: boolean) {
 }
 
 export async function deleteVideoById(id: string) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   await supabase.from('mo_videos').delete().eq('id', id);
 }
@@ -369,6 +382,7 @@ export async function updateVideo(id: string, data: {
   content_type?: string;
   season_count?: number;
 }) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   // Auto-generate slug server-side if admin left it blank; fall back to record id
   const payload = { ...data, slug: data.slug?.trim() || autoSlug(data.title_mn, id) };
@@ -420,6 +434,7 @@ export async function saveEpisodesBatch(
   videoId: string,
   episodes: Omit<VideoEpisode, 'id'>[],
 ): Promise<{ error: string | null }> {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error: delErr } = await supabase
     .from('mo_video_episodes')
@@ -487,6 +502,7 @@ export async function grantCourseAccess(formData: {
   durationDays: number | null;
   sendEmail: boolean;
 }) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { randomUUID } = await import('crypto');
 
@@ -583,6 +599,7 @@ export async function grantCourseAccess(formData: {
 }
 
 export async function revokeAccessGrant(tokenId: string) {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase
     .from('mo_access_tokens')

@@ -1,5 +1,6 @@
 'use server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { assertAdmin } from '@/lib/adminGuard';
 
 type AdPayload = {
   slot?: string;
@@ -14,6 +15,7 @@ type AdPayload = {
 };
 
 export async function listAds() {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { data } = await supabase
     .from('mo_ads')
@@ -23,6 +25,7 @@ export async function listAds() {
 }
 
 export async function createAd(payload: AdPayload): Promise<{ error: string | null }> {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase.from('mo_ads').insert(payload);
   if (error) return { error: error.message };
@@ -30,6 +33,7 @@ export async function createAd(payload: AdPayload): Promise<{ error: string | nu
 }
 
 export async function updateAd(id: string, payload: AdPayload): Promise<{ error: string | null }> {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase
     .from('mo_ads')
@@ -40,6 +44,7 @@ export async function updateAd(id: string, payload: AdPayload): Promise<{ error:
 }
 
 export async function deleteAd(id: string): Promise<{ error: string | null }> {
+  await assertAdmin();
   const supabase = await createAdminClient();
   const { error } = await supabase.from('mo_ads').delete().eq('id', id);
   if (error) return { error: error.message };
