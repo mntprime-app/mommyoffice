@@ -14,7 +14,7 @@ export async function GET(
 
     const { data, error } = await supabase
       .from('mo_ads')
-      .select('id, slot, title, target_url, media_url, media_type')
+      .select('id, slot, title, target_url, media_url, media_type, mobile_image_url')
       .eq('slot', slot)
       .eq('is_active', true)
       .or(`starts_at.is.null,starts_at.lte.${now}`)

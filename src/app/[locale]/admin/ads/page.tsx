@@ -35,6 +35,7 @@ const EMPTY_FORM = {
   target_url: '',
   media_url: '',
   media_type: 'image' as 'image' | 'video',
+  mobile_image_url: '',
   is_active: true,
   starts_at: '',
   ends_at: '',
@@ -64,6 +65,7 @@ export default function AdminAdsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const imagePickerRef = useRef<HTMLInputElement>(null);
   const videoPickerRef = useRef<HTMLInputElement>(null);
+  const mobileImageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     listAds().then((data) => { setAds(data as Ad[]); setLoading(false); });
@@ -88,6 +90,7 @@ export default function AdminAdsPage() {
       target_url: ad.target_url,
       media_url: ad.media_url,
       media_type: ad.media_type,
+      mobile_image_url: (ad as Ad & { mobile_image_url?: string | null }).mobile_image_url ?? '',
       is_active: ad.is_active,
       starts_at: ad.starts_at ? ad.starts_at.slice(0, 16) : '',
       ends_at: ad.ends_at ? ad.ends_at.slice(0, 16) : '',
@@ -125,6 +128,7 @@ export default function AdminAdsPage() {
       target_url: form.target_url.trim(),
       media_url: form.media_url.trim(),
       media_type: form.media_type,
+      mobile_image_url: form.mobile_image_url.trim() || null,
       is_active: form.is_active,
       starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : null,
       ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
@@ -261,16 +265,62 @@ export default function AdminAdsPage() {
               )}
             </div>
 
-            {/* Media type toggle — clicking also opens the matching file picker */}
+            {/* Mobile image fallback — only shown for video ads */}
+            {form.media_type === 'video' && (
+              <div style={{ marginBottom: '14px', background: 'rgba(0,181,173,0.07)', border: '1px solid rgba(0,181,173,0.2)', borderRadius: '10px', padding: '12px 14px' }}>
+                <label style={{ display: 'block', fontSize: '12px', color: '#00B5AD', marginBottom: '6px', fontWeight: 700 }}>
+                  📱 Мобайл зураг (видео зарын мобайл дээрх орлуулга)
+                </label>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <button
+                    onClick={() => mobileImageRef.current?.click()}
+                    style={{ padding: '7px 14px', background: '#2a2a2a', border: '1px solid #333', borderRadius: '8px', color: '#e5e5e5', fontSize: '12px', fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}
+                  >
+                    📁 Мобайл зураг сонгох
+                  </button>
+                  {form.mobile_image_url && (
+                    <span style={{ fontSize: '11px', color: '#10b981' }}>✓ Байршуулагдлаа</span>
+                  )}
+                </div>
+                <input ref={mobileImageRef} type="file" accept="image/*" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  e.target.value = '';
+                  setUploadingMedia(true);
+                  const fd = new FormData();
+                  fd.append('file', file);
+                  const { error, url } = await uploadImage(fd, 'ads');
+                  setUploadingMedia(false);
+                  if (error) { setErr(`Мобайл зураг байршуулахад алдаа: ${error}`); return; }
+                  set('mobile_image_url', url!);
+                }} style={{ display: 'none' }} />
+                {form.mobile_image_url && (
+                  <div style={{ marginTop: '8px', borderRadius: '6px', overflow: 'hidden', height: '60px', background: '#0f0f0f' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={form.mobile_image_url} alt="Mobile preview" style={{ width: '100%', height: '60px', objectFit: 'cover', display: 'block' }} />
+                  </div>
+                )}
+                {!form.mobile_image_url && (
+                  <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#6b7280' }}>
+                    Мобайл зураг оруулаагүй бол видео зар мобайл дээр харагдахгүй.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Media type toggle — clicking opens the matching file picker.
+                The type label is set automatically by handleMediaUpload (auto-detect).
+                Do NOT pre-set media_type here — it would override the detected type
+                if the user closes the picker without selecting a file. */}
             <div style={{ marginBottom: '14px', display: 'flex', gap: '10px' }}>
               <button
-                onClick={() => { set('media_type', 'image'); imagePickerRef.current?.click(); }}
+                onClick={() => imagePickerRef.current?.click()}
                 style={{ padding: '7px 16px', borderRadius: '8px', border: '1px solid', fontSize: '12px', fontWeight: 700, cursor: 'pointer', background: form.media_type === 'image' ? '#00B5AD' : 'transparent', borderColor: form.media_type === 'image' ? '#00B5AD' : '#333', color: form.media_type === 'image' ? '#fff' : '#6b7280' }}
               >
                 🖼 Зураг
               </button>
               <button
-                onClick={() => { set('media_type', 'video'); videoPickerRef.current?.click(); }}
+                onClick={() => videoPickerRef.current?.click()}
                 style={{ padding: '7px 16px', borderRadius: '8px', border: '1px solid', fontSize: '12px', fontWeight: 700, cursor: 'pointer', background: form.media_type === 'video' ? '#00B5AD' : 'transparent', borderColor: form.media_type === 'video' ? '#00B5AD' : '#333', color: form.media_type === 'video' ? '#fff' : '#6b7280' }}
               >
                 🎬 Видео

@@ -9,6 +9,7 @@ type Ad = {
   target_url: string;
   media_url: string;
   media_type: 'image' | 'video';
+  mobile_image_url: string | null;
 };
 
 type BannerType = 'leaderboard' | 'sidebar' | 'footer' | 'mobile';
@@ -47,8 +48,11 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
   // No active ad — collapse completely, leave no space
   if (!ad) return null;
 
-  // Mobile: video ads suppressed — image-only on small screens
-  if (isMobile && ad.media_type === 'video') return null;
+  // Mobile: video ads show mobile_image_url fallback (if provided), else collapse
+  if (isMobile && ad.media_type === 'video') {
+    if (!ad.mobile_image_url) return null;
+    // Fall through with image rendering below using mobile_image_url
+  }
 
   const isSidebar = type === 'sidebar';
 
@@ -69,7 +73,7 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
         ...style,
       }}
     >
-      {ad.media_type === 'video' ? (
+      {ad.media_type === 'video' && !isMobile ? (
         <video
           src={ad.media_url}
           autoPlay
@@ -79,9 +83,10 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
       ) : (
+        // Desktop image ad OR mobile fallback image for video ad
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={ad.media_url}
+          src={isMobile && ad.mobile_image_url ? ad.mobile_image_url : ad.media_url}
           alt={ad.title ?? 'Сурталчилгаа'}
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           loading="lazy"
