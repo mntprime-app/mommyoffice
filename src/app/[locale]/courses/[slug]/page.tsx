@@ -222,7 +222,14 @@ export default async function CourseDetailPage({
     const outline = locale === 'mn'
       ? course.course_outline_mn
       : (course.course_outline_en || course.course_outline_mn);
-    return Array.isArray(outline) ? outline as { section: string; lessons: string[] }[] : [];
+    if (!Array.isArray(outline)) return [] as { section: string; lessons: string[] }[];
+    // DB stores { title, lessons: [{title, stream_id, ...}] } — map to what CourseOutline expects
+    return (outline as Record<string, unknown>[]).map((m) => ({
+      section: String(m.title ?? m.section ?? ''),
+      lessons: (Array.isArray(m.lessons) ? m.lessons : []).map((l: unknown) =>
+        typeof l === 'string' ? l : String((l as Record<string, unknown>).title ?? '')
+      ),
+    }));
   })();
   const hasOutline = showOutline && (lectureCount > 0 || outlineData.length > 0);
 
