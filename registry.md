@@ -1753,3 +1753,34 @@ mo_reviews (course_id) → mo_access_tokens (course_id) → mo_orders (course_id
 **Diagnostic reminder (from original BUG-089):**
 - "This content is blocked" text in iframe = CF application-level rejection (bad JWT or allowedOrigins)
 - Gray broken-document icon in iframe = CSP violation (frame-src blocking the URL)
+
+---
+
+## BUG-089 Final Resolution — CF JWT Signing Removed (Session 25, 2026-09-16)
+
+**Decision:** CF JWT signing permanently removed from `/api/stream/token` production path.
+
+**Root cause of all BUG-089 incidents:** `crypto.subtle.sign()` never throws when the key is wrong — it signs with whatever JWK is provided, producing a structurally valid but cryptographically invalid JWT. CF's public-key check rejects it silently ("This content is blocked"). The error is undetectable server-side without a round-trip to CF. The Vercel env var holding the 2KB JWK is fragile — any edit in the Vercel UI can corrupt or truncate it without warning or error. Two separate incidents confirmed this pattern.
+
+**Security model (without CF JWTs — fully production-safe):**
+1. `/api/stream/token` returns 401 if no `mo_user_email` session cookie.
+2. Returns 403 if the user has no valid `mo_access_tokens` record covering this videoId.
+3. Video IDs (cloudflare_stream_id) are NEVER returned in student-facing API responses — they exist only in the admin panel. A student who passes the gate cannot share a videoId they never saw.
+4. `requireSignedURLs=false` on CF videos (set by `disable-signed-urls.ps1`).
+5. `iframeUrl` returned: `https://iframe.cloudflarestream.com/${videoId}/iframe`
+
+**Files changed:**
+- `src/app/api/stream/token/route.ts` — JWT signing code removed; enrollment gate unchanged; returns direct embed URL
+- `disable-signed-urls.ps1` — sets `requireSignedURLs=false` on all CF videos via API
+
+**One-time setup (run once from mommyoffice folder):**
+```
+.\disable-signed-urls.ps1
+```
+
+**Post-launch: Restoring signed tokens (when key management is stable)**
+1. Run `.\generate-cf-key.ps1` → paste BOTH values into `.env.local` AND Vercel in same session
+2. Run `.\verify-cf-body.ps1` → must show ✅ before touching any other Vercel env var
+3. Run `.\enable-signed-urls.ps1` to set `requireSignedURLs=true` on CF videos
+4. Restore JWT signing block in `src/app/api/stream/token/route.ts`
+5. Redeploy → verify immediately
