@@ -246,7 +246,9 @@ export default function AdminAdsPage() {
                     <video
                       key={form.media_url}
                       src={form.media_url}
+                      autoPlay
                       muted
+                      loop
                       controls
                       playsInline
                       style={{ width: '100%', height: '120px', objectFit: 'contain', display: 'block' }}
