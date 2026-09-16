@@ -144,7 +144,11 @@ export async function GET(req: NextRequest) {
     const customerSub = process.env.CF_CUSTOMER_SUBDOMAIN ?? '';
     const iframeUrl = customerSub
       ? `https://customer-${customerSub}.cloudflarestream.com/${token}/iframe`
-      : `https://iframe.cloudflarestream.com/${token}/iframe`; // fallback if env not set
+      // BUG-089 hardening: fallback uses videoId (NOT token) — iframe.cloudflarestream.com
+      // expects /{videoId}/iframe, not /{JWT}/iframe. Token in this URL = CF rejects → "blocked".
+      // Note: this fallback only works if requireSignedURLs=false on CF videos.
+      // CF_CUSTOMER_SUBDOMAIN MUST be set in Vercel for signed tokens to work.
+      : `https://iframe.cloudflarestream.com/${videoId}/iframe`;
     return NextResponse.json({ token, iframeUrl }, {
       headers: { 'Cache-Control': 'private, max-age=14400' },
     });

@@ -1720,3 +1720,36 @@ mo_reviews (course_id) → mo_access_tokens (course_id) → mo_orders (course_id
 - Supports direct URL paste as alternative to upload
 - Per-slot status overview card shows active/inactive/empty count
 
+
+---
+
+## BUG-089 Regression — CF Stream "This content is blocked" (Session 25, 2026-09-16)
+
+**Symptom:** `/mn/courses/easyenglish/learn` shows "This content is blocked" in the course player. CF application-level rejection (not CSP — gray broken-document icon would indicate CSP).
+
+**Module:** `src/app/api/stream/token/route.ts`
+
+**Root cause:** Session 24 ad system commits (`a69607a`, `1ea02e3`, `77dbc11`) triggered a new Vercel deployment. `CF_STREAM_KEY_SECRET` in Vercel became mismatched from `.env.local` (truncation or corruption during deployment). Since `requireSignedURLs: true` is set on all CF videos (set by `enable-signed-urls.ps1` in commit `c4eee13`), CF validates every JWT. A bad key signs a structurally valid but cryptographically invalid JWT — no exception is thrown in code, but CF rejects the token and shows "This content is blocked."
+
+**Secondary code bug found (same session):** Line 147 of token route had fallback URL using `${token}` (JWT) instead of `${videoId}` — `iframe.cloudflarestream.com` expects `/{videoId}/iframe` format, not `/{JWT}/iframe`. This would cause "blocked" if `CF_CUSTOMER_SUBDOMAIN` were ever absent.
+
+**Fixes applied:**
+
+**Code fix (commit this session):**
+- `src/app/api/stream/token/route.ts`: fallback URL changed from `iframe.cloudflarestream.com/${token}/iframe` → `iframe.cloudflarestream.com/${videoId}/iframe`
+
+**User action required (Vercel env var):**
+1. Open Vercel → Project → Settings → Environment Variables
+2. Find `CF_STREAM_KEY_SECRET` — click the eye icon to reveal it
+3. Verify it starts with `eyJ` (base64url of `{"use":"sig"...`) and is NOT truncated
+4. If wrong/truncated: delete the variable, re-paste from `.env.local`, redeploy
+5. Run `.\verify-cf-body.ps1` locally to confirm local keys produce a valid player (not "blocked")
+
+**Permanent prevention rules added to SOP:**
+- After ANY Vercel deployment that modifies env vars or triggers a full rebuild, run `.\verify-cf-body.ps1` to verify CF token signing is intact
+- `CF_STREAM_KEY_SECRET` is a long base64 JWK — always verify it starts with `eyJ` after pasting in Vercel
+- NEVER use `${token}` in an `iframe.cloudflarestream.com` URL — that host expects `/{videoId}/iframe` (unsigned). Signed token format is ONLY valid at `customer-{sub}.cloudflarestream.com/{JWT}/iframe`
+
+**Diagnostic reminder (from original BUG-089):**
+- "This content is blocked" text in iframe = CF application-level rejection (bad JWT or allowedOrigins)
+- Gray broken-document icon in iframe = CSP violation (frame-src blocking the URL)
