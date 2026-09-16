@@ -153,6 +153,20 @@ Then commit and push normally. Occurs intermittently; always check if a commit f
 
 ---
 
+### BUG-097 — CourseOutline accordion crashes page on expand
+**Status:** FIXED (2026-09-16, commit `e5ec523`)
+**Symptom:** Clicking any ▼ module or "Бүгдийг дэлгэх" in "Хичээлийн агуулга" sidebar caused Chrome "This page couldn't load" crash
+**Root cause:** Two mismatches between DB format and component interface:
+1. DB stores module name as `title` key; component read `section` key → module titles showed as blank
+2. DB stores lessons as objects `{ title, stream_id, ... }`; component rendered `{lesson}` directly as JSX → React threw "Objects are not valid as a React child" → hard page crash
+3. The cast `outline as { section: string; lessons: string[] }[]` in page.tsx hid both mismatches at compile time
+**Fix:** Replaced the bare cast with a proper transform in the `outlineData` IIFE in `src/app/[locale]/courses/[slug]/page.tsx`:
+- Maps `m.title ?? m.section` → `section`
+- Maps `lesson.title` (or raw string fallback) → lesson string
+**Note:** This bug existed since the admin editor was built — the admin saves rich objects to preserve `stream_id`, but the student-facing display never accounted for that format.
+
+---
+
 ### BUG-096 — `mo_reviews.user_id NOT NULL` blocked seeded/migrated reviews
 **Status:** FIXED (2026-09-16, Supabase migration)
 **Symptom:** INSERT into `mo_reviews` for migrated Kajabi reviews failed: `null value in column "user_id" violates not-null constraint`
