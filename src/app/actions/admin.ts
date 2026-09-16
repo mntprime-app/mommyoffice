@@ -439,3 +439,154 @@ export async function saveEpisodesBatch(
   if (insErr) return { error: insErr.message };
   return { error: null };
 }
+
+// ─── COURSE ACCESS MANAGEMENT ─────────────────────────────────────────────────
+
+export async function getAdminCourses() {
+  const supabase = await createAdminClient();
+  const { data } = await supabase
+    .from('mo_courses')
+    .select('id, title_mn, slug')
+    .order('title_mn');
+  return (data || []) as { id: number; title_mn: string; slug: string }[];
+}
+
+export async function listAccessGrants() {
+  const supabase = await createAdminClient();
+  const { data: tokens } = await supabase
+    .from('mo_access_tokens')
+    .select('id, email, course_id, expires_at')
+    .order('id', { ascending: false })
+    .limit(300);
+  if (!tokens || tokens.length === 0) return [];
+
+  const courseIds = [...new Set(tokens.map((r) => r.course_id))];
+  const { data: courses } = await supabase
+    .from('mo_courses')
+    .select('id, title_mn')
+    .in('id', courseIds);
+
+  const courseMap: Record<string, string> = {};
+  (courses || []).forEach((c) => { courseMap[String(c.id)] = c.title_mn; });
+
+  const now = new Date();
+  return tokens.map((row) => ({
+    id: String(row.id),
+    email: row.email as string,
+    courseId: String(row.course_id),
+    courseName: courseMap[String(row.course_id)] || 'Тодорхойгүй',
+    expiresAt: row.expires_at as string | null,
+    isLifetime: !row.expires_at,
+    isExpired: row.expires_at ? new Date(row.expires_at) < now : false,
+  }));
+}
+
+export async function grantCourseAccess(formData: {
+  email: string;
+  courseId: string;
+  durationDays: number | null;
+  sendEmail: boolean;
+}) {
+  const supabase = await createAdminClient();
+  const { randomUUID } = await import('crypto');
+
+  const email = formData.email.trim().toLowerCase();
+  const { courseId, durationDays, sendEmail } = formData;
+
+  // Expiry: null = lifetime, otherwise N days from now
+  let expiresAt: string | null = null;
+  if (durationDays && durationDays > 0) {
+    const d = new Date();
+    d.setDate(d.getDate() + durationDays);
+    expiresAt = d.toISOString();
+  }
+
+  // If a token already exists for this user+course, update it (admin override)
+  const { data: existing } = await supabase
+    .from('mo_access_tokens')
+    .select('id')
+    .eq('email', email)
+    .eq('course_id', courseId)
+    .maybeSingle();
+
+  let dbError: string | null = null;
+
+  if (existing) {
+    const { error } = await supabase
+      .from('mo_access_tokens')
+      .update({ expires_at: expiresAt, token: randomUUID() })
+      .eq('id', existing.id);
+    dbError = error?.message || null;
+  } else {
+    const { error } = await supabase.from('mo_access_tokens').insert({
+      email,
+      course_id: courseId,
+      token: randomUUID(),
+      expires_at: expiresAt,
+    });
+    dbError = error?.message || null;
+  }
+
+  if (dbError) return { error: dbError, updated: !!existing };
+
+  // Optional welcome email via Brevo
+  if (sendEmail) {
+    try {
+      const { data: courseRow } = await supabase
+        .from('mo_courses')
+        .select('title_mn')
+        .eq('id', courseId)
+        .maybeSingle();
+      const courseTitle = courseRow?.title_mn || 'сургалт';
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mommyoffice.com';
+
+      await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': process.env.BREVO_API_KEY || '',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: 'MommyOffice', email: 'noreply@mommyoffice.com' },
+          to: [{ email }],
+          subject: `MommyOffice — "${courseTitle}" сургалтад тавтай морил!`,
+          htmlContent: `
+            <div style="font-family:sans-serif;max-width:560px;margin:auto;background:#0f0f0f;color:#e5e5e5;border-radius:12px;overflow:hidden">
+              <div style="background:#00B5AD;padding:28px 32px">
+                <h1 style="margin:0;font-size:22px;color:#fff">MommyOffice</h1>
+              </div>
+              <div style="padding:32px">
+                <h2 style="font-size:20px;margin:0 0 16px;color:#fff">Тавтай морил! 🎉</h2>
+                <p style="margin:0 0 12px;color:#d1d5db;line-height:1.6">
+                  Таны и-мэйл хаяг <strong style="color:#00B5AD">${email}</strong>-д
+                  <strong style="color:#fff">"${courseTitle}"</strong> сургалтын эрх нэмэгдлээ.
+                </p>
+                ${expiresAt
+                  ? `<p style="margin:0 0 24px;color:#d1d5db;line-height:1.6">Эрх дуусах огноо: <strong style="color:#f59e0b">${new Date(expiresAt).toLocaleDateString('mn-MN')}</strong></p>`
+                  : `<p style="margin:0 0 24px;color:#d1d5db;line-height:1.6">Эрхийн хугацаа: <strong style="color:#10b981">Насан туршийн</strong></p>`
+                }
+                <a href="${siteUrl}/mn/courses"
+                   style="display:inline-block;background:#00B5AD;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">
+                  Сургалт үзэх →
+                </a>
+              </div>
+            </div>
+          `,
+        }),
+      });
+    } catch {
+      // Email failure is non-fatal — access was already granted
+    }
+  }
+
+  return { error: null, updated: !!existing };
+}
+
+export async function revokeAccessGrant(tokenId: string) {
+  const supabase = await createAdminClient();
+  const { error } = await supabase
+    .from('mo_access_tokens')
+    .delete()
+    .eq('id', tokenId);
+  return { error: error?.message || null };
+}

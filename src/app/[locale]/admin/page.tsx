@@ -43,6 +43,7 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
     { label: '🎬 Видеонууд', href: `/${locale}/admin/videos`, bg: '#2a2a2a', color: '#e5e5e5' },
     { label: 'Захиалгууд', href: `/${locale}/admin/orders`, bg: '#2a2a2a', color: '#e5e5e5' },
     { label: '👩‍🏫 Багш нар', href: `/${locale}/admin/instructors`, bg: '#1a1a2e', color: '#a78bfa' },
+    { label: '🎫 Эрх олгох', href: `/${locale}/admin/access`, bg: 'linear-gradient(135deg,#0d2e2e,#00B5AD33)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.35)' },
     { label: '📢 Сурталчилгаа', href: `/${locale}/admin/ads`, bg: '#1a1a2e', color: '#f59e0b' },
     { label: '⚙️ Тохиргоо', href: `/${locale}/admin/settings`, bg: '#1a1a2e', color: '#a78bfa' },
     { label: '🔗 Footer тохиргоо', href: `/${locale}/admin/footer`, bg: '#1a1a2e', color: '#a78bfa' },
@@ -86,7 +87,7 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
             background: a.bg, color: a.color,
             padding: '10px 20px', borderRadius: '10px',
             fontWeight: 600, textDecoration: 'none', fontSize: '14px',
-            border: a.bg === '#2a2a2a' ? '1px solid #333' : 'none',
+            border: a.border ?? (a.bg === '#2a2a2a' ? '1px solid #333' : 'none'),
           }}>
             {a.label}
           </Link>
