@@ -1,10 +1,26 @@
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/server';
 import UniversalHero from '@/components/shared/UniversalHero';
 import LiveAdBanner from '@/components/ui/LiveAdBanner';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const isMn = locale === 'mn';
+  const title = isMn ? 'Онлайн Сургалтууд | MommyOffice' : 'Online Courses | MommyOffice';
+  const description = isMn
+    ? 'Хоол хийх, гоо сайхан, эрүүл мэнд, бизнес, хувийн хөгжил — Монголын эмэгтэйчүүдэд зориулсан онлайн сургалтууд'
+    : 'Cooking, beauty, health, business, personal development — online courses for Mongolian women';
+  return {
+    title,
+    description,
+    openGraph: { title, description, url: `https://mommyoffice.com/${locale}/courses`, images: ['/og-image.png'] },
+    alternates: { canonical: `https://mommyoffice.com/${locale}/courses` },
+  };
+}
 
 const CATEGORIES = ['Бүх ангилал', 'Хоол', 'Гоо сайхан', 'Эрүүл мэнд', 'Бизнес', 'Гэр бүл', 'Хувийн хөгжил', 'Дизайн'];
 

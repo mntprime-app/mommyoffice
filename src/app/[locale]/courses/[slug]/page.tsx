@@ -87,11 +87,31 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   const course = await getCourse(slug);
-  if (!course) return { title: 'Сургалт | Mommyoffice' };
+  if (!course) return { title: 'Сургалт | MommyOffice' };
   const title = locale === 'mn' ? course.title_mn : (course.title_en || course.title_mn);
+  const description = locale === 'mn'
+    ? (course.description_mn || '')
+    : (course.description_en || course.description_mn || '');
+  const image = course.cover_image_url || '/og-image.png';
+  const url = `https://mommyoffice.com/${locale}/courses/${slug}`;
   return {
-    title: `${title} | Mommyoffice`,
-    description: locale === 'mn' ? course.description_mn : (course.description_en || course.description_mn),
+    title: `${title} | MommyOffice`,
+    description,
+    openGraph: {
+      title: `${title} | MommyOffice`,
+      description,
+      url,
+      type: 'website',
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
+    },
+    twitter: { card: 'summary_large_image', title: `${title} | MommyOffice`, description, images: [image] },
+    alternates: {
+      canonical: url,
+      languages: {
+        'mn': `https://mommyoffice.com/mn/courses/${slug}`,
+        'en': `https://mommyoffice.com/en/courses/${slug}`,
+      },
+    },
   };
 }
 
@@ -105,6 +125,56 @@ const CAT_GRADIENTS: Record<string, string> = {
   'Дизайн':         'linear-gradient(135deg,#1a0d1a,#3d153d)',
   'default':        'linear-gradient(135deg,#0d2137,#1a4a6b)',
 };
+
+/** JSON-LD Course structured data for Google rich results */
+function CourseJsonLd({ course, locale, slug }: { course: Record<string, unknown>; locale: string; slug: string }) {
+  const title = locale === 'mn' ? String(course.title_mn || '') : String(course.title_en || course.title_mn || '');
+  const description = locale === 'mn'
+    ? String(course.description_mn || '')
+    : String(course.description_en || course.description_mn || '');
+  const price = Number(course.price) || 0;
+  const rating = Number(course.rating) || 0;
+  const ratingCount = Number(course.rating_count) || 0;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: title,
+    description,
+    url: `https://mommyoffice.com/${locale}/courses/${slug}`,
+    provider: {
+      '@type': 'Organization',
+      name: 'MommyOffice',
+      sameAs: 'https://mommyoffice.com',
+    },
+    inLanguage: 'mn',
+    ...(course.cover_image_url ? { image: String(course.cover_image_url) } : {}),
+    offers: {
+      '@type': 'Offer',
+      price: price.toString(),
+      priceCurrency: 'MNT',
+      availability: 'https://schema.org/InStock',
+      url: `https://mommyoffice.com/${locale}/courses/${slug}`,
+    },
+    ...(rating > 0 && ratingCount > 0 ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: rating.toFixed(1),
+        reviewCount: ratingCount,
+        bestRating: '5',
+        worstRating: '1',
+      },
+    } : {}),
+    ...(course.lecture_count ? { numberOfCredits: Number(course.lecture_count) } : {}),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}
 
 function timeAgo(dateStr: string): string {
   const diffDays = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
@@ -235,6 +305,7 @@ export default async function CourseDetailPage({
 
   return (
     <div className="mo-course-page" style={{ background: '#141414', minHeight: '100vh' }}>
+      <CourseJsonLd course={course} locale={locale} slug={slug} />
 
       {/* ── EXPIRED ACCESS BANNER ── */}
       {accessDenied && (

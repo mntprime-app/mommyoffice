@@ -10,13 +10,42 @@ const notoSans = Noto_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Mommyoffice",
-  description: "Mongolia's #1 women's lifestyle and learning platform",
+  metadataBase: new URL('https://mommyoffice.com'),
+  title: {
+    default: "MommyOffice — Монголын №1 Эмэгтэйчүүдийн Платформ",
+    template: '%s | MommyOffice',
+  },
+  description: "Онлайн сургалт, нийтлэл, lifestyle — Монголын эмэгтэйчүүдэд зориулсан №1 платформ",
+  keywords: ['онлайн сургалт', 'монгол сургалт', 'mommyoffice', 'эмэгтэйчүүд', 'хичээл', 'онлайн хичээл монгол'],
+  authors: [{ name: 'MommyOffice', url: 'https://mommyoffice.com' }],
+  creator: 'MommyOffice',
+  publisher: 'MommyOffice',
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: 'website',
+    siteName: 'MommyOffice',
+    locale: 'mn_MN',
+    url: 'https://mommyoffice.com',
+    title: "MommyOffice — Монголын №1 Эмэгтэйчүүдийн Платформ",
+    description: "Онлайн сургалт, нийтлэл, lifestyle — Монголын эмэгтэйчүүдэд зориулсан №1 платформ",
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'MommyOffice' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "MommyOffice — Монголын №1 Эмэгтэйчүүдийн Платформ",
+    description: "Онлайн сургалт, нийтлэл, lifestyle — Монголын эмэгтэйчүүдэд зориулсан №1 платформ",
+    images: ['/og-image.png'],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="mn" className={notoSans.variable}>
+      <head>
+        <link rel="icon" href="/squarelogo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/squarelogo.png" />
+        <meta name="theme-color" content="#0d1117" />
+      </head>
       <body>{children}</body>
     </html>
   );

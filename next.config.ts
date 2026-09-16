@@ -46,12 +46,29 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Apply security headers to all routes
+        // Security headers on all routes
         source: '/(.*)',
         headers: securityHeaders,
       },
+      {
+        // Long-lived cache for hashed static assets (_next/static is content-addressed)
+        source: '/_next/static/(.*)',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        // Cache public images for 7 days
+        source: '/(logo|whitelogo|squarelogo|og-image)(.*)',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }],
+      },
+      {
+        // Sitemap and robots can be cached for 24h
+        source: '/(sitemap.xml|robots.txt)',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=3600' }],
+      },
     ];
   },
+  // Compress responses (Vercel enables Gzip/Brotli by default, this ensures it for self-hosted)
+  compress: true,
 };
 
 export default withNextIntl(nextConfig);

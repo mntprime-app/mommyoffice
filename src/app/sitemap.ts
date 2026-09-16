@@ -7,20 +7,31 @@ const LOCALES = ['mn', 'en'] as const;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
-  // Static pages
-  const staticPaths = ['', '/courses', '/articles'];
+  // ── Static pages ─────────────────────────────────────────────────────────────
+  const staticPaths: Array<{ path: string; freq: MetadataRoute.Sitemap[0]['changeFrequency']; priority: number }> = [
+    { path: '',           freq: 'daily',   priority: 1.0  },
+    { path: '/courses',   freq: 'daily',   priority: 0.9  },
+    { path: '/articles',  freq: 'daily',   priority: 0.8  },
+    { path: '/videos',    freq: 'weekly',  priority: 0.7  },
+    { path: '/about',     freq: 'monthly', priority: 0.5  },
+    { path: '/contact',   freq: 'monthly', priority: 0.4  },
+  ];
+
   for (const locale of LOCALES) {
-    for (const path of staticPaths) {
+    for (const { path, freq, priority } of staticPaths) {
       entries.push({
         url: `${BASE}/${locale}${path}`,
         lastModified: new Date(),
-        changeFrequency: path === '' ? 'daily' : 'weekly',
-        priority: path === '' ? 1 : 0.8,
+        changeFrequency: freq,
+        priority,
+        alternates: {
+          languages: Object.fromEntries(LOCALES.map(l => [l, `${BASE}/${l}${path}`])),
+        },
       });
     }
   }
 
-  // Dynamic: courses
+  // ── Dynamic: courses ──────────────────────────────────────────────────────────
   try {
     const supabase = await createClient();
     const { data: courses } = await supabase
@@ -28,21 +39,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('slug, updated_at')
       .eq('is_published', true);
 
-    if (courses) {
-      for (const course of courses) {
-        for (const locale of LOCALES) {
-          entries.push({
-            url: `${BASE}/${locale}/courses/${course.slug}`,
-            lastModified: course.updated_at ? new Date(course.updated_at) : new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.7,
-          });
-        }
+    for (const course of courses ?? []) {
+      for (const locale of LOCALES) {
+        entries.push({
+          url: `${BASE}/${locale}/courses/${course.slug}`,
+          lastModified: course.updated_at ? new Date(course.updated_at) : new Date(),
+          changeFrequency: 'monthly',
+          priority: 0.8,
+          alternates: {
+            languages: Object.fromEntries(LOCALES.map(l => [l, `${BASE}/${l}/courses/${course.slug}`])),
+          },
+        });
       }
     }
   } catch { /* no DB yet */ }
 
-  // Dynamic: articles
+  // ── Dynamic: articles ─────────────────────────────────────────────────────────
   try {
     const supabase = await createClient();
     const { data: articles } = await supabase
@@ -50,16 +62,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('slug, updated_at')
       .eq('is_published', true);
 
-    if (articles) {
-      for (const article of articles) {
-        for (const locale of LOCALES) {
-          entries.push({
-            url: `${BASE}/${locale}/articles/${article.slug}`,
-            lastModified: article.updated_at ? new Date(article.updated_at) : new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.6,
-          });
-        }
+    for (const article of articles ?? []) {
+      for (const locale of LOCALES) {
+        entries.push({
+          url: `${BASE}/${locale}/articles/${article.slug}`,
+          lastModified: article.updated_at ? new Date(article.updated_at) : new Date(),
+          changeFrequency: 'monthly',
+          priority: 0.65,
+          alternates: {
+            languages: Object.fromEntries(LOCALES.map(l => [l, `${BASE}/${l}/articles/${article.slug}`])),
+          },
+        });
       }
     }
   } catch { /* no DB yet */ }

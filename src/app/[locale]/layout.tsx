@@ -13,24 +13,41 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const isMn = locale === 'mn';
+
+  const title = isMn
+    ? 'MommyOffice — Монголын №1 Эмэгтэйчүүдийн Платформ'
+    : "MommyOffice — Mongolia's #1 Women's Platform";
+  const description = isMn
+    ? 'Онлайн хичээл, нийтлэл, lifestyle — Монголын эмэгтэйчүүдэд зориулсан №1 платформ. Хоол, гоо сайхан, эрүүл мэнд, бизнес, хувийн хөгжил.'
+    : "Online courses, articles, and lifestyle content for Mongolian women — Mongolia's #1 platform.";
+
   return {
-    title: {
-      default: "Mommyoffice — Mongolia's #1 Women's Platform",
-      template: '%s | Mommyoffice',
-    },
-    description: isMn
-      ? 'Хичээл, нийтлэл, lifestyle — Монголын эмэгтэйчүүдэд зориулсан №1 платформ'
-      : "Courses, articles, and lifestyle content for Mongolian women — Mongolia's #1 platform",
+    title: { default: title, template: '%s | MommyOffice' },
+    description,
+    keywords: isMn
+      ? ['онлайн сургалт монгол', 'монгол онлайн хичээл', 'mommyoffice', 'эмэгтэйчүүдийн платформ', 'хоол хийх сургалт', 'гоо сайхан', 'бизнес сургалт']
+      : ['mongolian online courses', 'mommyoffice', 'mongolia women platform', 'online learning mongolia'],
     openGraph: {
-      siteName: 'Mommyoffice',
+      siteName: 'MommyOffice',
       locale: isMn ? 'mn_MN' : 'en_US',
       type: 'website',
+      url: `https://mommyoffice.com/${locale}`,
+      title,
+      description,
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'MommyOffice' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/og-image.png'],
     },
     alternates: {
       canonical: `https://mommyoffice.com/${locale}`,
       languages: {
         'mn': 'https://mommyoffice.com/mn',
         'en': 'https://mommyoffice.com/en',
+        'x-default': 'https://mommyoffice.com/mn',
       },
     },
   };
