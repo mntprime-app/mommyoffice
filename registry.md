@@ -1767,7 +1767,7 @@ mo_reviews (course_id) → mo_access_tokens (course_id) → mo_orders (course_id
 2. Returns 403 if the user has no valid `mo_access_tokens` record covering this videoId.
 3. Video IDs (cloudflare_stream_id) are NEVER returned in student-facing API responses — they exist only in the admin panel. A student who passes the gate cannot share a videoId they never saw.
 4. `requireSignedURLs=false` on CF videos (set by `disable-signed-urls.ps1`).
-5. `iframeUrl` returned: `https://iframe.cloudflarestream.com/${videoId}/iframe`
+5. `iframeUrl` returned: `https://iframe.cloudflarestream.com/${videoId}` — NO `/iframe` suffix. The `/iframe` suffix is ONLY valid for signed customer-subdomain URLs (`customer-{sub}.cloudflarestream.com/{JWT}/iframe`). Using it on the unsigned host causes CF to return a blank/blocked response.
 
 **Files changed:**
 - `src/app/api/stream/token/route.ts` — JWT signing code removed; enrollment gate unchanged; returns direct embed URL
@@ -1784,3 +1784,60 @@ mo_reviews (course_id) → mo_access_tokens (course_id) → mo_orders (course_id
 3. Run `.\enable-signed-urls.ps1` to set `requireSignedURLs=true` on CF videos
 4. Restore JWT signing block in `src/app/api/stream/token/route.ts`
 5. Redeploy → verify immediately
+
+---
+
+## PERMANENT RULE — CF Stream URL Format (NEVER VIOLATE)
+
+**Unsigned direct embed (current production mode):**
+```
+https://iframe.cloudflarestream.com/{videoId}
+```
+- NO `/iframe` suffix
+- NO JWT
+- `requireSignedURLs` must be `false` on the video (run `disable-signed-urls.ps1`)
+
+**Signed customer-subdomain (future, when key mgmt is stable):**
+```
+https://customer-{subdomain}.cloudflarestream.com/{JWT}/iframe
+```
+- `/iframe` suffix IS required here
+- JWT signed with RS256 using CF key pair
+- `requireSignedURLs` must be `true` on the video
+
+**These two formats are NEVER interchangeable. Mixing them causes "This content is blocked" with no server-side error. The iframe.cloudflarestream.com host ignores `/iframe` paths silently.**
+
+---
+
+## PERMANENT RULE — CF Stream Token Route Invariants
+
+Every time `src/app/api/stream/token/route.ts` is touched:
+
+1. **Enrollment gate must remain in place.** The 401 (no cookie) and 403 (not enrolled) checks must be the FIRST thing that runs after extracting `videoId`. Never move them below any other logic.
+2. **videoId must NEVER appear in a student-facing response except as the final `iframeUrl`.** No debug logging of videoId, no error messages containing it.
+3. **If/when CF JWT signing is restored**, run `verify-cf-body.ps1` to confirm the signature verifies BEFORE pushing. `crypto.subtle.sign()` never throws on a wrong key — the only way to confirm it works is to test CF's actual response.
+4. **CF_STREAM_KEY_SECRET in Vercel must start with `eyJ`.** If it starts with `sk_` it is a Stripe key accidentally pasted. This has happened twice.
+5. **After any env var change in Vercel, trigger a new deployment.** Env vars are baked at build time — a running deployment will not pick up changes.
+
+---
+
+## SESSION 25 CLOSE — 2026-09-16 (Launch Day)
+
+**Status at close:** BUG-089 fully resolved. Course player playing at `/mn/courses/easyenglish/learn`.
+
+**Commits this session:**
+- `17c1139` — fix(BUG-089): harden token route fallback URL (was `${token}`, must be `${videoId}`)
+- `d42beaa` — fix(BUG-089-final): remove CF JWT signing entirely; direct embed + Supabase enrollment gate
+- `0e11fc6` — fix: correct CF Stream direct embed URL — remove erroneous /iframe suffix (PRODUCTION, confirmed working)
+
+**CF state:** `requireSignedURLs=false` on all CF videos (confirmed by video playing without JWT).
+
+**Pre-launch items still open:**
+1. Domain cutover: `mommyoffice.com` → Vercel (A @ 76.76.21.21, CNAME www → cname.vercel-dns.com)
+2. `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` in Vercel env vars
+3. Supabase Auth: add `mommyoffice.com` to allowed redirect URLs
+4. Cloudflare Stream: add `mommyoffice.com` to allowed origins
+5. Brevo SPF/DKIM for `noreply@mommyoffice.com`
+6. Fix missing "Хичээл 2" in Module 1
+7. Add instructor records at `/mn/admin/instructors`
+8. Delete `disable-signed-urls.ps1`, `generate-cf-key.ps1`, `verify-cf-body.ps1` before public launch
