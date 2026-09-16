@@ -62,6 +62,8 @@ export default function AdminAdsPage() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const imagePickerRef = useRef<HTMLInputElement>(null);
+  const videoPickerRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     listAds().then((data) => { setAds(data as Ad[]); setLoading(false); });
@@ -97,6 +99,8 @@ export default function AdminAdsPage() {
   async function handleMediaUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Reset so the same file can be re-selected on the next click
+    e.target.value = '';
     setUploadingMedia(true);
     const fd = new FormData();
     fd.append('file', file);
@@ -220,7 +224,10 @@ export default function AdminAdsPage() {
                   <span style={{ fontSize: '11px', color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>✓ Байршуулагдлаа</span>
                 )}
               </div>
+              {/* Hidden file inputs — general, image-only, video-only */}
               <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleMediaUpload} style={{ display: 'none' }} />
+              <input ref={imagePickerRef} type="file" accept="image/*" onChange={handleMediaUpload} style={{ display: 'none' }} />
+              <input ref={videoPickerRef} type="file" accept="video/*" onChange={handleMediaUpload} style={{ display: 'none' }} />
               {/* Or paste URL */}
               <input
                 value={form.media_url}
@@ -230,23 +237,44 @@ export default function AdminAdsPage() {
               />
               {/* Preview */}
               {form.media_url && (
-                <div style={{ marginTop: '10px', borderRadius: '8px', overflow: 'hidden', maxHeight: '120px' }}>
-                  {form.media_type === 'video'
-                    ? <video src={form.media_url} muted style={{ width: '100%', maxHeight: '120px', objectFit: 'cover' }} />
+                <div style={{ marginTop: '10px', borderRadius: '8px', overflow: 'hidden', height: '120px', background: '#0f0f0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {form.media_type === 'video' ? (
+                    <video
+                      key={form.media_url}
+                      src={form.media_url}
+                      muted
+                      controls
+                      playsInline
+                      style={{ width: '100%', height: '120px', objectFit: 'contain', display: 'block' }}
+                    />
+                  ) : (
                     // eslint-disable-next-line @next/next/no-img-element
-                    : <img src={form.media_url} alt="" style={{ width: '100%', maxHeight: '120px', objectFit: 'cover' }} />
-                  }
+                    <img
+                      key={form.media_url}
+                      src={form.media_url}
+                      alt="Preview"
+                      style={{ maxWidth: '100%', maxHeight: '120px', objectFit: 'contain', display: 'block' }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Media type toggle */}
+            {/* Media type toggle — clicking also opens the matching file picker */}
             <div style={{ marginBottom: '14px', display: 'flex', gap: '10px' }}>
-              {(['image', 'video'] as const).map((t) => (
-                <button key={t} onClick={() => set('media_type', t)} style={{ padding: '7px 16px', borderRadius: '8px', border: '1px solid', fontSize: '12px', fontWeight: 700, cursor: 'pointer', background: form.media_type === t ? '#00B5AD' : 'transparent', borderColor: form.media_type === t ? '#00B5AD' : '#333', color: form.media_type === t ? '#fff' : '#6b7280' }}>
-                  {t === 'image' ? '🖼 Зураг' : '🎬 Видео'}
-                </button>
-              ))}
+              <button
+                onClick={() => { set('media_type', 'image'); imagePickerRef.current?.click(); }}
+                style={{ padding: '7px 16px', borderRadius: '8px', border: '1px solid', fontSize: '12px', fontWeight: 700, cursor: 'pointer', background: form.media_type === 'image' ? '#00B5AD' : 'transparent', borderColor: form.media_type === 'image' ? '#00B5AD' : '#333', color: form.media_type === 'image' ? '#fff' : '#6b7280' }}
+              >
+                🖼 Зураг
+              </button>
+              <button
+                onClick={() => { set('media_type', 'video'); videoPickerRef.current?.click(); }}
+                style={{ padding: '7px 16px', borderRadius: '8px', border: '1px solid', fontSize: '12px', fontWeight: 700, cursor: 'pointer', background: form.media_type === 'video' ? '#00B5AD' : 'transparent', borderColor: form.media_type === 'video' ? '#00B5AD' : '#333', color: form.media_type === 'video' ? '#fff' : '#6b7280' }}
+              >
+                🎬 Видео
+              </button>
             </div>
 
             {/* Schedule */}
