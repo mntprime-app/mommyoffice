@@ -11,6 +11,22 @@
 
 ## Session Log
 
+### Session 25 — 2026-09-16 — BUG-089 Regression Fix + Launch Preparation
+
+**Commits:** `17c1139`, `d42beaa`, `0e11fc6`, `4c67d6a`
+
+**BUG-089 regression (resumed from Session 24 compaction):** Course player showed "This content is blocked" on `/mn/courses/easyenglish/learn`. Three issues were stacking: (1) fallback URL used `${token}` instead of `${videoId}` in token route, (2) Vercel `CF_STREAM_KEY_SECRET` had `sk_live_a12…` (Stripe key accidentally pasted) instead of `eyJ…` JWK, (3) root cause — `crypto.subtle.sign()` never throws on a wrong key, producing a valid-looking JWT that CF rejects silently. After two separate incidents confirming this pattern, CF JWT signing removed from production path entirely (`d42beaa`). Fourth issue: new direct embed URL had erroneous `/iframe` suffix — correct unsigned format is `iframe.cloudflarestream.com/{videoId}` with NO suffix (`0e11fc6`).
+
+**Security model (without CF JWTs):** Supabase enrollment gate enforces 401/403; video IDs never exposed in student-facing responses; `requireSignedURLs=false` confirmed on all 12 CF videos via `disable-signed-urls.ps1`. Post-launch SOP in registry to restore signed tokens once key management is stable.
+
+**Registry hardened:** Permanent CF Stream URL format rules and 5 token-route invariants added. BUG-089 Final Resolution entry corrected (stale `/iframe` suffix removed). Session 25 close entry added.
+
+**Video confirmed playing** at `mommyoffice-smoky.vercel.app/mn/courses/easyenglish/learn` — 0:07/1:12 timestamp visible in browser screenshot.
+
+**Pending for launch session:** Domain cutover (mommyoffice.com → Vercel DNS), `NEXT_PUBLIC_SITE_URL` env var, Supabase Auth allowed redirect URLs, CF Stream allowed origins for mommyoffice.com (CRITICAL), Brevo SPF/DKIM, missing Хичээл 2 fix, instructor records, delete .ps1 scripts, mobile audit (KNOWN-003), Vercel Pro + Supabase Pro.
+
+---
+
 ### Session 23 — 2026-09-13 — Footer Redesign, Content Pages, BUG-083/084/085, Facebook Cover Prompts
 
 **Commits:** `ae1524b`, `e10fb8e`, `20b4f2d`, `b9e6d7c`, `7a79917`, `3bc07ff`, `602af8d`
