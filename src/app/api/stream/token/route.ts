@@ -95,7 +95,9 @@ export async function GET(req: NextRequest) {
 
   // Enrollment confirmed. Return direct CF Stream embed URL.
   // requireSignedURLs must be false on CF videos — run disable-signed-urls.ps1.
-  const iframeUrl = `https://iframe.cloudflarestream.com/${videoId}/iframe`;
+  // Unsigned direct embed. CF format: iframe.cloudflarestream.com/{videoId} — NO /iframe suffix.
+  // (/iframe is only for signed customer-subdomain URLs: customer-{sub}.cloudflarestream.com/{JWT}/iframe)
+  const iframeUrl = `https://iframe.cloudflarestream.com/${videoId}`;
 
   return NextResponse.json({ iframeUrl }, {
     // no-store: always re-validate enrollment on each lesson access — never serve
