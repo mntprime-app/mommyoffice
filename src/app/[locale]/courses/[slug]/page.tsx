@@ -7,6 +7,8 @@ import { CourseOutline } from '@/components/ui/CourseOutline';
 import { HeroMedia } from '@/components/ui/HeroMedia';
 import { AddToCartButton } from '@/components/ui/AddToCartButton';
 import { InstructorBio } from '@/components/ui/InstructorBio';
+import { cookies } from 'next/headers';
+import { CourseReviewForm } from '@/components/ui/CourseReviewForm';
 
 async function getCourse(slug: string) {
   try {
@@ -59,6 +61,23 @@ async function getReviews(courseId: string) {
       .limit(10);
     return data || [];
   } catch { return []; }
+}
+
+async function checkEnrollment(courseId: string, userEmail: string | null): Promise<boolean> {
+  if (!userEmail) return false;
+  try {
+    const supabase = await createAdminClient();
+    const now = new Date().toISOString();
+    const { data } = await supabase
+      .from('mo_access_tokens')
+      .select('id')
+      .eq('email', userEmail)
+      .eq('course_id', courseId)
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .limit(1)
+      .maybeSingle();
+    return !!data;
+  } catch { return false; }
 }
 
 export async function generateMetadata({
@@ -140,9 +159,14 @@ export default async function CourseDetailPage({
   const course = await getCourse(slug);
   if (!course) notFound();
 
-  const [reviews, similarCourses] = await Promise.all([
+  // Enrollment check — read HTTP-only cookie (same approach as /api/stream/token)
+  const cookieStore = await cookies();
+  const userEmail = cookieStore.get('mo_user_email')?.value ?? null;
+
+  const [reviews, similarCourses, isEnrolled] = await Promise.all([
     getReviews(course.id),
     getSimilarCourses(String(course.category || ''), course.id),
+    checkEnrollment(course.id, userEmail),
   ]);
 
   const title       = locale === 'mn' ? course.title_mn : (course.title_en || course.title_mn);
@@ -506,8 +530,8 @@ export default async function CourseDetailPage({
       <div style={{ borderTop: '1px solid #1a1a1a' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 4% 3rem' }}>
 
-          {/* Reviews */}
-          {(rating > 0 || reviews.length > 0) && (
+          {/* Reviews — visible when there are existing reviews OR the current user is enrolled */}
+          {(rating > 0 || reviews.length > 0 || isEnrolled) && (
             <SectionCard title="Үнэлгээ & Сэтгэгдэл">
               {rating > 0 && (
                 <div style={{ marginBottom: '1.5rem' }}>
@@ -539,6 +563,8 @@ export default async function CourseDetailPage({
               ) : (
                 <p style={{ color: '#555', fontSize: '14px', margin: 0 }}>Сэтгэгдэл байхгүй байна.</p>
               )}
+              {/* Review submission form — only rendered for enrolled students */}
+              <CourseReviewForm slug={slug} isEnrolled={isEnrolled} />
             </SectionCard>
           )}
 
