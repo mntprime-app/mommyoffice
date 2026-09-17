@@ -607,3 +607,33 @@ export async function revokeAccessGrant(tokenId: string) {
     .eq('id', tokenId);
   return { error: error?.message || null };
 }
+
+// ─── ORDER MANAGEMENT ─────────────────────────────────────────────────────────
+
+/**
+ * Hard-delete an order from mo_orders.
+ * DOES NOT revoke mo_access_tokens — use revokeAccessGrant() for enrollment revocation.
+ */
+export async function deleteOrder(orderId: string): Promise<{ error: string | null }> {
+  await assertAdmin();
+  const supabase = await createAdminClient();
+  const { error } = await supabase.from('mo_orders').delete().eq('id', orderId);
+  return { error: error?.message || null };
+}
+
+/**
+ * Update order status (e.g. 'pending' → 'paid' for manual reconciliation).
+ * DOES NOT grant mo_access_tokens — use grantCourseAccess() for enrollment.
+ */
+export async function updateOrderStatus(
+  orderId: string,
+  status: 'paid' | 'pending' | 'refunded',
+): Promise<{ error: string | null }> {
+  await assertAdmin();
+  const supabase = await createAdminClient();
+  const { error } = await supabase
+    .from('mo_orders')
+    .update({ status })
+    .eq('id', orderId);
+  return { error: error?.message || null };
+}
