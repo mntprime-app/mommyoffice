@@ -139,17 +139,17 @@ export default function Navbar() {
 
   const pathname = usePathname();
 
-  // Netflix pattern — hide navbar entirely on course player pages
-  if (pathname?.includes('/learn')) return null;
-
-  // Auto-close mobile menu on any route change
+  // Auto-close mobile menu on any route change (must be before early return — Rules of Hooks)
   useEffect(() => { setOpen(false); }, [pathname]);
 
-  // Lock body scroll while mobile menu is open
+  // Lock body scroll while mobile menu is open (must be before early return)
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [open]);
+
+  // Netflix pattern — hide navbar entirely on course player pages (after all hooks)
+  if (pathname?.includes('/learn')) return null;
   const otherLocale = locale === 'mn' ? 'en' : 'mn';
   const lp = (path: string) => `/${locale}${path}`;
 
