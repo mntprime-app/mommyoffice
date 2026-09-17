@@ -68,6 +68,7 @@ export function CoursePlayer({
   const [activeLessonIdx, setActiveLessonIdx] = useState(0);
   const [streamSrc, setStreamSrc] = useState<string | null>(null);
   const [streamLoading, setStreamLoading] = useState(false);
+  const [curriculumOpen, setCurriculumOpen] = useState(false);
 
   // Derive active lesson + video IDs early so hooks can reference them
   const activeLesson = allLessons[activeLessonIdx];
@@ -146,20 +147,36 @@ export function CoursePlayer({
           }}>{title}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          <div style={{ width: '120px', height: '4px', background: '#2a2a2a', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ width: `${pct}%`, height: '100%', background: '#00B5AD', transition: 'width 0.3s' }} />
+          <button
+            className="mo-curriculum-toggle"
+            onClick={() => setCurriculumOpen(o => !o)}
+            aria-label="Сургалтын агуулга"
+            style={{
+              display: 'none', alignItems: 'center', gap: '5px',
+              background: curriculumOpen ? 'rgba(0,181,173,0.15)' : 'transparent',
+              border: '1px solid #333', color: curriculumOpen ? '#00B5AD' : '#aaa',
+              borderRadius: '6px', padding: '5px 10px', cursor: 'pointer',
+              fontSize: '12px', fontWeight: 600,
+            }}
+          >
+            {curriculumOpen ? '✕' : '☰'} Агуулга
+          </button>
+          <div className="mo-progress-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '120px', height: '4px', background: '#2a2a2a', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ width: `${pct}%`, height: '100%', background: '#00B5AD', transition: 'width 0.3s' }} />
+            </div>
+            <span style={{ fontSize: '12px', color: '#888', whiteSpace: 'nowrap' }}>
+              {doneCount}/{total} ({pct}%)
+            </span>
           </div>
-          <span style={{ fontSize: '12px', color: '#888', whiteSpace: 'nowrap' }}>
-            {doneCount}/{total} ({pct}%)
-          </span>
         </div>
       </div>
 
       {/* Main layout */}
-      <div style={{ display: 'flex', height: 'calc(100vh - 52px)' }}>
+      <div className="mo-player-wrap" style={{ display: 'flex', height: 'calc(100vh - 52px)' }}>
 
         {/* Video + controls */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+        <div className="mo-player-video" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
 
           {/* Video */}
           <div style={{ position: 'relative', width: '100%', background: '#000', aspectRatio: '16 / 9' }}>
@@ -290,7 +307,7 @@ export function CoursePlayer({
         </div>
 
         {/* Curriculum sidebar */}
-        <div style={{
+        <div className={`mo-curriculum${curriculumOpen ? ' mo-curriculum--open' : ''}`} style={{
           width: '340px', flexShrink: 0,
           borderLeft: '1px solid #1f1f1f',
           background: '#111', overflowY: 'auto',
@@ -393,6 +410,43 @@ export function CoursePlayer({
           })}
         </div>
       </div>
+
+      {/* ── Responsive styles ── */}
+      <style>{`
+        @media (max-width: 768px) {
+          /* Stack: video on top, curriculum below */
+          .mo-player-wrap {
+            flex-direction: column !important;
+            height: auto !important;
+            min-height: calc(100vh - 52px);
+          }
+          /* Video column: full width, natural height */
+          .mo-player-video {
+            flex: none !important;
+            width: 100% !important;
+            overflow: visible !important;
+          }
+          /* Curriculum: hidden by default, shown when toggled */
+          .mo-curriculum {
+            display: none !important;
+            width: 100% !important;
+            border-left: none !important;
+            border-top: 1px solid #1f1f1f;
+            max-height: 60vh;
+          }
+          .mo-curriculum.mo-curriculum--open {
+            display: flex !important;
+          }
+          /* Show the ☰ Агуулга toggle button only on mobile */
+          .mo-curriculum-toggle {
+            display: flex !important;
+          }
+          /* Hide progress bar on mobile to make room */
+          .mo-progress-wrap {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

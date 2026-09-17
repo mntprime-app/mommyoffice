@@ -390,43 +390,57 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
   );
 
   // ── STEP: SUCCESS ─────────────────────────────────────────────────────────────
+  // Auto-redirect logged-in users to the magic link (sets cookie + goes to course)
+  useEffect(() => {
+    if (step === 'success' && emailLocked && accessUrl) {
+      const timer = setTimeout(() => {
+        window.location.href = accessUrl;
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [step, emailLocked, accessUrl]);
+
   return (
     <div style={{ maxWidth: '560px', margin: '5rem auto', padding: '2rem', textAlign: 'center' }}>
       <div style={{ fontSize: '4rem', marginBottom: '20px', animation: 'bounce 0.6s ease' }}>🎉</div>
       <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#e5e5e5', margin: '0 0 12px' }}>Төлбөр амжилттай!</h1>
 
       {emailLocked ? (
-        /* Scenario B — logged-in user: redirect straight to profile */
+        /* Scenario B — logged-in user: auto-redirecting to course via magic link */
         <>
           <p style={{ fontSize: '16px', color: '#888', lineHeight: 1.7, marginBottom: '28px' }}>
-            Хичээлд таны эрх нэн даруй нэмэгдлээ. Профайл хуудас руу шилжинэ үү.
+            Хичээлийн эрх нэмэгдлээ. Хичээлд шилжиж байна...
           </p>
-          <Link href={`/${locale}/user/profile`} style={{
-            display: 'inline-block', padding: '14px 36px',
-            background: '#00B5AD', color: '#fff', borderRadius: '10px',
-            fontWeight: 800, fontSize: '16px', textDecoration: 'none',
-            boxShadow: '0 4px 20px rgba(0,181,173,0.35)',
-          }}>
-            Миний профайл руу →
-          </Link>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+            <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block', fontSize: '24px', color: '#00B5AD' }}>⟳</span>
+          </div>
+          {accessUrl && (
+            <a href={accessUrl} style={{
+              display: 'inline-block', padding: '14px 36px',
+              background: '#00B5AD', color: '#fff', borderRadius: '10px',
+              fontWeight: 800, fontSize: '16px', textDecoration: 'none',
+              boxShadow: '0 4px 20px rgba(0,181,173,0.35)',
+            }}>
+              Хичээлдээ нэвтрэх →
+            </a>
+          )}
         </>
       ) : (
-        /* Scenario A — guest: OTP flow */
+        /* Scenario A — guest: magic link sent to email, one click to enter */
         <>
-          <p style={{ fontSize: '16px', color: '#888', lineHeight: 1.7, marginBottom: '28px' }}>
+          <p style={{ fontSize: '16px', color: '#888', lineHeight: 1.7, marginBottom: '24px' }}>
             <strong style={{ color: '#e5e5e5' }}>{email}</strong> хаяг руу<br />
-            нэвтрэх заавар бүхий и-мэйл илгээгдлээ.
+            хандалтын и-мэйл илгээгдлээ.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '360px', margin: '0 auto' }}>
-            <div style={{ background: 'rgba(0,181,173,0.12)', border: '1px solid rgba(0,181,173,0.4)', borderRadius: '12px', padding: '16px 20px', textAlign: 'left' }}>
-              <p style={{ margin: 0, fontSize: 14, color: '#ccc', lineHeight: 1.7 }}>
-                📬 <strong style={{ color: '#fff' }}>И-мэйлээ шалгана уу.</strong><br />
-                И-мэйл дэх товч дарж нэвтрэх кодоо аваад хичээлдээ хандаарай.
+            <div style={{ background: 'rgba(0,181,173,0.12)', border: '1px solid rgba(0,181,173,0.4)', borderRadius: '12px', padding: '18px 20px', textAlign: 'left' }}>
+              <p style={{ margin: '0 0 10px', fontSize: 14, color: '#fff', fontWeight: 700 }}>
+                📬 И-мэйлийг нээгээд нэг товш!
+              </p>
+              <p style={{ margin: 0, fontSize: 13, color: '#aaa', lineHeight: 1.7 }}>
+                И-мэйл дэх <strong style={{ color: '#00B5AD' }}>"Хичээлдээ нэвтрэх →"</strong> товчийг дарахад автоматаар нэвтэрч хичээлдээ шууд орно. Нэмэлт код шаардлагагүй.
               </p>
             </div>
-            <Link href={`/${locale}/access?email=${encodeURIComponent(email)}`} style={{ display: 'block', padding: '14px 28px', background: '#00B5AD', color: '#fff', borderRadius: '10px', fontWeight: 700, fontSize: '15px', textDecoration: 'none', textAlign: 'center' }}>
-              Нэвтрэх код авах →
-            </Link>
             <Link href={`/${locale}/my-courses`} style={{ display: 'block', padding: '12px 28px', background: 'transparent', color: '#6b7280', borderRadius: '10px', fontWeight: 500, fontSize: '13px', textDecoration: 'none', border: '1px solid #2a2a2a', textAlign: 'center' }}>
               Миний хичээлүүд →
             </Link>
@@ -436,6 +450,7 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
 
       <style>{`
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );

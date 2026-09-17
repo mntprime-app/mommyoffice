@@ -59,32 +59,22 @@ async function sendWelcomeEmail(
       </h1>
       <p style="margin:0 0 6px;text-align:center;font-size:15px;font-weight:600;color:#00B5AD;">${courseTitle}</p>
       <p style="margin:0 0 28px;text-align:center;font-size:14px;color:#9ca3af;line-height:1.6;">
-        Төлбөр амжилттай хүлээн авагдлаа. Доорх товчийг дарж нэвтрэх кодоо аваарай.
+        Төлбөр амжилттай хүлээн авагдлаа. Доорх товчийг нэг удаа дарахад шууд хичээлдээ орно.
       </p>
 
-      <!-- CTA button -->
+      <!-- CTA button — single click, no OTP required -->
       <div style="text-align:center;margin-bottom:28px;">
         <a href="${accessUrl}" style="display:inline-block;background:linear-gradient(90deg,#00B5AD,#06d6cd);color:#ffffff;padding:16px 40px;border-radius:12px;text-decoration:none;font-weight:800;font-size:16px;letter-spacing:0.2px;">
           Хичээлдээ нэвтрэх →
         </a>
       </div>
 
-      <!-- Steps -->
+      <!-- One-click info box -->
       <div style="background:rgba(0,181,173,0.06);border:1px solid rgba(0,181,173,0.18);border-radius:12px;padding:20px;margin-bottom:24px;">
-        <div style="font-size:12px;font-weight:700;color:#00B5AD;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">Хандах алхамууд</div>
-        ${[
-          'Дээрх товч дарж нэвтрэх хуудас руу орно уу',
-          `И-мэйл хаягаа оруулна уу — <strong style="color:#e5e5e5">${email}</strong>`,
-          '6 оронт кодоо аваад нэвтэрнэ үү',
-        ].map((step, i) => `
-        <div style="padding:8px 0;${i < 2 ? 'border-bottom:1px solid rgba(0,181,173,0.1);' : ''}">
-          <table cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="vertical-align:middle;padding-right:10px;">
-              <div style="width:22px;height:22px;border-radius:11px;background:#00B5AD;text-align:center;line-height:22px;font-size:11px;font-weight:700;color:#ffffff;">${i + 1}</div>
-            </td>
-            <td style="vertical-align:middle;font-size:13px;color:#d1d5db;">${step}</td>
-          </tr></table>
-        </div>`).join('')}
+        <div style="font-size:12px;font-weight:700;color:#00B5AD;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Нэг товшилтоор орно</div>
+        <p style="font-size:13px;color:#d1d5db;margin:0;line-height:1.7;">
+          Дээрх товч дарахад автоматаар нэвтэрч <strong style="color:#e5e5e5">${courseTitle}</strong> сургалтаа эхлүүлнэ. Нэмэлт код эсвэл нэвтрэх мэдээлэл шаардлагагүй.
+        </p>
       </div>
 
       <!-- Access note -->
@@ -265,7 +255,15 @@ export async function GET(req: NextRequest) {
       const email = String(order.buyer_email);
       const orderUserId = (order as Record<string, unknown>).user_id as string | null;
 
-      // ── Scenario B: logged-in user — already has mo_session ──────────────
+      // ── Build magic link — one-click post-purchase access ────────────────
+      // Uses the access_token UUID already stored in mo_orders as the auth credential.
+      // /api/auth/magic validates it, sets mo_user_email cookie, redirects to learn page.
+      const courseSlug = (course as Record<string, unknown> | null)?.slug as string | null;
+      const magicUrl = courseSlug
+        ? `${siteUrl}/api/auth/magic?t=${accessToken}&order=${orderId}&slug=${courseSlug}&locale=mn`
+        : `${siteUrl}/mn/access?email=${encodeURIComponent(email)}`;
+
+      // ── Scenario B: logged-in user ────────────────────────────────────────
       if (orderUserId) {
         await supabase.from('mo_enrollments').upsert({
           course_id: String(order.course_id),
@@ -274,28 +272,24 @@ export async function GET(req: NextRequest) {
           user_id: orderUserId,
         }, { onConflict: 'email,course_id' });
 
-        // Send confirmation email even for logged-in users
+        // Send confirmation email with magic link
         if (course) {
-          const accessUrl = `${siteUrl}/mn/access?email=${encodeURIComponent(email)}`;
-          await sendWelcomeEmail(email, String(course.title_mn), accessUrl, isLifetime, expiryDateStr);
+          await sendWelcomeEmail(email, String(course.title_mn), magicUrl, isLifetime, expiryDateStr);
         }
 
         return NextResponse.json({
           ok: true,
           paid: true,
-          accessUrl: `${siteUrl}/mn/my-courses`,
+          accessUrl: magicUrl,
         });
       }
 
-      // ── Scenario A: guest checkout — passwordless OTP flow ───────────────
-      // Access link pre-fills their email on /mn/access so they just request a code
-      const accessUrl = `${siteUrl}/mn/access?email=${encodeURIComponent(email)}`;
-
+      // ── Scenario A: guest checkout — magic link in email ─────────────────
       if (course) {
         await sendWelcomeEmail(
           email,
           String(course.title_mn),
-          accessUrl,
+          magicUrl,
           isLifetime,
           expiryDateStr
         );
@@ -304,7 +298,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         ok: true,
         paid: true,
-        accessUrl: `${siteUrl}/mn/my-courses`,
+        accessUrl: magicUrl,
       });
     }
 
