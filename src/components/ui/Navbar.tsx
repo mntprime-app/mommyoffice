@@ -138,6 +138,18 @@ export default function Navbar() {
   }, [searchOpen]);
 
   const pathname = usePathname();
+
+  // Netflix pattern — hide navbar entirely on course player pages
+  if (pathname?.includes('/learn')) return null;
+
+  // Auto-close mobile menu on any route change
+  useEffect(() => { setOpen(false); }, [pathname]);
+
+  // Lock body scroll while mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
   const otherLocale = locale === 'mn' ? 'en' : 'mn';
   const lp = (path: string) => `/${locale}${path}`;
 
@@ -397,65 +409,91 @@ export default function Navbar() {
             <IconCart count={cartCount} />
           </Link>
           <button onClick={() => setOpen(!open)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-            aria-label="Menu">
-            <div style={{ width: '22px', height: '2px', background: '#fff', margin: '5px 0' }} />
-            <div style={{ width: '22px', height: '2px', background: '#fff', margin: '5px 0' }} />
-            <div style={{ width: '22px', height: '2px', background: '#fff', margin: '5px 0' }} />
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px' }}
+            aria-label={open ? 'Хаах' : 'Цэс'}>
+            {open ? (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            ) : (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+                <line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/>
+              </svg>
+            )}
           </button>
         </div>
       </div>
 
-      {/* Mobile dropdown */}
+      {/* Mobile dropdown — fixed overlay, does NOT push content down */}
       {open && (
-        <div style={{
-          borderTop: '1px solid var(--border)', padding: '1rem 2rem',
-          display: 'flex', flexDirection: 'column', gap: '1rem',
-          background: 'rgba(20,20,20,0.98)',
-        }}>
-          {/* Mobile search */}
-          <form onSubmit={handleSearch} style={{
-            display: 'flex', alignItems: 'center',
-            background: '#1a1a1a', border: '1px solid #333', borderRadius: '6px', overflow: 'hidden',
+        <>
+          {/* Tap-outside backdrop */}
+          <div
+            onClick={() => setOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, top: '64px',
+              background: 'rgba(0,0,0,0.6)',
+              zIndex: 90,
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          />
+          {/* Menu panel */}
+          <div style={{
+            position: 'fixed', top: '64px', left: 0, right: 0,
+            borderTop: '1px solid var(--border)',
+            padding: '1.25rem 1.5rem',
+            display: 'flex', flexDirection: 'column', gap: '1rem',
+            background: '#141414',
+            zIndex: 91,
+            maxHeight: 'calc(100vh - 64px)',
+            overflowY: 'auto',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
           }}>
-            <span style={{ padding: '8px 10px', color: '#666' }}><IconSearch /></span>
-            <input
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Хайх..."
-              style={{ background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '14px', flex: 1, padding: '8px 4px' }}
-            />
-          </form>
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} onClick={() => setOpen(false)}
-              style={{ color: link.soon ? '#6b7280' : '#e5e5e5', textDecoration: 'none', fontWeight: 500, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {link.label}
-              {link.soon && (
-                <span style={{ fontSize: '9px', fontWeight: 700, background: 'rgba(0,181,173,0.15)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.3)', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase' as const }}>Удахгүй</span>
-              )}
+            {/* Mobile search */}
+            <form onSubmit={handleSearch} style={{
+              display: 'flex', alignItems: 'center',
+              background: '#1a1a1a', border: '1px solid #333', borderRadius: '6px', overflow: 'hidden',
+            }}>
+              <span style={{ padding: '8px 10px', color: '#666' }}><IconSearch /></span>
+              <input
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Хайх..."
+                style={{ background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '14px', flex: 1, padding: '8px 4px' }}
+              />
+            </form>
+            {navLinks.map((link) => (
+              <Link key={link.href} href={link.href} onClick={() => setOpen(false)}
+                style={{ color: link.soon ? '#6b7280' : '#e5e5e5', textDecoration: 'none', fontWeight: 500, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {link.label}
+                {link.soon && (
+                  <span style={{ fontSize: '9px', fontWeight: 700, background: 'rgba(0,181,173,0.15)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.3)', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase' as const }}>Удахгүй</span>
+                )}
+              </Link>
+            ))}
+            <Link href={`/${otherLocale}`} style={{ color: '#aaa', textDecoration: 'none', fontSize: '14px' }}>
+              {otherLocale === 'mn' ? 'МН' : 'EN'}
             </Link>
-          ))}
-          <Link href={`/${otherLocale}`} style={{ color: '#aaa', textDecoration: 'none', fontSize: '14px' }}>
-            {otherLocale === 'mn' ? 'МН' : 'EN'}
-          </Link>
-          {userEmail ? (
-            <>
-              <Link href={lp('/my-courses')} onClick={() => setOpen(false)} style={{
-                color: '#00B5AD', textDecoration: 'none', fontWeight: 600, fontSize: '15px',
-              }}>🎓 Миний сургалтууд</Link>
-              <button onClick={handleLogout} style={{
-                background: 'none', border: 'none', color: '#9ca3af',
-                fontWeight: 500, fontSize: '14px', cursor: 'pointer', padding: 0, textAlign: 'left',
-              }}>↩ Гарах</button>
-            </>
-          ) : (
-            <Link href={lp('/access')} style={{
-              background: 'var(--teal)', color: '#fff',
-              padding: '10px 18px', borderRadius: '8px', fontWeight: 700,
-              textDecoration: 'none', textAlign: 'center',
-            }}>Нэвтрэх</Link>
-          )}
-        </div>
+            {userEmail ? (
+              <>
+                <Link href={lp('/my-courses')} onClick={() => setOpen(false)} style={{
+                  color: '#00B5AD', textDecoration: 'none', fontWeight: 600, fontSize: '15px',
+                }}>🎓 Миний сургалтууд</Link>
+                <button onClick={handleLogout} style={{
+                  background: 'none', border: 'none', color: '#9ca3af',
+                  fontWeight: 500, fontSize: '14px', cursor: 'pointer', padding: 0, textAlign: 'left',
+                }}>↩ Гарах</button>
+              </>
+            ) : (
+              <Link href={lp('/access')} style={{
+                background: 'var(--teal)', color: '#fff',
+                padding: '10px 18px', borderRadius: '8px', fontWeight: 700,
+                textDecoration: 'none', textAlign: 'center',
+              }}>Нэвтрэх</Link>
+            )}
+          </div>
+        </>
       )}
 
       <style>{`

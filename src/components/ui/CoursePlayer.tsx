@@ -413,20 +413,18 @@ export function CoursePlayer({
 
       {/* ── Responsive styles ── */}
       <style>{`
-        @media (max-width: 768px) {
-          /* Stack: video on top, curriculum below */
+        /* ─── Portrait mobile ─── */
+        @media (max-width: 768px) and (orientation: portrait) {
           .mo-player-wrap {
             flex-direction: column !important;
             height: auto !important;
             min-height: calc(100vh - 52px);
           }
-          /* Video column: full width, natural height */
           .mo-player-video {
             flex: none !important;
             width: 100% !important;
             overflow: visible !important;
           }
-          /* Curriculum: hidden by default, shown when toggled */
           .mo-curriculum {
             display: none !important;
             width: 100% !important;
@@ -437,11 +435,52 @@ export function CoursePlayer({
           .mo-curriculum.mo-curriculum--open {
             display: flex !important;
           }
-          /* Show the ☰ Агуулга toggle button only on mobile */
           .mo-curriculum-toggle {
             display: flex !important;
           }
-          /* Hide progress bar on mobile to make room */
+          .mo-progress-wrap {
+            display: none !important;
+          }
+        }
+
+        /* ─── Landscape mobile — Netflix fullscreen style ─── */
+        @media (max-width: 926px) and (orientation: landscape) {
+          /* Outer page: no scroll, black background */
+          body { overflow: hidden !important; }
+
+          /* Stack: video fills viewport, episodes list below (scroll) */
+          .mo-player-wrap {
+            flex-direction: column !important;
+            height: auto !important;
+            overflow-y: auto !important;
+          }
+
+          /* Video fills full landscape viewport (16:9 ≈ viewport height on most phones) */
+          .mo-player-video {
+            flex: none !important;
+            width: 100% !important;
+            overflow: visible !important;
+          }
+          /* Make video aspect-ratio fill the full viewport in landscape */
+          .mo-player-video > div:first-child {
+            aspect-ratio: unset !important;
+            height: calc(100vw * 9 / 16) !important;
+            max-height: calc(100vh - 52px) !important;
+          }
+
+          /* Curriculum: shown as full-width list below video (scrollable) */
+          .mo-curriculum {
+            display: flex !important;
+            width: 100% !important;
+            border-left: none !important;
+            border-top: 1px solid #1f1f1f;
+            max-height: none !important;
+          }
+
+          /* Show toggle and hide progress on landscape too */
+          .mo-curriculum-toggle {
+            display: flex !important;
+          }
           .mo-progress-wrap {
             display: none !important;
           }
