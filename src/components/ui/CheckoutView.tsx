@@ -49,12 +49,12 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
   const [accessUrl, setAccessUrl] = useState('');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Scenario B: detect active session → pre-fill + lock email
+  // Scenario B: detect active session → record login state for success-screen branching
+  // Email field is intentionally NOT pre-filled — always blank so any buyer can type their own
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user?.email) {
-        setEmail(data.session.user.email);
+      if (data.session?.user) {
         setEmailLocked(true);
         setUserId(data.session.user.id);
         // Pre-fill name from user_metadata if available
@@ -200,11 +200,11 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#aaa' }}>И-мэйл хаяг <span style={{ color: '#ef4444' }}>*</span></span>
                 <input
                   type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="example@gmail.com" required
+                  placeholder="example@gmail.com" required autoComplete="email"
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #2a2a2a', background: '#111', color: '#e5e5e5', fontSize: '15px', outline: 'none', cursor: 'text' }}
                 />
                 <span style={{ fontSize: '11px', color: '#555' }}>
-                  {emailLocked ? '✏️ Нэвтэрсэн хаягаар дүүргэгдлээ — өөрчлөх боломжтой' : 'Хандалтын холбоосыг энэ хаяг руу илгээнэ'}
+                  Хандалтын холбоосыг энэ хаяг руу илгээнэ
                 </span>
               </label>
 
