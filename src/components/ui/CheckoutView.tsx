@@ -199,12 +199,12 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#aaa' }}>И-мэйл хаяг <span style={{ color: '#ef4444' }}>*</span></span>
                 <input
-                  type="email" value={email} onChange={e => !emailLocked && setEmail(e.target.value)}
-                  placeholder="example@gmail.com" required readOnly={emailLocked}
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: emailLocked ? '1px solid #1a3a39' : '1px solid #2a2a2a', background: emailLocked ? '#0a1f1f' : '#111', color: emailLocked ? '#4dd0c8' : '#e5e5e5', fontSize: '15px', outline: 'none', cursor: emailLocked ? 'default' : 'text' }}
+                  type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="example@gmail.com" required
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #2a2a2a', background: '#111', color: '#e5e5e5', fontSize: '15px', outline: 'none', cursor: 'text' }}
                 />
                 <span style={{ fontSize: '11px', color: '#555' }}>
-                  {emailLocked ? '🔒 Нэвтэрсэн хаягаар автоматаар дүүргэгдлээ' : 'Хандалтын холбоосыг энэ хаяг руу илгээнэ'}
+                  {emailLocked ? '✏️ Нэвтэрсэн хаягаар дүүргэгдлээ — өөрчлөх боломжтой' : 'Хандалтын холбоосыг энэ хаяг руу илгээнэ'}
                 </span>
               </label>
 
