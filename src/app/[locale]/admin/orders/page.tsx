@@ -15,11 +15,12 @@ export default async function AdminOrdersPage({ params }: { params: Promise<{ lo
   if (!user) redirect(`/${locale}/admin/login`);
 
   const adminClient = await createAdminClient();
-  const { data: orders } = await adminClient
+  const { data: orders, error: ordersError } = await adminClient
     .from('mo_orders')
-    .select('id, buyer_email, course_id, amount, status, qpay_invoice_id, created_at, product_type')
+    .select('id, buyer_email, course_id, amount, status, qpay_invoice_id, created_at')
     .order('created_at', { ascending: false })
     .limit(200);
+  if (ordersError) console.error('[admin/orders] query error:', ordersError.message);
 
   const courseIds = [...new Set((orders || []).map((o) => o.course_id).filter(Boolean))];
   const { data: courses } = courseIds.length > 0
@@ -85,7 +86,7 @@ export default async function AdminOrdersPage({ params }: { params: Promise<{ lo
                 const course = courseMap[order.course_id];
                 const paid = order.status === 'paid';
                 const date = new Date(order.created_at);
-                const ptype = PRODUCT_TYPES[order.product_type || 'course'] || PRODUCT_TYPES.course;
+                const ptype = PRODUCT_TYPES.course;
                 return (
                   <tr key={order.id} style={{ borderBottom: i < (orders?.length || 1) - 1 ? '1px solid #2a2a2a' : 'none' }}>
                     <td style={{ padding: '12px 14px', color: '#6b7280', whiteSpace: 'nowrap' }}>
