@@ -481,5 +481,34 @@ Read `PROJECT_LOG.md`, `registry.md`, and `docs/sessions/SESSION_NOTES_2026_09_1
 
 ---
 
-*Last updated: 2026-09-15 — Session 24*
+### Session 35 — 2026-09-18 — Mobile Nav Overlay + Netflix Player + Email Logos + Security
+
+**Commits pushed:**
+- `307a519` — fix: mobile nav fixed overlay + Netflix-style CoursePlayer (portrait + landscape)
+- `42d4aff` — fix: React hooks violation — move useEffects before early return in Navbar
+- `e74f93c` — brand: replace text logos with whitelogo.png in all email templates + year → 2026
+- `54b2586` — security: add cf-key.txt and credential dump patterns to .gitignore
+
+**Production HEAD:** `54b2586`
+
+**Features shipped:**
+
+| Fix | Detail |
+|-----|--------|
+| Navbar `/learn` hidden | `if (pathname?.includes('/learn')) return null` — no top nav on course player pages |
+| Hamburger SVG toggle | ☰ → ✕ SVG icons (replaced 3-div bars); body scroll locked when open |
+| Mobile dropdown → fixed overlay | `position: fixed` with dark backdrop; tap-outside closes; auto-close on route change |
+| CoursePlayer portrait | video top, ☰ Агуулга toggle shows episodes below |
+| CoursePlayer landscape | `@media (orientation: landscape)` — video fills viewport (16:9), episodes list scrolls below; Netflix pattern |
+| Email logos (3 files) | `send-code`, `qpay/check`, `purchase` routes: text logo → `<img src="whitelogo.png">` |
+| Copyright year | `© 2024` → `© 2026` in all email templates |
+| Security: cf-key.txt | Found CF Stream signing key dump untracked; blocked via `.gitignore`; deleted from disk |
+
+**React Rules of Hooks fix (commit `42d4aff`):** Early return `if (pathname?.includes('/learn')) return null` was placed between two `useEffect` hooks. React requires all hooks called before any early return. Fixed by moving both useEffects above the early return.
+
+**Security note:** `cf-key.txt` contained live CF Stream signing credentials. Keys were already unused (CF JWT signing removed in BUG-089). Blocked via `.gitignore` pattern `cf-key.txt` + `*-key.txt` + `*-secret.txt` + `*-credentials.txt`.
+
+---
+
+*Last updated: 2026-09-18 — Session 35*
 *Project code: MO | Differentiated from: M10, MNT Prime*
