@@ -170,10 +170,13 @@ function AccessIndexInner() {
 
       {/* Logo */}
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <div style={{ fontSize: '2rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.5px' }}>
-          Mommy<span style={{ color: '#00B5AD' }}>Office</span>
-        </div>
-        <p style={{ color: '#6b7280', fontSize: '14px', margin: '6px 0 0' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/whitelogo.png"
+          alt="MommyOffice"
+          style={{ height: '48px', width: 'auto', maxWidth: '220px', display: 'block', margin: '0 auto' }}
+        />
+        <p style={{ color: '#6b7280', fontSize: '14px', margin: '10px 0 0' }}>
           Таны хувийн сургалтын орчин
         </p>
       </div>
