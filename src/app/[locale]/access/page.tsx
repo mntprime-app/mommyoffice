@@ -172,7 +172,7 @@ function AccessIndexInner() {
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/whitelogo.png"
+          src="/logo.png"
           alt="MommyOffice"
           style={{ height: '48px', width: 'auto', maxWidth: '220px', display: 'block', margin: '0 auto' }}
         />
