@@ -39,7 +39,7 @@ async function sendWelcomeEmail(
 
   <!-- Logo -->
   <tr><td align="center" style="padding-bottom:32px;">
-    <img src="https://mommyoffice.com/whitelogo.png"
+    <img src="https://mommyoffice.com/logo.png"
          alt="MommyOffice"
          height="44"
          style="display:block;margin:0 auto;height:44px;width:auto;max-width:220px;border:0;"

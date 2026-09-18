@@ -68,8 +68,8 @@ export async function POST(req: NextRequest) {
         subject: `🎉 ${course.title_mn} — Нэвтрэх холбоос`,
         htmlContent: `
           <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px">
-            <div style="background:#00B5AD;padding:20px 20px 16px;border-radius:12px 12px 0 0;text-align:center">
-              <img src="https://mommyoffice.com/whitelogo.png"
+            <div style="background:#0d0d0d;padding:20px 20px 16px;border-radius:12px 12px 0 0;text-align:center">
+              <img src="https://mommyoffice.com/logo.png"
                    alt="MommyOffice"
                    height="40"
                    style="display:block;margin:0 auto;height:40px;width:auto;max-width:200px;border:0;"
