@@ -510,5 +510,31 @@ Read `PROJECT_LOG.md`, `registry.md`, and `docs/sessions/SESSION_NOTES_2026_09_1
 
 ---
 
-*Last updated: 2026-09-18 — Session 35*
+---
+
+### Session 36 — 2026-09-18 — Brand Logo Rollout + Image Compression
+
+**Commits pushed:**
+- `d2c5c6a` — fix: replace text logo with logo image on access page (initial white → colored)
+- `94624b7` — fix: use colored logo.png on access page (not white logo)
+- `afa3fa5` — fix: use colored logo.png in all email templates + purchase header bg → dark
+- `f8e11e0` — perf: compress logo.png 24KB→8.7KB, whitelogo.png 20KB→6.7KB
+- `4cd82c2` — perf: compress squarelogo.png 18KB→11KB
+
+**Production HEAD:** `4cd82c2`
+
+**Work done:**
+
+| Change | Detail |
+|--------|--------|
+| `/mn/access` page logo | Text "MommyOffice" → colored `logo.png` image |
+| Email templates (3 routes) | `whitelogo.png` → colored `logo.png`; purchase header bg `#00B5AD` → `#0d0d0d` |
+| `logo.png` compression | 1080×284 → 440×116px, 24KB → 8.7KB (−64%) |
+| `whitelogo.png` compression | 1080×284 → 440×116px, 20KB → 6.7KB (−67%) |
+| `squarelogo.png` compression | 1000×1000 → 400×400px, 18KB → 11KB (−39%) |
+| `og-image.png` | Already optimal at 39KB for 1200×630 — left untouched |
+
+---
+
+*Last updated: 2026-09-18 — Session 36*
 *Project code: MO | Differentiated from: M10, MNT Prime*
