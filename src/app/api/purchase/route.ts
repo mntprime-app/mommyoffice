@@ -63,13 +63,17 @@ export async function POST(req: NextRequest) {
         'api-key': process.env.BREVO_API_KEY!,
       },
       body: JSON.stringify({
-        sender: { name: process.env.FROM_NAME || 'Mommyoffice', email: process.env.FROM_EMAIL || 'hello@mommyoffice.com' },
+        sender: { name: process.env.FROM_NAME || 'MommyOffice', email: process.env.FROM_EMAIL || 'hello@mommyoffice.com' },
         to: [{ email }],
         subject: `🎉 ${course.title_mn} — Нэвтрэх холбоос`,
         htmlContent: `
           <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px">
-            <div style="background:#00B5AD;padding:20px;border-radius:12px 12px 0 0;text-align:center">
-              <h1 style="color:#fff;margin:0;font-size:22px">Mommyoffice</h1>
+            <div style="background:#00B5AD;padding:20px 20px 16px;border-radius:12px 12px 0 0;text-align:center">
+              <img src="https://mommyoffice.com/whitelogo.png"
+                   alt="MommyOffice"
+                   height="40"
+                   style="display:block;margin:0 auto;height:40px;width:auto;max-width:200px;border:0;"
+                   border="0" />
             </div>
             <div style="background:#fff;padding:28px;border:1px solid #e5e7eb;border-radius:0 0 12px 12px">
               <h2 style="color:#1a1a2e;margin-top:0">${course.title_mn} хичээлд тавтай морил! 🎉</h2>

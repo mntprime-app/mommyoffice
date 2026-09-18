@@ -39,8 +39,12 @@ async function sendWelcomeEmail(
 
   <!-- Logo -->
   <tr><td align="center" style="padding-bottom:32px;">
-    <div style="font-size:28px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">Mommy<span style="color:#00B5AD;">Office</span></div>
-    <div style="font-size:13px;color:#6b7280;margin-top:6px;">Таны хувийн сургалтын орчин</div>
+    <img src="https://mommyoffice.com/whitelogo.png"
+         alt="MommyOffice"
+         height="44"
+         style="display:block;margin:0 auto;height:44px;width:auto;max-width:220px;border:0;"
+         border="0" />
+    <div style="font-size:13px;color:#6b7280;margin-top:10px;">Таны хувийн сургалтын орчин</div>
   </td></tr>
 
   <!-- Main card -->
@@ -93,7 +97,7 @@ async function sendWelcomeEmail(
   <!-- Footer -->
   <tr><td align="center" style="padding-top:28px;">
     <p style="font-size:12px;color:#374151;margin:0;line-height:1.8;">
-      © 2024 MommyOffice &nbsp;·&nbsp;
+      © 2026 MommyOffice &nbsp;·&nbsp;
       <a href="mailto:info.mommyoffice@gmail.com" style="color:#00B5AD;text-decoration:none;">info.mommyoffice@gmail.com</a>
     </p>
   </td></tr>
