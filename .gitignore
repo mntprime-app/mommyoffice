@@ -36,3 +36,10 @@ UPGRADE_PLAN.md
 
 # Windows reserved device name — cannot be deleted; exclude from git index
 /nul
+
+# Credential dump files — NEVER commit
+cf-key.txt
+*.key.txt
+*-key.txt
+*-secret.txt
+*-credentials.txt
