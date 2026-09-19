@@ -154,6 +154,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
   const [userRatingMap, setUserRatingMap] = useState<Record<string, RatingType>>({});
   // Guest gate: shown when unauthed user tries to rate
   const [guestGate, setGuestGate]   = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   // Post-watch prompt: shown after video ends / 90% completion
   const [ratingPrompt, setRatingPrompt] = useState<AnyVideo | null>(null);
   const [promptDismissed, setPromptDismissed] = useState<Record<string, boolean>>({});
@@ -641,8 +642,13 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
                 const url = infoVideo.slug
                   ? `${window.location.origin}/${locale}/videos/${infoVideo.slug}`
                   : `${window.location.origin}${window.location.pathname}?v=${infoVideo.id}`;
-                navigator.clipboard?.writeText(url).catch(()=>{});
-              }} title="Холбоос хуулах" style={{ width:'42px', height:'42px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'2px solid rgba(255,255,255,0.3)', color:'#9ca3af', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>↗</button>
+                const copy = () => { setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2200); };
+                if (navigator.clipboard?.writeText) {
+                  navigator.clipboard.writeText(url).then(copy).catch(() => { try { const el = document.createElement('input'); el.value = url; el.style.position='fixed'; el.style.opacity='0'; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); copy(); } catch { /* silent */ } });
+                }
+              }} title="Холбоос хуулах" style={{ padding:'6px 14px', borderRadius:'20px', background: linkCopied ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.08)', border: `1px solid ${linkCopied ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.2)'}`, color: linkCopied ? '#10b981' : '#9ca3af', fontSize:'12px', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', gap:'4px', whiteSpace:'nowrap', transition:'all 0.2s' }}>
+                {linkCopied ? '✓ Хуулагдлаа' : '🔗 Холбоос'}
+              </button>
             </div>
 
             {/* ── DESCRIPTION ──────────────────────────────────────────────── */}

@@ -7,6 +7,7 @@ import { getSiteSettings } from '@/app/actions/admin';
 import ArticleComments from '@/components/ui/ArticleComments';
 import ArticleReactions from '@/components/ui/ArticleReactions';
 import LiveAdBanner from '@/components/ui/LiveAdBanner';
+import CopyLinkButton from '@/components/ui/CopyLinkButton';
 
 // ── Data fetchers ─────────────────────────────────────────────────────────────
 
@@ -78,10 +79,33 @@ export async function generateMetadata({
   if (!article) return { title: 'Нийтлэл | Mommyoffice' };
   const title = locale === 'mn' ? String(article.title_mn || '') : String(article.title_en || article.title_mn || '');
   const description = locale === 'mn' ? String(article.excerpt_mn || '') : String(article.excerpt_en || article.excerpt_mn || '');
+  const url = `https://mommyoffice.com/${locale}/articles/${slug}`;
+  const image = article.cover_image_url ? String(article.cover_image_url) : '/og-image.png';
   return {
-    title: `${title} | Mommyoffice`,
+    title: `${title} | MommyOffice`,
     description,
-    openGraph: { title, description, images: article.cover_image_url ? [String(article.cover_image_url)] : [] },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: 'article',
+      siteName: 'MommyOffice',
+      locale: locale === 'mn' ? 'mn_MN' : 'en_US',
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image],
+    },
+    alternates: {
+      canonical: url,
+      languages: {
+        'mn': `https://mommyoffice.com/mn/articles/${slug}`,
+        'en': `https://mommyoffice.com/en/articles/${slug}`,
+      },
+    },
   };
 }
 
@@ -315,9 +339,7 @@ export default async function ArticleDetailPage({
                 style={{ padding: '6px 12px', borderRadius: '6px', background: '#1877f2', color: '#fff', fontSize: '11px', fontWeight: 700, textDecoration: 'none' }}>
                 f Хуваалцах
               </a>
-              <a href={shareUrl} style={{ padding: '6px 12px', borderRadius: '6px', background: '#1e1e1e', border: '1px solid #333', color: '#aaa', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}>
-                🔗 Холбоос
-              </a>
+              <CopyLinkButton url={shareUrl} />
             </div>
           </div>
 
