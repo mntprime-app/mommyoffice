@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 const BASE = 'https://mommyoffice.com';
 const LOCALES = ['mn', 'en'] as const;
@@ -35,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // ── Dynamic: courses ──────────────────────────────────────────────────────────
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data: courses } = await supabase
       .from('mo_courses')
       .select('slug, updated_at')
@@ -58,7 +58,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // ── Dynamic: articles ─────────────────────────────────────────────────────────
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data: articles } = await supabase
       .from('mo_articles')
       .select('slug, updated_at')
@@ -81,7 +81,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // ── Dynamic: videos ───────────────────────────────────────────────────────────
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data: videos } = await supabase
       .from('mo_videos')
       .select('slug, updated_at')
