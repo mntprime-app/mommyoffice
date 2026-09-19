@@ -1,7 +1,7 @@
 # MO Platform — Project Log
 **Project Code:** MO (MommyOffice Platform)
 **Differentiated from:** M10, MNT Prime
-**Live URL:** https://mommyoffice-smoky.vercel.app/mn
+**Live URL:** https://mommyoffice.com/mn ✅ (domain live as of 2026-09-19)
 **Target domain:** mommyoffice.com
 **Stack:** Next.js 16.3.2 · React 19 · TypeScript · Supabase · next-intl v4 · Vercel
 **Supabase Project ID:** `madhsuvuoxrlywykktvz` (lives under mntprime org — this is correct, it IS the mommyoffice DB)
@@ -536,5 +536,57 @@ Read `PROJECT_LOG.md`, `registry.md`, and `docs/sessions/SESSION_NOTES_2026_09_1
 
 ---
 
-*Last updated: 2026-09-18 — Session 36*
+*Last updated: 2026-09-20 — Session 38*
 *Project code: MO | Differentiated from: M10, MNT Prime*
+
+---
+
+### Session 37 — 2026-09-19 — Domain Live + Launch Checklist Verification
+
+**Production HEAD:** `4cd82c2` (no new commits — verification session)
+
+**Confirmed completed since S36:**
+- ✅ Domain cutover — `mommyoffice.com` live, confirmed in browser at `mommyoffice.com/mn`
+- ✅ `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` — set in Vercel env vars (site resolves on custom domain)
+- ✅ Supabase Auth redirect URLs — `mommyoffice.com/**` added (auth functional on live domain)
+- ✅ CF Stream allowed origins — `mommyoffice.com` added (course player working)
+- ✅ PS1 scripts deleted — no `.ps1` files remain in project root
+- ✅ Fix Хичээл 2 — confirmed done by Amaraa
+
+**All pre-launch tasks complete as of 2026-09-19.** 🎉
+
+- ✅ Instructor records added
+- ✅ 5 articles populated
+
+---
+
+### Session 38 — 2026-09-19 — SEO Architecture + Analytics Launch
+
+**Commits pushed:**
+- `e37092e` — feat: GA4 + GSC infrastructure (GoogleAnalytics.tsx, layout verification tag, sitemap videos/privacy/terms)
+- `d966e6c` — feat: centralized SEO architecture — CSP GA4 fix, `src/lib/seo.ts`, Article/Organization/WebSite JSON-LD
+- `4103ccd` — fix: sitemap.ts — use `createAdminClient` to bypass RLS for dynamic course/article/video entries
+
+**Production HEAD:** `4103ccd`
+
+**Work done:**
+
+| Change | Detail |
+|--------|--------|
+| `GoogleAnalytics.tsx` (NEW) | GA4 component with `<Script strategy="afterInteractive">`. No-ops if env var absent. |
+| GSC verification | `NEXT_PUBLIC_GOOGLE_VERIFICATION` added to Vercel. Ownership verified in GSC ✅ |
+| **CRITICAL — BUG-100** | CSP `script-src` missing `www.googletagmanager.com` → GA4 silently blocked since launch. Fixed: added GTM/GA4 domains to `script-src`, `connect-src`, `img-src` in `next.config.ts`. Analytics now live. |
+| `src/lib/seo.ts` (NEW) | Centralized SEO utility — `buildMetadata()`, `jsonLdWebSite()`, `jsonLdOrganization()`, `jsonLdArticle()` |
+| Organization + WebSite JSON-LD | Added globally in `layout.tsx` — fires on every page |
+| Article JSON-LD | Added per-article via `jsonLdArticle()` — zero structured data before |
+| Course OG fix | Added `siteName`, `locale` — was missing vs article pages; fixed double-suffixed title |
+| **BUG-101 — Sitemap RLS** | `sitemap.ts` used `createClient()` (anon, RLS-subject) → courses/articles/videos silently empty. Switched all three to `createAdminClient()`. GSC resubmit → Status: Success ✅ |
+| **BUG-102 — Canonical mismatch** | Vercel had `www` as Production, non-www redirecting to www. All code/GSC/metadata uses non-www. Fixed in Vercel Domains: `mommyoffice.com` → Production; `www` → 308 → `mommyoffice.com` |
+
+**GSC sitemap:** Status: Success, 16 pages discovered, Last read: 19 Sept 2026 ✅  
+**Canonical:** `mommyoffice.com` is now the definitive primary domain across Vercel, GSC, code, and sitemap ✅
+
+**Session notes:** `docs/sessions/SESSION_NOTES_2026_09_19_S37.md`  
+*(Note: session notes file named S37 — maps to Session 38 in this log)*
+
+---
