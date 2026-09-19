@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Noto_Sans } from 'next/font/google';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 import './globals.css';
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 const notoSans = Noto_Sans({
   subsets: ['latin', 'cyrillic', 'cyrillic-ext'],
@@ -21,6 +24,9 @@ export const metadata: Metadata = {
   creator: 'MommyOffice',
   publisher: 'MommyOffice',
   robots: { index: true, follow: true },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
+  },
   openGraph: {
     type: 'website',
     siteName: 'MommyOffice',
@@ -46,7 +52,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/squarelogo.png" />
         <meta name="theme-color" content="#0d1117" />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        {GA_ID && <GoogleAnalytics measurementId={GA_ID} />}
+      </body>
     </html>
   );
 }

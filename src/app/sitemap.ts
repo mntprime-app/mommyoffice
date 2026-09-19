@@ -15,6 +15,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/videos',    freq: 'weekly',  priority: 0.7  },
     { path: '/about',     freq: 'monthly', priority: 0.5  },
     { path: '/contact',   freq: 'monthly', priority: 0.4  },
+    { path: '/privacy',   freq: 'yearly',  priority: 0.3  },
+    { path: '/terms',     freq: 'yearly',  priority: 0.3  },
   ];
 
   for (const locale of LOCALES) {
@@ -76,6 +78,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
   } catch { /* no DB yet */ }
+
+  // ── Dynamic: videos ───────────────────────────────────────────────────────────
+  try {
+    const supabase = await createClient();
+    const { data: videos } = await supabase
+      .from('mo_videos')
+      .select('slug, updated_at')
+      .not('slug', 'is', null);
+
+    for (const video of videos ?? []) {
+      if (!video.slug) continue;
+      for (const locale of LOCALES) {
+        entries.push({
+          url: `${BASE}/${locale}/videos/${video.slug}`,
+          lastModified: video.updated_at ? new Date(video.updated_at) : new Date(),
+          changeFrequency: 'monthly',
+          priority: 0.6,
+          alternates: {
+            languages: Object.fromEntries(LOCALES.map(l => [l, `${BASE}/${l}/videos/${video.slug}`])),
+          },
+        });
+      }
+    }
+  } catch { /* no videos table or no slugs */ }
 
   return entries;
 }
