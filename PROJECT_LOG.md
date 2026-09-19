@@ -589,4 +589,17 @@ Read `PROJECT_LOG.md`, `registry.md`, and `docs/sessions/SESSION_NOTES_2026_09_1
 **Session notes:** `docs/sessions/SESSION_NOTES_2026_09_19_S37.md`  
 *(Note: session notes file named S37 — maps to Session 38 in this log)*
 
+**Production HEAD at close:** `93a1a6a` (docs cleanup — Session_Log.md removed, registry.md added)
+
+**Next session priorities:**
+1. Check GA4 Realtime — confirm data flowing post-CSP fix
+2. Check GSC → Pages in 24–48h — dynamic course/article URLs should appear
+3. Rich Results test — `search.google.com/test/rich-results` on an article URL
+4. Task #35 (GLink) — Tumennast NZ family visa: rename files + session notes
+
+**Next session start command:**
+```
+Alex, resume MommyOffice
+```
+
 ---
