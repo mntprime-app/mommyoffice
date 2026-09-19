@@ -8,6 +8,7 @@ import ArticleComments from '@/components/ui/ArticleComments';
 import ArticleReactions from '@/components/ui/ArticleReactions';
 import LiveAdBanner from '@/components/ui/LiveAdBanner';
 import CopyLinkButton from '@/components/ui/CopyLinkButton';
+import { jsonLdArticle } from '@/lib/seo';
 
 // ── Data fetchers ─────────────────────────────────────────────────────────────
 
@@ -291,8 +292,22 @@ export default async function ArticleDetailPage({
   const artFontSize  = siteSettings.article_font_size  || '16';
   const artTextAlign = siteSettings.article_text_align || 'justify';
 
+  // ── JSON-LD structured data ───────────────────────────────────────────────
+  const articleSchema = jsonLdArticle({
+    title,
+    description: excerpt || title,
+    image: String(article.cover_image_url || '/og-image.png'),
+    url: shareUrl,
+    publishedAt: article.published_at ? String(article.published_at) : null,
+    authorName: String(article.author_name || 'MommyOffice'),
+  });
+
   return (
     <div style={{ background: '#111', minHeight: '100vh' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
 
       {/* ── UNIFIED 2-COLUMN GRID — everything aligned ── */}
       <div className="mo-detail-grid" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 2rem 4rem', alignItems: 'flex-start' }}>

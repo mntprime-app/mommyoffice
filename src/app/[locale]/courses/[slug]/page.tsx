@@ -98,13 +98,15 @@ export async function generateMetadata({
     title: `${title} | MommyOffice`,
     description,
     openGraph: {
-      title: `${title} | MommyOffice`,
+      title,
       description,
       url,
       type: 'website',
+      siteName: 'MommyOffice',
+      locale: locale === 'mn' ? 'mn_MN' : 'en_US',
       images: [{ url: image, width: 1200, height: 630, alt: title }],
     },
-    twitter: { card: 'summary_large_image', title: `${title} | MommyOffice`, description, images: [image] },
+    twitter: { card: 'summary_large_image', title, description, images: [image] },
     alternates: {
       canonical: url,
       languages: {

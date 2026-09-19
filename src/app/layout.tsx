@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Noto_Sans } from 'next/font/google';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import { jsonLdWebSite, jsonLdOrganization } from '@/lib/seo';
 import './globals.css';
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -51,6 +52,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/squarelogo.png" type="image/png" />
         <link rel="apple-touch-icon" href="/squarelogo.png" />
         <meta name="theme-color" content="#0d1117" />
+        {/* Global structured data — visible to crawlers on every page */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite()) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrganization()) }}
+        />
       </head>
       <body>
         {children}
