@@ -1,7 +1,7 @@
 # MommyOffice — Master Policy
 **Director of Software Development: Alex (AI)**
 **Owner: Amaraa**
-**Last updated: 2026-09-05**
+**Last updated: 2026-09-20**
 
 ---
 
@@ -20,7 +20,7 @@ Alex will automatically:
 > **`Alex, close session`**
 
 Alex will automatically:
-1. Write `SESSION_NOTES_YYYY_MM_DD.md` to `docs/sessions/` (completed work + commit hashes + pending items)
+1. Write `SESSION_NOTES_YYYY_MM_DD_S[N].md` to `docs/sessions/` (completed work + commit hashes + pending items)
 2. Update `registry.md` with any new bugs or standards from this session
 3. Update `PROJECT_LOG.md` with the session summary
 4. Provide the git commit command to run
@@ -63,12 +63,40 @@ GLink Strategic Projects/
 
 ## 1. FILE ORGANIZATION
 
+### ⚠️ PERMANENT FILE STRUCTURE RULES (Non-Negotiable — Updated 2026-09-20)
+
+#### Rule A — Root Project Log (ONE file, ONE location)
+> `PROJECT_LOG.md` at the repo root is the **only** project log. It is the single source of truth for all session history, commit chains, and work summaries.
+> - **NEVER** create `docs/Session_Log.md` or any variant (e.g. `Session_Log.md`, `dev_log.md`, `changelog.md`)
+> - **NEVER** create a second project log anywhere in the repo
+> - Every session closeout updates `PROJECT_LOG.md` — no exceptions
+
+#### Rule B — Unified Registry (ONE file, ONE location)
+> `registry.md` at the repo root is the **only** bug and standards registry.
+> - **NEVER** create standalone `Bug_Registry.md`, `bug-log.md`, or any secondary bug file
+> - All known issues, bug states, architectural states, and SEO/system component status go in `registry.md`
+> - `docs/Bug_Registry.md` was deleted 2026-09-20 — it must never be recreated
+
+#### Rule C — Session Notes (strict naming, strict location)
+> All per-session technical notes go exclusively in `docs/sessions/` with the naming format:
+> ```
+> SESSION_NOTES_YYYY_MM_DD_S[N].md
+> ```
+> Example: `SESSION_NOTES_2026_09_20_S39.md`
+> - Separator: **underscore only** (no dashes)
+> - Session number suffix `_S[N]` is **mandatory** — not optional
+> - Multiple sessions same day: increment session number only (S39, S40...), not a letter suffix
+> - **NEVER** place session notes at repo root
+> - **NEVER** place session notes in `docs/` root (only in `docs/sessions/` subdirectory)
+
+---
+
 ### Project root — allowed files only
 | File | Purpose |
 |------|---------|
 | `MASTER_POLICY.md` | This document |
-| `PROJECT_LOG.md` | Running session log (all sessions, all commits) |
-| `registry.md` | Canonical registry: bugs, layout standards, UX rules, CSS classes |
+| `PROJECT_LOG.md` | **ONLY** running session log — all sessions, all commits |
+| `registry.md` | **ONLY** registry — bugs, layout standards, UX rules, system state |
 | `UPGRADE_PLAN.md` | Planned future upgrades |
 | `AUDIT_CLEARANCE_REPORT_*.md` | Pre-launch audit reports |
 | `supabase_schema.sql` | DB schema snapshot |
@@ -79,33 +107,33 @@ GLink Strategic Projects/
 ### docs/ folder structure
 ```
 docs/
-├── sessions/           ← ALL session notes (SESSION_NOTES_YYYY_MM_DD.md)
+├── sessions/           ← ALL session notes (SESSION_NOTES_YYYY_MM_DD_S[N].md)
+├── sql/                ← SQL migration files
 ├── MommyOffice_Gemini_Video_Prompt_v2.docx
 └── for elevenlab.docx
 ```
 
-### Session note naming convention
-```
-SESSION_NOTES_YYYY_MM_DD.md          ← single session per day
-SESSION_NOTES_YYYY_MM_DD_b.md        ← second session same day (suffix: b, c...)
-```
-Separator: **underscore only** (no dashes). Example: `SESSION_NOTES_2026_09_05.md`
+**Note:** `docs/Session_Log.md` and `docs/Bug_Registry.md` were deleted 2026-09-20. They must never be recreated.
 
 ---
 
 ## 2. THE REGISTRY — One Canonical File
 
-**File:** `registry.md`
+**File:** `registry.md` (root level — not in `docs/`)
 
 This is the **single source of truth** for:
-- Bug registry (BUG-001 through BUG-NNN)
+- Bug registry (BUG-001 through BUG-NNN) — status: FIXED / OPEN / KNOWN / RESOLVED
+- System architecture state (domain, analytics, SEO components)
 - Layout & grid standards
 - Mobile UX standards
 - Admin CMS standards
 - CSS class definitions
 - Component API contracts
+- Pending / future work backlog
 
 **Rule:** Before fixing ANY bug, search `registry.md` first. If already documented, apply the known fix. After fixing a new bug, add it to `registry.md` immediately.
+
+**Prohibited:** Never create `Bug_Registry.md`, `bug-log.md`, or any secondary file. `registry.md` is the single source of truth — no exceptions.
 
 ---
 
@@ -287,12 +315,17 @@ Any regression discovered by Amaraa resets that feature's session priority to P0
 
 ## 10. DOCUMENT NAMING CONVENTION
 
-| Document type | Convention |
-|---------------|-----------|
-| Session notes | `SESSION_NOTES_YYYY_MM_DD.md` |
-| Audit reports | `AUDIT_CLEARANCE_REPORT_YYYY_MM_DD.md` |
-| Registry | `registry.md` (lowercase, always) |
-| Policy | `MASTER_POLICY.md` (uppercase) |
-| Project log | `PROJECT_LOG.md` (uppercase) |
+| Document type | Convention | Location |
+|---------------|-----------|----------|
+| Session notes | `SESSION_NOTES_YYYY_MM_DD_S[N].md` | `docs/sessions/` only |
+| Audit reports | `AUDIT_CLEARANCE_REPORT_YYYY_MM_DD.md` | repo root |
+| Registry | `registry.md` (lowercase, always) | repo root — ONE file only |
+| Policy | `MASTER_POLICY.md` (uppercase) | repo root |
+| Project log | `PROJECT_LOG.md` (uppercase) | repo root — ONE file only |
 
 Dashes in filenames: **only for Aria's documents** (per standing instruction — use commas in Aria's written content, not dashes).
+
+**Explicitly prohibited file names** (must never be created):
+- `docs/Session_Log.md` — deleted 2026-09-20, superseded by `PROJECT_LOG.md`
+- `docs/Bug_Registry.md` — deleted 2026-09-20, superseded by `registry.md`
+- Any variant: `session-log.md`, `dev_log.md`, `bug-log.md`, `changelog.md`
