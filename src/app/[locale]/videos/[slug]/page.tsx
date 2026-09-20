@@ -2,7 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import ShareButton from './ShareButton';
+import { buildMetadata } from '@/lib/seo';
+import CopyLinkButton from '@/components/ui/CopyLinkButton';
 import ViewCounter from './ViewCounter';
 import VideoComments from './VideoComments';
 import VideoReactions from './VideoReactions';
@@ -45,27 +46,18 @@ export async function generateMetadata({
 
   if (!video) return { title: 'Видео олдсонгүй | MommyOffice' };
 
-  const title = locale === 'mn' ? video.title_mn : (video.title_en || video.title_mn);
-  const description = (locale === 'mn' ? video.description_mn : (video.description_en || video.description_mn)) || '';
-  const image = getThumbHQ(video.youtube_id, video.thumbnail_url);
+  const title = String(locale === 'mn' ? video.title_mn : (video.title_en || video.title_mn) || '');
+  const description = String((locale === 'mn' ? video.description_mn : (video.description_en || video.description_mn)) || '');
+  const image = getThumbHQ(video.youtube_id, video.thumbnail_url) ?? '/og-image.png';
 
-  return {
-    title: `${title} | MommyOffice`,
+  return buildMetadata({
+    title,
     description,
-    openGraph: {
-      title: `${title} | MommyOffice`,
-      description,
-      images: image ? [{ url: image, width: 1280, height: 720 }] : [],
-      type: 'video.other',
-      siteName: 'MommyOffice',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: image ? [image] : [],
-    },
-  };
+    locale,
+    path: `/${locale}/videos/${slug}`,
+    image,
+    type: 'website',
+  });
 }
 
 export default async function VideoDetailPage({
@@ -180,8 +172,16 @@ export default async function VideoDetailPage({
       )}
 
       {/* Action row */}
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '2rem' }}>
-        <ShareButton />
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '2rem' }}>
+        <a
+          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://mommyoffice.com/${locale}/videos/${slug}`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ padding: '6px 12px', borderRadius: '6px', background: '#1877f2', color: '#fff', fontSize: '11px', fontWeight: 700, textDecoration: 'none' }}
+        >
+          f Хуваалцах
+        </a>
+        <CopyLinkButton url={`https://mommyoffice.com/${locale}/videos/${slug}`} />
         <Link
           href={`/${locale}/videos`}
           style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', fontWeight: 600 }}
