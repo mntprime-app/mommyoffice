@@ -1868,3 +1868,54 @@ cf-key.txt
 *-secret.txt
 *-credentials.txt
 ```
+
+---
+
+## BUG-103 — Video pages inherited root layout's canonical → Facebook showed homepage OG (FIXED 2026-09-20, Session 39)
+
+**Severity:** High (all video shares on Facebook showed wrong thumbnail + title)
+
+**Symptom:** Sharing any video URL (e.g. `https://mommyoffice.com/mn/videos/jane-lu-showpo-sayatan`) on Facebook showed the generic MommyOffice logo and homepage title instead of the video's custom thumbnail and title.
+
+**Root cause:** Two compounding issues:
+1. `[locale]/layout.tsx` sets `alternates: { canonical: https://mommyoffice.com/${locale} }` — all child pages inherit this unless they override it.
+2. The old video page `generateMetadata()` was hand-rolled and did NOT set `alternates.canonical`. So every video page inherited the layout's canonical pointing to the homepage (`/mn`).
+3. Facebook follows the canonical tag as authoritative — it fetched the homepage's OG data (logo + homepage title) instead of the video page's OG data.
+
+**Fix (commit `609e841`):**
+- Migrated `src/app/[locale]/videos/[slug]/page.tsx` `generateMetadata()` to use centralized `buildMetadata()` from `src/lib/seo.ts`
+- `buildMetadata()` sets `alternates.canonical: https://mommyoffice.com/${locale}/videos/${slug}` which overrides the layout
+- Also added: `og:locale` (`mn_MN`/`en_US`), hreflang mn↔en alternates
+- Facebook share button (`f Хуваалцах`) added to action row alongside `CopyLinkButton` — matching article page UI pattern
+
+**Verified:** Facebook Create Post dialog shows correct video thumbnail and title immediately after fix. ✅
+
+**Prevention:** Any new dynamic route under `[locale]/` MUST call `buildMetadata()` with the correct `path` parameter to set its own canonical. Never leave `generateMetadata()` without `alternates.canonical` — the layout's canonical will propagate and confuse Facebook/Google.
+
+---
+
+## BUG-104 — Root not-found.tsx missing — 11% of traffic dead-ended (FIXED 2026-09-25, Session 41)
+
+**Severity:** Medium (bad UX, inflated bounce rate)
+
+**Symptom:** GA4 showed "404: This page could not be found." as the #2 most visited page with 43 hits (11.44% of all traffic) in 7 days. Users who landed on a URL without the `/mn/` locale prefix (e.g. `mommyoffice.com/courses/easyenglish` from a social share) hit Next.js's default bare white 404 page with no navigation and no way back.
+
+**Root cause:** No `src/app/not-found.tsx` existed. The `[locale]/layout.tsx` correctly calls `notFound()` for unrecognised locale segments, but without a custom root not-found page the result was the Next.js default.
+
+**Fix (commit `e2daa98`):** Created `src/app/not-found.tsx` — client component that auto-redirects to `/mn` via `router.replace('/mn')` with a brief Mongolian "redirecting..." message.
+
+**Files:** `src/app/not-found.tsx` (NEW)
+
+---
+
+## BUG-105 — Hardcoded `/mn` in become-instructor success screen (FIXED 2026-09-25, Session 41)
+
+**Severity:** Low (only affects English-locale users submitting the become-instructor form)
+
+**Symptom:** After submitting the become-instructor form, the "Нүүр хуудас руу буцах" button used `href="/mn"` hardcoded — English-locale users would be dropped to `/mn` instead of `/en`.
+
+**Root cause:** Page was written before locale-awareness was enforced. `BecomeInstructorPage` is a `'use client'` component and didn't import `useParams`.
+
+**Fix (commit `e2daa98`):** Added `useParams()` import, extracted `locale` from params, changed `href="/mn"` → `href={\`/${locale}\`}`.
+
+**Files:** `src/app/[locale]/become-instructor/page.tsx`

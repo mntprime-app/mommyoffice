@@ -536,8 +536,40 @@ Read `PROJECT_LOG.md`, `registry.md`, and `docs/sessions/SESSION_NOTES_2026_09_1
 
 ---
 
-*Last updated: 2026-09-20 — Session 38*
+*Last updated: 2026-09-25 — Session 41*
 *Project code: MO | Differentiated from: M10, MNT Prime*
+
+---
+
+### Session 41 — 2026-09-25 — GA4 Audit + 404 Fix
+
+**Commits pushed:** `e2daa98`
+
+**Production HEAD:** `e2daa98`
+
+**Work done:**
+
+| Change | Detail |
+|---|---|
+| GA4 audit | Confirmed GA4 fully live: 200 active users in 7 days, 376 views. Mongolia (135) + US (38) top countries. Organic Social driving 137 sessions. GA4 was integrated in S38 — no new setup needed. |
+| GSC review | 13 pages indexed, impressions trending up (15 total, growing daily since Sep 21). Normal for a 6-day-old domain. |
+| 404 investigation | GA4 Pages report showed 43 hits (11.44%) on "404: This page could not be found." — second most visited "page". Root cause: URLs shared without `/mn/` locale prefix (e.g. from Facebook posts). |
+| **BUG-104 — Root not-found missing** | No `src/app/not-found.tsx` existed — Next.js showed its default bare 404. Created redirect page: auto-sends users to `/mn` with a brief "redirecting..." message in Mongolian. |
+| **BUG-105 — Hardcoded `/mn` in become-instructor** | `become-instructor/page.tsx` success screen had `href="/mn"` hardcoded. Fixed to `href={\`/${locale}\`}` using `useParams()`. |
+
+**Session notes:** `docs/sessions/SESSION_NOTES_2026_09_25_S41.md`
+
+**Next session priorities:**
+1. KNOWN-003 — Mobile audit (375px, 390px, 430px)
+2. Fix missing Хичээл 2 in Module 1
+3. Investigate `/mn/courses/easyenglish` not in sitemap — check `src/app/sitemap.ts`
+4. Video card reaction counts display
+5. Rich Results test on an article URL
+
+**Next session start command:**
+```
+Alex, resume MommyOffice
+```
 
 ---
 
@@ -596,6 +628,86 @@ Read `PROJECT_LOG.md`, `registry.md`, and `docs/sessions/SESSION_NOTES_2026_09_1
 2. Check GSC → Pages in 24–48h — dynamic course/article URLs should appear
 3. Rich Results test — `search.google.com/test/rich-results` on an article URL
 4. Task #35 (GLink) — Tumennast NZ family visa: rename files + session notes
+
+**Next session start command:**
+```
+Alex, resume MommyOffice
+```
+
+---
+
+### Session 40 — 2026-09-22 — GSC Diagnosis + URL Indexing Requests
+
+**Commits pushed:** none — no code changes this session
+
+**Production HEAD:** `609e841` (unchanged from Session 39)
+
+**Work done:**
+
+| Item | Detail |
+|---|---|
+| GSC "0 clicks/0 impressions" | Diagnosed as expected — domain only 3 days old (live 2026-09-19). Performance data takes 2–4 weeks to appear. No action needed. |
+| GSC "Page with redirect" alert | Diagnosed as expected next-intl behaviour — root `/` → `/mn` redirect is correct. Not a bug. No code fix needed. |
+| Locale routing confirmed | `src/i18n/routing.ts`: `localeDetection: false`, `defaultLocale: 'mn'`. Browser language never read. Mongolian default locked. |
+| Sitemap verified | `https://mommyoffice.com/sitemap.xml` — Status: Success, **28 pages** discovered (up from 16 in Session 38). Resubmitted 2026-09-19. ✅ |
+| URL Inspection — 5 pages | `/mn` already indexed ✅; `/mn/courses`, `/mn/articles`, `/mn/videos`, `/mn/courses/easyenglish` — all submitted via Request Indexing ✅ |
+| BUG-103 logged | Formally added to `registry.md` (was carry-forward from Session 39) |
+
+**Note — `/mn/courses/easyenglish` not in sitemap:** GSC shows "No referring sitemaps detected" for the course detail URL. `sitemap.ts` may not be including course detail pages, or the slug differs in the DB. Investigate `src/app/sitemap.ts` in next session.
+
+**Session notes:** `docs/sessions/SESSION_NOTES_2026_09_22_S40.md`
+
+**Next session priorities:**
+1. Investigate why `/mn/courses/easyenglish` is missing from sitemap — check `src/app/sitemap.ts` Supabase query
+2. Check GA4 Realtime — data flowing post-CSP fix (Session 38 carry-forward)
+3. Rich Results test on an article URL
+4. KNOWN-003 — Mobile audit (375px, 390px, 430px)
+5. Fix missing Хичээл 2 (if still outstanding)
+
+**Next session start command:**
+```
+Alex, resume MommyOffice
+```
+
+---
+
+### Session 39 — 2026-09-20 — Video OG Metadata + Share Button Consistency
+
+**Commits pushed:** `609e841`
+
+**Production HEAD:** `609e841`
+
+**Work done:**
+
+| Change | Detail |
+|--------|--------|
+| `videos/[slug]/page.tsx` — imports | Removed `ShareButton` import; added `buildMetadata` from `@/lib/seo` + `CopyLinkButton` from `@/components/ui/CopyLinkButton` |
+| `generateMetadata()` migrated | Hand-rolled OG object replaced with `buildMetadata()` call. Now includes `og:locale`, `alternates.canonical`, hreflang mn↔en. Type: `'website'` (fixes Facebook fallback-to-generic-logo issue). Image: `thumbnail_url ?? YouTube maxresdefault ?? /og-image.png` |
+| Action row updated | `<ShareButton />` (clipboard-only, no props) replaced with: (1) Facebook share `<a>` (`sharer.php?u=...`) styled same as article pages; (2) `<CopyLinkButton url={...} />` with absolute canonical URL |
+| BUG-103 identified | Video pages were missing `og:locale`, `canonical`, and hreflang. Root cause: hand-rolled generateMetadata() from before `buildMetadata()` existed (Session 38). Fixed this session. |
+
+**Zero-regression:** ViewCounter, VideoReactions, VideoComments, RelatedVideosRow — all preserved ✅
+
+**Facebook fix SOP:**
+After Vercel deploys, run Facebook Sharing Debugger on affected video URLs:
+`https://developers.facebook.com/tools/debug/` → "Scrape Again"
+
+**Git command for Amaraa:**
+```powershell
+cd /d "F:\MNT\Workspace\GLink Strategic Projects\mommyoffice"
+git add "src/app/[locale]/videos/[slug]/page.tsx"
+git commit -m "fix(videos): dynamic OG metadata + Facebook share button"
+git push origin main
+```
+
+**Session notes:** `docs/sessions/SESSION_NOTES_2026_09_20_S39.md`
+
+**Next session priorities:**
+1. Confirm Vercel deployment succeeded (check Deployments tab)
+2. Run Facebook Sharing Debugger → Scrape Again on a video URL
+3. Check GA4 Realtime — data flowing post-CSP fix (Session 38)
+4. Add BUG-103 to registry.md
+5. Rich Results test on an article URL
 
 **Next session start command:**
 ```
