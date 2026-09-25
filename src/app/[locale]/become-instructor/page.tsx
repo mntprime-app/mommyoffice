@@ -1,10 +1,13 @@
 'use client';
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { createInstructorApplication } from '@/app/actions/admin';
 
 const STEPS = ['Танилцуулга', 'Профайл', 'Тухай', 'Илгээх'];
 
 export default function BecomeInstructorPage() {
+  const params = useParams();
+  const locale = (params?.locale as string) || 'mn';
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -312,7 +315,7 @@ function SuccessScreen({ name }: { name: string }) {
           <strong style={{ color: '#e5e5e5' }}>{name}</strong>, таны хүсэлтийг хүлээн авлаа.
           Бид 1-3 хоногт хянаад имэйлээр мэдэгдэнэ.
         </p>
-        <a href="/mn" style={{
+        <a href={`/${locale}`} style={{
           display: 'inline-block', background: '#00B5AD', color: '#fff',
           padding: '12px 28px', borderRadius: '10px', fontWeight: 700, textDecoration: 'none', fontSize: '14px',
         }}>
