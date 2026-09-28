@@ -573,6 +573,36 @@ Alex, resume MommyOffice
 
 ---
 
+### Session 42 — 2026-09-28 — First Real Customer Order Investigation + QPay Recheck Button
+
+**Commits pushed:** `90d207e`
+
+**Production HEAD:** `90d207e`
+
+**Work done:**
+
+| Change | Detail |
+|---|---|
+| Customer order investigation | `bb.khishgee@gmail.com` placed an order (2026-09-26, 29,900₮) that showed "Хүлээгдэж байна" in admin. Investigated root cause: client-side polling in `CheckoutView.tsx` only runs while QR screen is open — if customer closes tab before poll fires, order gets permanently stuck. |
+| **BUG-106 — QPay webhook missing** | No server-side QPay callback URL implemented. Workaround: added "🔄 QPay шалгах" button to admin orders page for pending orders. Calls live QPay API; if confirmed paid, auto-creates enrollment + access token + sends welcome email. |
+| Investigation result | QPay confirmed `bb.khishgee@gmail.com` invoice NOT paid — she abandoned before completing payment. Phone: 99001260. Advise her to re-attempt checkout. |
+
+**Session notes:** `docs/sessions/SESSION_NOTES_2026_09_28_S42.md`
+
+**Next session priorities:**
+1. KNOWN-003 — Mobile audit (375px, 390px, 430px)
+2. Fix missing Хичээл 2 in Module 1
+3. Video card reaction counts display
+4. BUG-106 proper fix — implement QPay callback URL (post-launch)
+5. Rich Results test on an article URL
+
+**Next session start command:**
+```
+Alex, resume MommyOffice
+```
+
+---
+
 ### Session 37 — 2026-09-19 — Domain Live + Launch Checklist Verification
 
 **Production HEAD:** `4cd82c2` (no new commits — verification session)

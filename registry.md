@@ -1919,3 +1919,21 @@ cf-key.txt
 **Fix (commit `e2daa98`):** Added `useParams()` import, extracted `locale` from params, changed `href="/mn"` → `href={\`/${locale}\`}`.
 
 **Files:** `src/app/[locale]/become-instructor/page.tsx`
+
+---
+
+## BUG-106 — No QPay server-side webhook: paid orders can get permanently stuck in `pending` (WORKAROUND 2026-09-28, Session 42)
+
+**Severity:** High (P1) — financial impact: real customer payments could be confirmed by QPay but never recorded in DB
+
+**Symptom:** Customer completes payment in their banking app via QPay QR code, but the order stays in `pending` status forever. No enrollment created, no welcome email sent. Discovered when `bb.khishgee@gmail.com` placed an order (2026-09-26) that remained `pending` even after investigation.
+
+**Root cause:** The only payment confirmation path is client-side polling in `CheckoutView.tsx` — `useEffect` polls `/api/qpay/check?orderId=...` every 3 seconds while on the QR screen (`step === 'qr'`). If the customer pays in their banking app and then closes or refreshes the browser tab before the 3-second interval fires, the confirmation call never reaches the server. QPay has a webhook/callback URL feature for exactly this scenario, but it has not been implemented.
+
+**Investigation finding (2026-09-28):** In `bb.khishgee@gmail.com`'s specific case, the QPay Recheck button confirmed her invoice was NOT paid — she abandoned before paying. So her order is legitimately pending, not a race condition victim. But the architectural risk remains real for future customers.
+
+**Workaround (commit `90d207e`):** Added "🔄 QPay шалгах" button to `src/components/ui/OrdersTable.tsx` for any pending order with a `qpay_invoice_id`. Calls `/api/qpay/check?orderId=...` live against QPay API. If paid: automatically marks order `paid`, creates enrollment, creates access token, sends welcome email. Admin can trigger this at any time.
+
+**Proper fix (OPEN — post-launch):** Implement QPay callback URL. QPay's `/v2/invoice/create` accepts a `callback_url` field. When a payment is made, QPay POSTs to this URL server-side, independent of the customer's browser. This eliminates the race condition entirely.
+
+**Files:** `src/components/ui/OrdersTable.tsx` (workaround — added recheck button)
