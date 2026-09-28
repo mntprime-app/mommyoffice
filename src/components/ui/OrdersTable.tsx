@@ -20,6 +20,7 @@ export function OrdersTable({ orders, locale }: { orders: OrderRow[]; locale: st
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [actionId, setActionId] = useState<string | null>(null);
+  const [recheckingId, setRecheckingId] = useState<string | null>(null);
 
   // ── CSV Export ──────────────────────────────────────────────────────────────
   function handleExport() {
@@ -73,6 +74,37 @@ export function OrdersTable({ orders, locale }: { orders: OrderRow[]; locale: st
       if (error) { alert('Алдаа: ' + error); return; }
       router.refresh();
     });
+  }
+
+  // ── Recheck QPay ─────────────────────────────────────────────────────────────
+  // Calls the live QPay API to check if the invoice was actually paid.
+  // If confirmed: marks order paid, creates enrollment + access token, sends welcome email.
+  async function handleRecheck(order: OrderRow) {
+    if (!order.qpay_invoice_id) {
+      alert('QPay invoice ID олдсонгүй. Дахин шалгах боломжгүй.');
+      return;
+    }
+    if (!window.confirm(`QPay-д ${order.buyer_email} захиалгын төлбөрийг дахин шалгах уу?\n\nТөлбөр батлагдсан бол:\n✅ Статус "Төлөгдсөн" болно\n✅ Оюутны хандах эрх автоматаар үүснэ\n✅ Тавтай морилно уу и-мэйл илгээгдэнэ`)) return;
+
+    setRecheckingId(order.id);
+    try {
+      const res = await fetch(`/api/qpay/check?orderId=${encodeURIComponent(order.id)}`);
+      const data = await res.json() as { ok: boolean; paid?: boolean; error?: string };
+      if (!data.ok) {
+        alert('Алдаа: ' + (data.error || 'Server error'));
+        return;
+      }
+      if (data.paid) {
+        alert(`✅ Төлбөр батлагдлаа!\n\n${order.buyer_email} и-мэйл рүү хандалтын холбоос илгээгдлээ.`);
+        router.refresh();
+      } else {
+        alert(`⚠️ QPay дахин шалгалаа — төлбөр хийгдээгүй байна.\n\nInvoice: ${order.qpay_invoice_id}\n\nОюутантай холбогдоно уу.`);
+      }
+    } catch (e) {
+      alert('Сүлжээний алдаа. Дахин оролдоно уу.');
+    } finally {
+      setRecheckingId(null);
+    }
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -135,20 +167,30 @@ export function OrdersTable({ orders, locale }: { orders: OrderRow[]; locale: st
                     {order.qpay_invoice_id ? order.qpay_invoice_id.slice(0, 14) + '…' : '—'}
                   </td>
                   <td style={{ padding: '11px 14px' }}>
-                    <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {!paid && order.qpay_invoice_id && (
+                        <button
+                          onClick={() => handleRecheck(order)}
+                          disabled={isActing || recheckingId === order.id}
+                          title="QPay-д дахин шалгах — төлбөр батлагдсан бол эрх автоматаар үүснэ"
+                          style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(0,181,173,0.5)', background: 'rgba(0,181,173,0.12)', color: '#00B5AD', fontSize: '11px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                        >
+                          {recheckingId === order.id ? '⏳ Шалгаж байна…' : '🔄 QPay шалгах'}
+                        </button>
+                      )}
                       {!paid && (
                         <button
                           onClick={() => handleMarkPaid(order)}
-                          disabled={isActing}
-                          title="Төлөгдсөн гэж тэмдэглэх"
+                          disabled={isActing || recheckingId === order.id}
+                          title="Гараар төлөгдсөн гэж тэмдэглэх (эрх олгогдохгүй)"
                           style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(16,185,129,0.4)', background: 'rgba(16,185,129,0.1)', color: '#10b981', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
                         >
-                          ✓ Төлөгдсөн
+                          ✓ Гараар
                         </button>
                       )}
                       <button
                         onClick={() => handleDelete(order)}
-                        disabled={isActing}
+                        disabled={isActing || recheckingId === order.id}
                         title="Захиалга устгах"
                         style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
                       >
