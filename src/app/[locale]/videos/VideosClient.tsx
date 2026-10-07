@@ -889,6 +889,14 @@ function VideoCard({ video, index, locale, onPlay, onInfo }: { video: AnyVideo; 
         <p style={{ fontWeight:700, fontSize:'13px', color:'#e5e5e5', lineHeight:1.4, margin:0, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
           {video.title_mn}
         </p>
+        {/* Reaction counts — only when at least one reaction exists */}
+        {((video.super_likes_count ?? 0) + (video.upvotes_count ?? 0) + (video.downvotes_count ?? 0)) > 0 && (
+          <div style={{ display:'flex', gap:'8px', fontSize:'11px', color:'#888', marginTop:'2px' }}>
+            <span>🔥 {video.super_likes_count ?? 0}</span>
+            <span>👍 {video.upvotes_count ?? 0}</span>
+            <span>👎 {video.downvotes_count ?? 0}</span>
+          </div>
+        )}
       </div>
     </div>
   );
