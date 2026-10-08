@@ -95,11 +95,13 @@ function build1h(ctx: ReminderContext): { subject: string; html: string } {
 
     <!-- Order summary -->
     <div style="background:#111111;border:1px solid #2a2a2a;border-radius:12px;padding:16px 20px;margin-bottom:8px;">
-      <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Сонгосон үйлчилгээ</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-        <span style="font-size:14px;font-weight:600;color:#ffffff;">${ctx.courseTitle}</span>
-        <span style="font-size:14px;font-weight:700;color:#00B5AD;">${ctx.coursePrice.toLocaleString('mn-MN')}₮</span>
-      </div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:8px;">Сонгосон үйлчилгээ</div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="font-size:14px;font-weight:600;color:#ffffff;padding-right:12px;">${ctx.courseTitle}</td>
+          <td align="right" style="font-size:14px;font-weight:700;color:#00B5AD;white-space:nowrap;">${ctx.coursePrice.toLocaleString('mn-MN')} ₮</td>
+        </tr>
+      </table>
     </div>
 
     ${ctaButton('Төлбөр төлж дуусгах', ctx.resumeUrl)}
@@ -136,11 +138,13 @@ function build24h(ctx: ReminderContext): { subject: string; html: string } {
 
     <!-- Price -->
     <div style="background:#111111;border:1px solid #2a2a2a;border-radius:12px;padding:16px 20px;margin-bottom:8px;">
-      <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Үнэ</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-        <span style="font-size:14px;font-weight:600;color:#ffffff;">${ctx.courseTitle}</span>
-        <span style="font-size:14px;font-weight:700;color:#00B5AD;">${ctx.coursePrice.toLocaleString('mn-MN')}₮</span>
-      </div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:8px;">Үнэ</div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="font-size:14px;font-weight:600;color:#ffffff;padding-right:12px;">${ctx.courseTitle}</td>
+          <td align="right" style="font-size:14px;font-weight:700;color:#00B5AD;white-space:nowrap;">${ctx.coursePrice.toLocaleString('mn-MN')} ₮</td>
+        </tr>
+      </table>
     </div>
 
     ${ctaButton('Захиалгыг үргэлжлүүлэх', ctx.resumeUrl)}
