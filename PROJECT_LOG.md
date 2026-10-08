@@ -573,6 +573,87 @@ Alex, resume MommyOffice
 
 ---
 
+### Session 43 — 2026-10-07 — Video Card Reaction Counts Display
+
+**Commits pushed:** `1a1184a`
+
+**Production HEAD:** `1a1184a`
+
+**Work done:**
+
+| Change | Detail |
+|---|---|
+| **Video card reaction counts** | Added 🔥👍👎 row to `VideoCard` footer in `VideosClient.tsx`. Counts were already fetched from DB and shown in the detail modal — now also visible on grid cards. Row hidden when all counts are zero, so cards without reactions look unchanged. |
+| KNOWN-003 status confirmed | Registry shows RESOLVED (S34, `a3125fe`) — full mobile audit done. Carry-forward in S41/S42 notes was stale. No code action needed. |
+| Хичееллийн 2 status confirmed | S37 confirms Amaraa fixed at DB/admin level. Same stale carry-forward. No code action needed. |
+
+**Session notes:** `docs/sessions/SESSION_NOTES_2026_10_07_S43.md`
+
+**Next session priorities:**
+1. 3 untracked optimized images in `/public` — commit or delete (`og-image_opt.png`, `og-image_opt2.png`, `squarelogo_opt.png`)
+2. Rich Results test on an article URL
+3. Delete unused `ShareButton.tsx` from `src/components/ui/`
+4. BUG-106 hardening — QPay `callback_url` + `POST /api/qpay/callback` (low priority — QPay confirmed working)
+
+---
+
+### Session 44 — 2026-10-08 — Abandoned Cart Email Automation + Resume Checkout
+
+**Commits pushed:** `849bcc1` (feature), `a40ba92` (trigger), `63bac7f` (retrigger), `3c3f586` (BUG-107 fix)
+
+**Production HEAD:** `3c3f586`
+
+**Work done:**
+
+| Change | Detail |
+|---|---|
+| **`mo_order_reminders` table** | New migration — tracks sent reminders per order, unique constraint prevents duplicates. Run in Supabase ✅ |
+| **`src/lib/email-abandoned-cart.ts`** | 2-stage Mongolian reminder emails via Brevo REST API. Stage 1h (55–115 min), Stage 24h (23–25 hrs). Dark brand styling. |
+| **`src/app/api/cron/abandoned-cart/route.ts`** | POST endpoint protected by `x-cron-secret`. Queries pending orders with `is_published=true` check. Dedup via `mo_order_reminders`. |
+| **`src/app/[locale]/checkout/resume/page.tsx`** | Resume page linked from emails — creates fresh QPay invoice reusing same `order_id`, redirects to my-courses if already paid. |
+| **`src/components/ui/ResumeCheckoutView.tsx`** | QR display + polls `/api/qpay/check` every 3s. Success/error screens. |
+| **Cloudflare Stream audit** | ~120–130 min delivered in 7 days. Pending Upload ghost identified for `40.1.2...mp4` — safe to delete from CF dashboard. |
+| **BUG-107** | Hourly cron in `vercel.json` rejected by Vercel Hobby plan (only daily frequency allowed). Fixed by removing cron block. Route stays; trigger externally via cron-job.org or upgrade to Pro. |
+
+**Safety checks:**
+- `is_published` guard: skips hidden/unpublished courses
+- `mo_order_reminders` unique constraint: each reminder type sent at most once per order
+- Race condition guard: re-checks `status = 'pending'` before sending
+- `CRON_SECRET` header: blocks unauthorized cron calls
+
+**Cron trigger (external):** POST `https://mommyoffice.com/api/cron/abandoned-cart` with `x-cron-secret: <CRON_SECRET>` every 60 min via [cron-job.org](https://cron-job.org) (free tier), OR add back to `vercel.json` when upgrading to Vercel Pro.
+
+**Session notes:** `docs/sessions/SESSION_NOTES_2026_10_08_S44.md`
+
+**Next session priorities:**
+1. Set up cron-job.org external trigger for abandoned cart OR upgrade to Vercel Pro
+2. 3 untracked optimized images in `/public` — commit or delete
+3. Rich Results test on an article URL
+4. Delete unused `ShareButton.tsx`
+5. BUG-106 hardening — QPay callback (low priority)
+
+**Desktop setup completed:**
+
+| Item | Status |
+|---|---|
+| Git, Node.js v24, npm | ✅ |
+| VS Code 1.140.0 | ✅ (winget; PATH refresh needed each new PowerShell session) |
+| Repo at `C:\WINDOWS\system32\mommyoffice` | ✅ |
+| node_modules | ✅ |
+| .env.local | ✅ (copied from D:\GLinkAI\workspace\...\env.download) |
+
+Desktop ready to run `npm run dev`.
+
+**Next session start command (desktop):**
+```powershell
+cd "C:\WINDOWS\system32\mommyoffice"
+$env:PATH = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+code .
+```
+Then in Claude: `Alex, resume MommyOffice`
+
+---
+
 ### Session 42 — 2026-09-28 — First Real Customer Order Investigation + QPay Recheck Button
 
 **Commits pushed:** `90d207e`
