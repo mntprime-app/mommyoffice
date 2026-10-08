@@ -1,3 +1,10 @@
 {
-  "installCommand": "npm ci"
+  "installCommand": "npm ci",
+  "crons": [
+    {
+      "path": "/api/cron/abandoned-cart",
+      "schedule": "0 * * * *"
+    }
+  ]
 }
+
