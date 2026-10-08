@@ -599,9 +599,9 @@ Alex, resume MommyOffice
 
 ### Session 44 — 2026-10-08 — Abandoned Cart Email Automation + Resume Checkout
 
-**Commits pushed:** `849bcc1` (feature), `a40ba92` (trigger), `63bac7f` (retrigger), `3c3f586` (BUG-107 fix)
+**Commits pushed:** `849bcc1` (feature), `a40ba92` (trigger), `63bac7f` (retrigger), `3c3f586` (BUG-107 fix), `38d4413` (test endpoint), `58e7468` (email price fix), `e1b771e` (email subtitle removed)
 
-**Production HEAD:** `3c3f586`
+**Production HEAD:** `e1b771e`
 
 **Work done:**
 
@@ -614,6 +614,8 @@ Alex, resume MommyOffice
 | **`src/components/ui/ResumeCheckoutView.tsx`** | QR display + polls `/api/qpay/check` every 3s. Success/error screens. |
 | **Cloudflare Stream audit** | ~120–130 min delivered in 7 days. Pending Upload ghost identified for `40.1.2...mp4` — safe to delete from CF dashboard. |
 | **BUG-107** | Hourly cron in `vercel.json` rejected by Vercel Hobby plan (only daily frequency allowed). Fixed by removing cron block. Route stays; trigger externally via cron-job.org or upgrade to Pro. |
+| **Email template polish** | Price row fixed — Gmail strips `display:flex`, switched to table layout. Subtitle removed. Test confirmed delivered to amaraa2434@gmail.com ✅ |
+| **Test endpoint** | `POST /api/test/send-reminder` — fires branded test email, protected by CRON_SECRET. Remove when no longer needed. |
 
 **Safety checks:**
 - `is_published` guard: skips hidden/unpublished courses
@@ -626,11 +628,12 @@ Alex, resume MommyOffice
 **Session notes:** `docs/sessions/SESSION_NOTES_2026_10_08_S44.md`
 
 **Next session priorities:**
-1. Set up cron-job.org external trigger for abandoned cart OR upgrade to Vercel Pro
-2. 3 untracked optimized images in `/public` — commit or delete
-3. Rich Results test on an article URL
-4. Delete unused `ShareButton.tsx`
-5. BUG-106 hardening — QPay callback (low priority)
+1. Set up cron-job.org external trigger for abandoned cart (POST every 60 min with `x-cron-secret`)
+2. Remove `/api/test/send-reminder` route when no longer needed
+3. 3 untracked optimized images in `/public` — commit or delete
+4. Rich Results test on an article URL
+5. Delete unused `ShareButton.tsx`
+6. BUG-106 hardening — QPay callback (low priority)
 
 **Desktop setup completed:**
 
