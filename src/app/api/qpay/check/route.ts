@@ -44,7 +44,6 @@ async function sendWelcomeEmail(
          height="44"
          style="display:block;margin:0 auto;height:44px;width:auto;max-width:220px;border:0;"
          border="0" />
-    <div style="font-size:13px;color:#6b7280;margin-top:10px;">Таны хувийн сургалтын орчин</div>
   </td></tr>
 
   <!-- Main card -->

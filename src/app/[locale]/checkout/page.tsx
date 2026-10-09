@@ -8,7 +8,7 @@ async function getCoursesBySlugs(slugs: string[]) {
     const supabase = await createAdminClient();
     const { data } = await supabase
       .from('mo_courses')
-      .select('id, slug, title_mn, title_en, cover_image_url, price, original_price, category')
+      .select('id, slug, title_mn, title_en, cover_image_url, price, original_price, category, access_duration_days')
       .in('slug', slugs)
       .eq('is_published', true);
     return data || [];

@@ -12,6 +12,7 @@ interface BulkCourse {
   price: number;
   original_price: number | null;
   category: string | null;
+  access_duration_days?: number | null;
 }
 
 interface BulkCheckoutViewProps {
@@ -38,6 +39,15 @@ export function BulkCheckoutView({ locale, courses }: BulkCheckoutViewProps) {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const total = courses.reduce((sum, c) => sum + (c.price || 0), 0);
+
+  // Compute access label — use shortest (most restrictive) timed duration; lifetime if all are 0/null
+  const timedDurations = courses.map(c => c.access_duration_days).filter((d): d is number => !!d && d > 0);
+  const accessLabel = timedDurations.length > 0
+    ? `${Math.min(...timedDurations)} өдрийн эрх`
+    : 'насан туршийн эрх';
+  const accessBadge = timedDurations.length > 0
+    ? `📅 ${Math.min(...timedDurations)} өдрийн эрх`
+    : '♾️ Хугацаагүй эрх';
 
   // Pre-fill from active session
   useEffect(() => {
@@ -167,7 +177,7 @@ export function BulkCheckoutView({ locale, courses }: BulkCheckoutViewProps) {
         <div style={{ marginTop: '14px', padding: '10px 14px', background: 'rgba(0,181,173,0.07)', borderRadius: '8px', border: '1px solid rgba(0,181,173,0.15)' }}>
           <p style={{ fontSize: '12px', color: '#888', margin: 0, lineHeight: 1.6 }}>
             ✅ Нэг QR — {courses.length} сургалт<br />
-            ✅ Нэг удаагийн төлбөр — насан туршийн эрх<br />
+            ✅ Нэг удаагийн төлбөр — {accessLabel}<br />
             ✅ QPay аппаар хялбарчлан төлнө
           </p>
         </div>
@@ -239,7 +249,7 @@ export function BulkCheckoutView({ locale, courses }: BulkCheckoutViewProps) {
             </form>
           </div>
           <div style={{ display: 'flex', gap: '16px', marginTop: '16px', flexWrap: 'wrap' }}>
-            {['🔒 Аюулгүй төлбөр', '📧 Нэн даруй хандалт', '♾️ Хугацаагүй эрх'].map(t => (
+            {['🔒 Аюулгүй төлбөр', '📧 Нэн даруй хандалт', accessBadge].map(t => (
               <span key={t} style={{ fontSize: '12px', color: '#555', fontWeight: 600 }}>{t}</span>
             ))}
           </div>

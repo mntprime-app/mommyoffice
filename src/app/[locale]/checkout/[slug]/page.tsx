@@ -8,7 +8,7 @@ async function getCourse(slug: string) {
     const supabase = await createAdminClient();
     const { data, error } = await supabase
       .from('mo_courses')
-      .select('id, slug, title_mn, title_en, cover_image_url, price, original_price, category')
+      .select('id, slug, title_mn, title_en, cover_image_url, price, original_price, category, access_duration_days')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();

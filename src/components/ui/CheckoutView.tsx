@@ -12,6 +12,7 @@ interface Course {
   price: number;
   original_price: number | null;
   category: string | null;
+  access_duration_days?: number | null;
 }
 
 interface CheckoutViewProps {
@@ -163,7 +164,7 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
         </div>
         <div style={{ marginTop: '16px', padding: '10px 14px', background: 'rgba(0,181,173,0.07)', borderRadius: '8px', border: '1px solid rgba(0,181,173,0.15)' }}>
           <p style={{ fontSize: '12px', color: '#888', margin: 0, lineHeight: 1.6 }}>
-            ✅ Нэг удаагийн төлбөр — насан туршийн эрх<br />
+            ✅ Нэг удаагийн төлбөр — {(!course.access_duration_days || course.access_duration_days === 0) ? 'насан туршийн эрх' : `${course.access_duration_days} өдрийн эрх`}<br />
             ✅ Хандалтын холбоосыг и-мэйлээр илгээнэ<br />
             ✅ QPay аппаар хялбарчлан төлнө
           </p>
@@ -247,7 +248,11 @@ export function CheckoutView({ locale, course }: CheckoutViewProps) {
 
           {/* Trust signals */}
           <div style={{ display: 'flex', gap: '16px', marginTop: '16px', flexWrap: 'wrap' }}>
-            {['🔒 Аюулгүй төлбөр', '📧 Нэн даруй хандалт', '♾️ Хугацаагүй эрх'].map(t => (
+            {['🔒 Аюулгүй төлбөр', '📧 Нэн даруй хандалт',
+               (!course.access_duration_days || course.access_duration_days === 0)
+                 ? '♾️ Хугацаагүй эрх'
+                 : `📅 ${course.access_duration_days} өдрийн эрх`,
+             ].map(t => (
               <span key={t} style={{ fontSize: '12px', color: '#555', fontWeight: 600 }}>{t}</span>
             ))}
           </div>
