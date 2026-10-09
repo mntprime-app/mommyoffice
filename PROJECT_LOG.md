@@ -597,6 +597,38 @@ Alex, resume MommyOffice
 
 ---
 
+### Session 45 — 2026-10-09 — Dynamic Access Duration on Checkout UI (BUG-108)
+
+**Commits pushed:** `85b10c3`
+
+**Production HEAD:** `85b10c3`
+
+**Work done:**
+
+| Change | Detail |
+|---|---|
+| **BUG-108 — Hardcoded "насан туршийн эрх"** | Checkout page showed "насан туршийн эрх" / "♾️ Хугацаагүй эрх" hardcoded for ALL courses regardless of `access_duration_days`. Root cause: `getCourse()` and `getCoursesBySlugs()` didn't select the field, and both checkout components lacked it in their interface. |
+| **`CheckoutView.tsx`** | Added `access_duration_days` to `Course` interface. Shows "90 өдрийн эрх" / "📅 90 өдрийн эрх" for timed courses; "насан туршийн"/"♾️" only when `access_duration_days = 0` or null. |
+| **`BulkCheckoutView.tsx`** | Same fix for multi-course checkout. Computes min timed duration across courses in bundle. |
+| **`/checkout/[slug]/page.tsx`** and **`/checkout/page.tsx`** | Added `access_duration_days` to Supabase select queries. |
+| **`/api/qpay/check/route.ts`** | Removed "Таны хувийн сургалтын орчин" subtitle from welcome email (matches S44 abandoned cart branding). Backend duration logic was already correct — untouched. |
+
+**Safety:** No existing customer data or access tokens touched. Backend `qpay/check` logic (which sets `expires_at` on `mo_access_tokens`) was already reading `access_duration_days` correctly — only the UI display was wrong.
+
+**Verified:** Live checkout at `mommyoffice.com/mn/checkout/easyenglish` now shows "90 өдрийн эрх" ✅
+
+**Session notes:** `docs/sessions/SESSION_NOTES_2026_10_09_S45.md`
+
+**Next session priorities:**
+1. Set up cron-job.org external trigger for abandoned cart (POST every 60 min with `x-cron-secret`)
+2. Remove `/api/test/send-reminder` route when no longer needed
+3. 3 untracked optimized images in `/public` — commit or delete
+4. Rich Results test on an article URL
+5. Delete unused `ShareButton.tsx`
+6. BUG-106 hardening — QPay callback (low priority)
+
+---
+
 ### Session 44 — 2026-10-08 — Abandoned Cart Email Automation + Resume Checkout
 
 **Commits pushed:** `849bcc1` (feature), `a40ba92` (trigger), `63bac7f` (retrigger), `3c3f586` (BUG-107 fix), `38d4413` (test endpoint), `58e7468` (email price fix), `e1b771e` (email subtitle removed)
