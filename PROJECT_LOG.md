@@ -11,6 +11,52 @@
 
 ## Session Log
 
+### Session 51 — 2026-11-14 — Ad Slot Codes + Upload Fix + Compression + Mosaic Popup Animation + Mobile Polish
+
+**Commits:** `d2a0983`, `a7950c2`, `d3199a5` (HOTFIX), `a834bde`, `4257874`, `0fd76b8`, `1bc27fc`
+
+**Focus:** Five workstreams. (1) Created `docs/AD_SLOT_REFERENCE.md` — 9 slot codes (POP-UP, H1, A1–A3, AR1, ARM, C1, V1) with desktop/mobile pixel dimensions; updated `SLOT_LABELS` in admin. (2) Fixed permanent upload hang in `/admin/ads` — root cause: no try/catch/finally in `handleMediaUpload`, so `setUploadingMedia(false)` never ran on error. Added `ads` preset to `imageCompress.ts` with `fit: true` option; all ad uploads now compress to WebP. Server action `uploadImage` wrapped in try/catch — never throws. (3) Made `target_url` optional across admin form, `LiveAdBanner.tsx`, and `HomeHeroAdBanner.tsx` — renders `<div>` instead of `<a>` when empty. (4) Popup animation: 3 iterations. Final solution — mosaic tile grid (8×4 desktop, 4×3 mobile) overlaid as `position: absolute` tiles above ad image; per-tile `perspective(300px) rotateX()` keyframes not clipped by parent overflow:hidden; diagonal stagger wave entry/exit. HOTFIX committed mid-session: `useMemo` was placed after early return, violating React Hook rules, crashing production page. Added "СУРТАЛЧИЛГАА" teal pill badge; moved countdown below card. (5) Mobile: added mobile image upload field to POP-UP slot in admin form; size guidance for all 9 slots; changed mobile aspect ratio to 2/1 (matches 800×400 upload); countdown repositioned outside card to prevent overlap.
+
+**Popup banner system — fully live:** mosaic reveal/cover, СУРТАЛЧИЛГАА badge, 8s auto-dismiss, sessionStorage dedup, mobile 2:1 layout, dedicated mobile image upload in admin.
+
+**Session note:** `docs/sessions/SESSION_NOTES_2026_11_14_S51.md`
+
+---
+
+### Session 50 — 2026-11-14 — Full Domination Banner Audit + HomeHeroAdBanner Implementation
+
+**Commits:** `17d6258`
+
+**Focus:** (1) Read-only audit of all Full Domination banner slots (`home_below_hero`, `articles_sidebar`, `courses_sidebar`) from the rate card. Found: `home_below_hero` was NOT wired to the homepage despite being defined in admin; `courses_sidebar` had wrong `type="footer"` (should be `"sidebar"`); `articles_sidebar` was correct. Also corrected S49 notes — `articles_footer` and `article_body_mobile` were actually wired (S49 notes were wrong). (2) Technical feasibility study for ikon.mn-inspired popup→banner mechanic. (3) Implemented all three fixes: created `HomeHeroAdBanner.tsx` (popup 8s + inline banner, both sessionStorage-managed), wired to homepage between Featured Courses and Trending Articles, fixed `courses_sidebar` type bug. Deployed to production via git push — Vercel built in 51s, confirmed Ready.
+
+**Key architecture:** Single `home_below_hero` ad entry in admin drives both the full-viewport popup (8s, first visit per session) and permanent inline horizontal banner (dismissible). No admin panel changes needed.
+
+**Session note:** `docs/sessions/SESSION_NOTES_2026_11_14_S50.md`
+
+---
+
+### Session 49 — 2026-11-13 — Reviews Insertion + Ad Monetization Strategy + Competitor Research + Rate Card PDF
+
+**Commits:** None (data insertion + strategy session)
+
+**Focus:** Three workstreams. (1) Inserted 5 customer testimonial reviews into `mo_reviews` for EasyEnglish course via plain SQL run in Supabase SQL Editor (sandbox has no outbound network — Node.js/curl both failed). Recalculated course rating and rating_count. Reviews confirmed live. (2) Full advertising monetization strategy: reviewed all 8 existing ad slots, researched 5 competitor ad rate sources (ikon.mn, gogo.mn, KINOZADLAN, Hot Mic Diaries, ШийднийАхСанал), combined notes saved to `docs/competitors advertisement fees/COMPETITOR_AD_RATES_MASTER_NOTES.md`. (3) Designed cross-platform ad bundle (Facebook Reel animated banner + website banners) with 4 pricing tiers: Premium ₮2.5M/mo, Gold ₮1.4M/mo, Video Only ₮400K/reel, Web Only from ₮150K/mo. Built 1-page A4 PDF rate card: `docs/competitors advertisement fees/MommyOffice_AdRateCard_2026.pdf`.
+
+**Key data point:** MommyOffice Facebook Reels average 43K views/reel with 30% twenty-second view rate (2× industry average). Hot Mic Diaries (same 84.6% female audience) charges ₮5M/episode — validates MommyOffice's premium CPM potential.
+
+**Session note:** `docs/sessions/SESSION_NOTES_2026_11_13_S49.md`
+
+---
+
+### Session 48 — 2026-10-21 — COL Group Partnership Strategy + ElevenLabs Mongolian Dubbing Research
+
+**Commits:** None (strategy session)
+
+**Focus:** MommyOffice content partnership pipeline. Prepared talking points for Amaraa's video call with COL Group International (中文在线, Shenzhen-listed). Key pitch: revenue share model, zero advance payment, 90-day pilot with 10-15 titles. Proposed API/CDN content syndication model with signed tokenized URLs — no local hosting on MommyOffice side. Documented PrimeKino.com (competitor) as Mongolian short drama reference. Confirmed ElevenLabs Dubbing v2 supports Mongolian language. Pricing: $2.20/min API rate = $132 per 60-min film. Strategic opportunity: Mongolian-voiced dubbing as differentiator vs PrimeKino (subtitle-only). Next steps: COL Group call outcome, test ElevenLabs with sample clip, obtain API docs post-agreement.
+
+**Session note:** `docs/sessions/SESSION_NOTES_2026_10_21_S48.md`
+
+---
+
 ### Session 25 — 2026-09-16 — BUG-089 Regression Fix + Launch Preparation
 
 **Commits:** `17c1139`, `d42beaa`, `0e11fc6`, `4c67d6a`
