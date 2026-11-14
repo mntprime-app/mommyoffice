@@ -230,6 +230,31 @@ export default function HomeHeroAdBanner() {
               </div>
             )}
 
+            {/* "СУРТАЛЧИЛГАА" badge — top-left, matches site pill tag style */}
+            <div style={{
+              position: 'absolute', top: '14px', left: '14px', zIndex: 10,
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              padding: '5px 13px',
+              borderRadius: '999px',
+              border: '1.5px solid rgba(0,214,196,0.7)',
+              background: 'rgba(0,0,0,0.55)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              color: '#00d4c4',
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '1.4px',
+              textTransform: 'uppercase' as const,
+              userSelect: 'none',
+            }}>
+              <span style={{
+                width: '5px', height: '5px', borderRadius: '50%',
+                background: '#00d4c4', display: 'inline-block', flexShrink: 0,
+                boxShadow: '0 0 6px #00d4c4',
+              }} />
+              Сурталчилгаа
+            </div>
+
             {/* Close button */}
             <button
               onClick={e => { e.stopPropagation(); dismissPopup(); }}
