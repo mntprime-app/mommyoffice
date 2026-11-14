@@ -26,12 +26,12 @@ function totalMs(cols: number, rows: number) {
 type TilePhase = 'entering' | 'active' | 'exiting';
 
 export default function HomeHeroAdBanner() {
-  const [popupAd,   setPopupAd]   = useState<Ad | null | 'loading'>('loading');
-  const [bannerAd,  setBannerAd]  = useState<Ad | null | 'loading'>('loading');
-  const [isMobile,  setIsMobile]  = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [scrimIn,   setScrimIn]   = useState(false);
-  const [tilePhase, setTilePhase] = useState<TilePhase>('entering');
+  const [popupAd,    setPopupAd]    = useState<Ad | null | 'loading'>('loading');
+  const [bannerAd,   setBannerAd]   = useState<Ad | null | 'loading'>('loading');
+  const [isMobile,   setIsMobile]   = useState(false);
+  const [showPopup,  setShowPopup]  = useState(false);
+  const [scrimIn,    setScrimIn]    = useState(false);
+  const [tilePhase,  setTilePhase]  = useState<TilePhase>('entering');
   const [showBanner, setShowBanner] = useState(false);
   const [countdown,  setCountdown]  = useState(8);
   const closingRef = useRef(false);
@@ -70,17 +70,13 @@ export default function HomeHeroAdBanner() {
       (popupAd.media_type === 'video' && (!isMobile || !!popupAd.mobile_image_url));
     if (!hasMedia || sessionStorage.getItem(POPUP_SESSION_KEY)) return;
 
-    // 1. Mount DOM (tiles are covering the image — no animation yet)
     setTilePhase('entering');
     setScrimIn(false);
     setShowPopup(true);
 
-    // 2. After 2 frames: start tile-reveal wave + fade scrim in
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
         setScrimIn(true);
-        // tilePhase stays 'entering' — triggers mo-tile-reveal on each tile
-        // After all tiles have revealed, switch to 'active' (remove tiles from DOM)
         const cols = window.innerWidth < 768 ? COLS_M : COLS_D;
         const rows = window.innerWidth < 768 ? ROWS_M : ROWS_D;
         setTimeout(() => setTilePhase('active'), totalMs(cols, rows));
@@ -107,20 +103,19 @@ export default function HomeHeroAdBanner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showPopup]);
 
-  // ── Dismiss: play exit mosaic then unmount ─────────────────────────────────
+  // ── Dismiss popup ──────────────────────────────────────────────────────────
   const dismissPopup = useCallback(() => {
     if (closingRef.current) return;
     closingRef.current = true;
     setScrimIn(false);
-    setTilePhase('exiting'); // triggers mo-tile-cover wave
-
+    setTilePhase('exiting');
     const cols = window.innerWidth < 768 ? COLS_M : COLS_D;
     const rows = window.innerWidth < 768 ? ROWS_M : ROWS_D;
     setTimeout(() => {
       sessionStorage.setItem(POPUP_SESSION_KEY, '1');
       setShowPopup(false);
       closingRef.current = false;
-    }, totalMs(cols, rows) + 80); // +80ms safety buffer
+    }, totalMs(cols, rows) + 80);
   }, []);
 
   const dismissBanner = useCallback(() => {
@@ -128,30 +123,26 @@ export default function HomeHeroAdBanner() {
     setShowBanner(false);
   }, []);
 
-  if (!showPopup && !showBanner) return null;
-
-  // ── Tile grid ──────────────────────────────────────────────────────────────
-  // Memoised so the array doesn't recreate on every render
-  // Key includes tilePhase so React remounts tiles when phase changes
-  // (required to restart the CSS animation on the same element)
+  // ── Tile grid — ALL hooks must be above any early return ───────────────────
   const cols = isMobile ? COLS_M : COLS_D;
   const rows = isMobile ? ROWS_M : ROWS_D;
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const tiles = useMemo(() => {
-    const out = [];
+    const out: Array<{ r: number; c: number; entryDelay: number; exitDelay: number }> = [];
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        // Enter wave: top-left → bottom-right
-        const entryDelay = (c + r) * STAGGER;
-        // Exit wave: bottom-right → top-left (reverse diagonal)
-        const exitDelay  = ((cols - 1 - c) + (rows - 1 - r)) * STAGGER;
-        out.push({ r, c, entryDelay, exitDelay });
+        out.push({
+          r, c,
+          entryDelay: (c + r) * STAGGER,
+          exitDelay:  ((cols - 1 - c) + (rows - 1 - r)) * STAGGER,
+        });
       }
     }
     return out;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cols, rows]);
+
+  // ── Early exit — only after every hook ────────────────────────────────────
+  if (!showPopup && !showBanner) return null;
 
   // ── Media helper ───────────────────────────────────────────────────────────
   const AdMedia = ({ ad, style }: { ad: Ad; style?: React.CSSProperties }) => {
@@ -165,8 +156,8 @@ export default function HomeHeroAdBanner() {
           style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', ...style }} />;
   };
 
-  const NAV_H = isMobile ? 60 : 72;
-  const isActive = tilePhase === 'active'; // tiles removed from DOM when fully revealed
+  const NAV_H  = isMobile ? 60 : 72;
+  const isActive = tilePhase === 'active'; // tiles removed from DOM when image fully visible
 
   return (
     <>
@@ -177,12 +168,8 @@ export default function HomeHeroAdBanner() {
         <div
           onClick={e => { if (e.target === e.currentTarget) dismissPopup(); }}
           style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
+            position: 'fixed', inset: 0, zIndex: 9999,
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
             background:    scrimIn ? 'rgba(4,4,14,0.65)' : 'rgba(4,4,14,0)',
             backdropFilter:       scrimIn ? 'blur(6px) saturate(0.6)' : 'blur(0px) saturate(1)',
             WebkitBackdropFilter: scrimIn ? 'blur(6px) saturate(0.6)' : 'blur(0px) saturate(1)',
@@ -192,22 +179,19 @@ export default function HomeHeroAdBanner() {
               : `${NAV_H + 14}px 1.5rem 1.5rem`,
           }}
         >
-          {/* Card — static; the mosaic IS the animation (no card transform) */}
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              maxWidth: isMobile ? '100%' : '1400px',
-              borderRadius: isMobile ? '10px' : '14px',
-              overflow: 'hidden',
-              boxShadow: scrimIn
-                ? '0 40px 100px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.06)'
-                : '0 0 0 rgba(0,0,0,0)',
-              transition: 'box-shadow 500ms ease',
-              background: TILE_CLR,
-            }}
-          >
-            {/* ── Ad media (image or video) ─────────────────────────── */}
+          {/* Card */}
+          <div style={{
+            position: 'relative', width: '100%',
+            maxWidth: isMobile ? '100%' : '1400px',
+            borderRadius: isMobile ? '10px' : '14px',
+            overflow: 'hidden',
+            boxShadow: scrimIn
+              ? '0 40px 100px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.06)'
+              : '0 0 0 rgba(0,0,0,0)',
+            transition: 'box-shadow 500ms ease',
+            background: TILE_CLR,
+          }}>
+            {/* Ad media */}
             {popupAd.target_url?.trim() ? (
               <a href={popupAd.target_url} target="_blank" rel="noopener noreferrer nofollow"
                 title={popupAd.title ?? undefined}
@@ -220,32 +204,25 @@ export default function HomeHeroAdBanner() {
               </div>
             )}
 
-            {/* ── Mosaic tile overlay ───────────────────────────────── */}
-            {/* Removed from DOM once tiles have revealed (tilePhase='active')
-                Remounted with new keys when exiting to restart animation   */}
+            {/* Mosaic tile overlay — removed from DOM in 'active' phase */}
             {!isActive && (
-              <div
-                style={{
-                  position: 'absolute', inset: 0, zIndex: 5,
-                  display: 'grid',
-                  gridTemplateColumns: `repeat(${cols}, 1fr)`,
-                  gridTemplateRows:    `repeat(${rows}, 1fr)`,
-                  pointerEvents: 'none',
-                }}
-              >
+              <div style={{
+                position: 'absolute', inset: 0, zIndex: 5,
+                display: 'grid',
+                gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                gridTemplateRows:    `repeat(${rows}, 1fr)`,
+                pointerEvents: 'none',
+              }}>
                 {tiles.map(({ r, c, entryDelay, exitDelay }) => {
                   const isEntering = tilePhase === 'entering';
-                  const delay = isEntering ? entryDelay : exitDelay;
-                  const anim  = isEntering ? 'mo-tile-reveal' : 'mo-tile-cover';
                   return (
                     <div
                       key={`${tilePhase}-${r}-${c}`}
                       style={{
                         background: TILE_CLR,
-                        // Subtle grid lines between tiles — grid-gap alternative
                         outline: '0.5px solid rgba(255,255,255,0.04)',
                         willChange: 'transform, opacity',
-                        animation: `${anim} ${TILE_DUR}ms cubic-bezier(0.4,0,0.2,1) ${delay}ms both`,
+                        animation: `${isEntering ? 'mo-tile-reveal' : 'mo-tile-cover'} ${TILE_DUR}ms cubic-bezier(0.4,0,0.2,1) ${isEntering ? entryDelay : exitDelay}ms both`,
                       }}
                     />
                   );
@@ -253,7 +230,7 @@ export default function HomeHeroAdBanner() {
               </div>
             )}
 
-            {/* ── Close button ─────────────────────────────────────── */}
+            {/* Close button */}
             <button
               onClick={e => { e.stopPropagation(); dismissPopup(); }}
               aria-label="Зарыг хаах"
@@ -277,14 +254,14 @@ export default function HomeHeroAdBanner() {
               }}
             >✕</button>
 
-            {/* ── Countdown chip ───────────────────────────────────── */}
+            {/* Countdown chip */}
             <div style={{
               position: 'absolute', bottom: '14px', left: '14px', zIndex: 10,
               background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
               border: '1px solid rgba(255,255,255,0.14)',
               color: 'rgba(255,255,255,0.84)', fontSize: '11px',
               padding: '5px 12px', borderRadius: '20px',
-              letterSpacing: '0.4px', fontVariantNumeric: 'tabular-nums',
+              letterSpacing: '0.4px',
             }}>
               {countdown}с-ын дараа хаагдана
             </div>
@@ -293,7 +270,7 @@ export default function HomeHeroAdBanner() {
       )}
 
       {/* ══════════════════════════════════════════════════════════════════
-          INLINE BANNER — below Featured Courses, above Trending Articles
+          INLINE BANNER — below hero
       ══════════════════════════════════════════════════════════════════ */}
       {showBanner && bannerAd && bannerAd !== 'loading' && (
         <section style={{ padding: '0 2rem 2rem', maxWidth: '1400px', margin: '0 auto', position: 'relative' }}>
@@ -326,19 +303,17 @@ export default function HomeHeroAdBanner() {
         </section>
       )}
 
-      {/* ── Mosaic tile keyframes ──────────────────────────────────────────── */}
+      {/* Mosaic tile keyframes */}
       <style>{`
-        /* REVEAL: tile flips / scales away → image visible underneath */
         @keyframes mo-tile-reveal {
-          0%   { transform: perspective(300px) rotateX(0deg)    scale(1);   opacity: 1; }
-          45%  { transform: perspective(300px) rotateX(-55deg)  scale(0.7); opacity: 0.6; }
-          100% { transform: perspective(300px) rotateX(-90deg)  scale(0);   opacity: 0; }
+          0%   { transform: perspective(300px) rotateX(0deg)   scale(1);    opacity: 1; }
+          45%  { transform: perspective(300px) rotateX(-55deg) scale(0.7);  opacity: 0.6; }
+          100% { transform: perspective(300px) rotateX(-90deg) scale(0);    opacity: 0; }
         }
-        /* COVER: tile flips / scales in → image hidden again */
         @keyframes mo-tile-cover {
-          0%   { transform: perspective(300px) rotateX(90deg)   scale(0);   opacity: 0; }
-          55%  { transform: perspective(300px) rotateX(12deg)   scale(1.08); opacity: 0.9; }
-          100% { transform: perspective(300px) rotateX(0deg)    scale(1);   opacity: 1; }
+          0%   { transform: perspective(300px) rotateX(90deg)  scale(0);    opacity: 0; }
+          55%  { transform: perspective(300px) rotateX(12deg)  scale(1.08); opacity: 0.9; }
+          100% { transform: perspective(300px) rotateX(0deg)   scale(1);    opacity: 1; }
         }
       `}</style>
     </>
