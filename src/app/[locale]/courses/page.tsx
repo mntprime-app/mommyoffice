@@ -260,9 +260,9 @@ export default async function CoursesPage({
           })}
         </div>
 
-        {/* ── FOOTER AD ── */}
+        {/* ── SIDEBAR AD ── */}
         <div style={{ marginTop: '1rem' }}>
-          <LiveAdBanner slot="courses_sidebar" type="footer" />
+          <LiveAdBanner slot="courses_sidebar" type="sidebar" />
         </div>
       </div>
       <style>{`

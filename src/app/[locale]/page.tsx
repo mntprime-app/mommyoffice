@@ -9,6 +9,7 @@ import HeroWithModal from '@/components/shared/HeroWithModal';
 import { type ModalEpisode } from '@/components/ui/HeroDetailModal';
 import CarouselRow from '@/components/shared/CarouselRow';
 import { CategoryBadge, StatusBadge, PriceBadge } from '@/components/ui/CategoryBadge';
+import HomeHeroAdBanner from '@/components/ui/HomeHeroAdBanner';
 
 async function getFeaturedCourses() {
   const supabase = await createAdminClient();
@@ -219,6 +220,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </CarouselRow>
         </div>
       </section>}
+
+      {/* ═══════════════════════════════════════
+          HOME HERO AD — popup (8s) + inline banner
+          Slot: home_below_hero | managed in /admin/ads
+      ═══════════════════════════════════════ */}
+      <HomeHeroAdBanner />
 
       {/* ═══════════════════════════════════════
           ROW 2 — TRENDING ARTICLES
