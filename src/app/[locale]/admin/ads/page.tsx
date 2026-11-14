@@ -142,14 +142,13 @@ export default function AdminAdsPage() {
 
   async function handleSave() {
     setErr(null);
-    if (!form.target_url.trim()) { setErr('Target URL шаардлагатай'); return; }
     if (!form.media_url.trim()) { setErr('Медиа файл шаардлагатай'); return; }
 
     setSaving(true);
     const payload = {
       slot: form.slot,
       title: form.title.trim() || null,
-      target_url: form.target_url.trim(),
+      target_url: form.target_url.trim() || '',
       media_url: form.media_url.trim(),
       media_type: form.media_type,
       mobile_image_url: form.mobile_image_url.trim() || null,
@@ -233,7 +232,7 @@ export default function AdminAdsPage() {
 
             {/* Target URL */}
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', marginBottom: '6px', fontWeight: 600 }}>Очих URL <span style={{ color: '#ef4444' }}>*</span></label>
+              <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', marginBottom: '6px', fontWeight: 600 }}>Очих URL <span style={{ color: '#6b7280', fontWeight: 400 }}>(заавал биш)</span></label>
               <input value={form.target_url} onChange={(e) => set('target_url', e.target.value)} placeholder="https://example.com/product" style={{ width: '100%', padding: '9px 12px', background: '#1a1a1a', border: '1px solid #333', borderRadius: '8px', color: '#e5e5e5', fontSize: '13px', boxSizing: 'border-box' }} />
             </div>
 

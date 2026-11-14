@@ -55,43 +55,43 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
   }
 
   const isSidebar = type === 'sidebar';
+  const hasLink = !!ad.target_url?.trim();
 
-  return (
-    <a
-      href={ad.target_url}
-      target="_blank"
-      rel="noopener noreferrer nofollow"
-      title={ad.title ?? undefined}
-      style={{
-        display: 'block',
-        borderRadius: '10px',
-        overflow: 'hidden',
-        textDecoration: 'none',
-        width: '100%',
-        ...(isSidebar ? { minHeight: '250px' } : { minHeight: '80px' }),
-        background: '#111',
-        ...style,
-      }}
-    >
-      {ad.media_type === 'video' && !isMobile ? (
-        <video
-          src={ad.media_url}
-          autoPlay
-          muted
-          loop
-          playsInline
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
-      ) : (
-        // Desktop image ad OR mobile fallback image for video ad
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={isMobile && ad.mobile_image_url ? ad.mobile_image_url : ad.media_url}
-          alt={ad.title ?? 'Сурталчилгаа'}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          loading="lazy"
-        />
-      )}
+  const containerStyle: React.CSSProperties = {
+    display: 'block',
+    borderRadius: '10px',
+    overflow: 'hidden',
+    textDecoration: 'none',
+    width: '100%',
+    ...(isSidebar ? { minHeight: '250px' } : { minHeight: '80px' }),
+    background: '#111',
+    ...style,
+  };
+
+  const media = ad.media_type === 'video' && !isMobile ? (
+    <video
+      src={ad.media_url}
+      autoPlay
+      muted
+      loop
+      playsInline
+      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+    />
+  ) : (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={isMobile && ad.mobile_image_url ? ad.mobile_image_url : ad.media_url}
+      alt={ad.title ?? 'Сурталчилгаа'}
+      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+      loading="lazy"
+    />
+  );
+
+  return hasLink ? (
+    <a href={ad.target_url} target="_blank" rel="noopener noreferrer nofollow" title={ad.title ?? undefined} style={containerStyle}>
+      {media}
     </a>
+  ) : (
+    <div style={containerStyle}>{media}</div>
   );
 }

@@ -214,16 +214,22 @@ export default function HomeHeroAdBanner() {
               {countdown}с-ын дараа хаагдана
             </div>
 
-            {/* Ad content — clickable */}
-            <a
-              href={popupAd.target_url}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              title={popupAd.title ?? undefined}
-              style={{ display: 'block', aspectRatio: isMobile ? '4/3' : '16/6', background: '#111' }}
-            >
-              <AdMedia ad={popupAd} style={{ aspectRatio: 'inherit' }} />
-            </a>
+            {/* Ad content — clickable if target_url provided, otherwise just display */}
+            {popupAd.target_url?.trim() ? (
+              <a
+                href={popupAd.target_url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                title={popupAd.title ?? undefined}
+                style={{ display: 'block', aspectRatio: isMobile ? '4/3' : '16/6', background: '#111' }}
+              >
+                <AdMedia ad={popupAd} style={{ aspectRatio: 'inherit' }} />
+              </a>
+            ) : (
+              <div style={{ display: 'block', aspectRatio: isMobile ? '4/3' : '16/6', background: '#111' }}>
+                <AdMedia ad={popupAd} style={{ aspectRatio: 'inherit' }} />
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -264,19 +270,21 @@ export default function HomeHeroAdBanner() {
               ✕
             </button>
 
-            <a
-              href={bannerAd.target_url}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              title={bannerAd.title ?? undefined}
-              style={{
-                display: 'block',
-                width: '100%',
-                minHeight: isMobile ? '100px' : '120px',
-              }}
-            >
-              <AdMedia ad={bannerAd} />
-            </a>
+            {bannerAd.target_url?.trim() ? (
+              <a
+                href={bannerAd.target_url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                title={bannerAd.title ?? undefined}
+                style={{ display: 'block', width: '100%', minHeight: isMobile ? '100px' : '120px' }}
+              >
+                <AdMedia ad={bannerAd} />
+              </a>
+            ) : (
+              <div style={{ display: 'block', width: '100%', minHeight: isMobile ? '100px' : '120px' }}>
+                <AdMedia ad={bannerAd} />
+              </div>
+            )}
           </div>
         </section>
       )}
