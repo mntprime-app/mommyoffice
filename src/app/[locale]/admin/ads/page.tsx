@@ -222,6 +222,32 @@ export default function AdminAdsPage() {
                   <option key={k} value={k}>{v}</option>
                 ))}
               </select>
+              {/* Size guidance per slot */}
+              {form.slot === 'home_popup' && (
+                <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
+                  🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>976 × 350px</strong> (21:8) &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>800 × 400px</strong> (2:1) — мобайл зураг тусад нь оруулна
+                </p>
+              )}
+              {form.slot === 'home_below_hero' && (
+                <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
+                  🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>дүүрэн өргөн × 120px</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>дүүрэн өргөн × 100px</strong>
+                </p>
+              )}
+              {['articles_leaderboard', 'articles_footer'].includes(form.slot) && (
+                <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
+                  🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>{form.slot === 'articles_leaderboard' ? '728 × 90px' : '970 × 90px'}</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>320 × 50px</strong>
+                </p>
+              )}
+              {['articles_sidebar', 'article_sidebar', 'courses_sidebar', 'videos_sidebar'].includes(form.slot) && (
+                <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
+                  Хэмжээ: <strong style={{ color: '#9ca3af' }}>300 × 250px</strong>
+                </p>
+              )}
+              {form.slot === 'article_body_mobile' && (
+                <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
+                  📱 Зөвхөн мобайл: <strong style={{ color: '#9ca3af' }}>320 × 100px</strong>
+                </p>
+              )}
             </div>
 
             {/* Title */}
@@ -290,11 +316,13 @@ export default function AdminAdsPage() {
               )}
             </div>
 
-            {/* Mobile image fallback — only shown for video ads */}
-            {form.media_type === 'video' && (
+            {/* Mobile image fallback — shown for video ads + POP-UP slot (needs separate mobile crop) */}
+            {(form.media_type === 'video' || form.slot === 'home_popup') && (
               <div style={{ marginBottom: '14px', background: 'rgba(0,181,173,0.07)', border: '1px solid rgba(0,181,173,0.2)', borderRadius: '10px', padding: '12px 14px' }}>
                 <label style={{ display: 'block', fontSize: '12px', color: '#00B5AD', marginBottom: '6px', fontWeight: 700 }}>
-                  📱 Мобайл зураг (видео зарын мобайл дээрх орлуулга)
+                  {form.slot === 'home_popup'
+                    ? '📱 Мобайл зураг (800 × 400px — поп-ап мобайл хувилбар)'
+                    : '📱 Мобайл зураг (видео зарын мобайл дээрх орлуулга)'}
                 </label>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <button
@@ -337,7 +365,9 @@ export default function AdminAdsPage() {
                 )}
                 {!form.mobile_image_url && (
                   <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#6b7280' }}>
-                    Мобайл зураг оруулаагүй бол видео зар мобайл дээр харагдахгүй.
+                    {form.slot === 'home_popup'
+                      ? 'Мобайл зураг оруулаагүй бол desktop зураг 4:3 хайрцагт cropped харагдана.'
+                      : 'Мобайл зураг оруулаагүй бол видео зар мобайл дээр харагдахгүй.'}
                   </p>
                 )}
               </div>

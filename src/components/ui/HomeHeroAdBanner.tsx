@@ -147,13 +147,18 @@ export default function HomeHeroAdBanner() {
   // ── Media helper ───────────────────────────────────────────────────────────
   const AdMedia = ({ ad, style }: { ad: Ad; style?: React.CSSProperties }) => {
     const useVid = ad.media_type === 'video' && !isMobile;
-    const src    = isMobile && ad.mobile_image_url ? ad.mobile_image_url : ad.media_url;
+    const hasMobileImg = !!(isMobile && ad.mobile_image_url);
+    const src = hasMobileImg ? ad.mobile_image_url! : ad.media_url;
+    // On mobile without a dedicated mobile image, use 'contain' so the landscape
+    // desktop image doesn't get awkwardly cropped inside the 4:3 popup box.
+    const fit: React.CSSProperties['objectFit'] =
+      isMobile && !hasMobileImg ? 'contain' : 'cover';
     return useVid
       ? <video src={ad.media_url} autoPlay muted loop playsInline
-          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', ...style }} />
+          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', background:'#000', ...style }} />
       // eslint-disable-next-line @next/next/no-img-element
       : <img src={src} alt={ad.title ?? 'Сурталчилгаа'} loading="eager"
-          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', ...style }} />;
+          style={{ width:'100%', height:'100%', objectFit: fit, display:'block', background:'#000', ...style }} />;
   };
 
   const NAV_H  = isMobile ? 60 : 72;
