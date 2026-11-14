@@ -180,10 +180,15 @@ export default function HomeHeroAdBanner() {
             WebkitBackdropFilter: scrimIn ? 'blur(6px) saturate(0.6)' : 'blur(0px) saturate(1)',
             transition: 'background 500ms ease, backdrop-filter 500ms ease',
             padding: isMobile
-              ? `${NAV_H + 6}px 10px 10px`
+              ? `${NAV_H + 6}px 8px 10px`
               : `${NAV_H + 14}px 1.5rem 1.5rem`,
           }}
         >
+          {/* Card + countdown wrapper — column so countdown sits below the card */}
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            width: '100%', maxWidth: isMobile ? '100%' : '1400px', gap: '10px',
+          }}>
           {/* Card */}
           <div style={{
             position: 'relative', width: '100%',
@@ -196,15 +201,15 @@ export default function HomeHeroAdBanner() {
             transition: 'box-shadow 500ms ease',
             background: TILE_CLR,
           }}>
-            {/* Ad media */}
+            {/* Ad media — mobile: 2/1 matches 800×400 upload; desktop: 21/8 widescreen */}
             {popupAd.target_url?.trim() ? (
               <a href={popupAd.target_url} target="_blank" rel="noopener noreferrer nofollow"
                 title={popupAd.title ?? undefined}
-                style={{ display:'block', aspectRatio: isMobile ? '4/3' : '21/8' }}>
+                style={{ display:'block', aspectRatio: isMobile ? '2/1' : '21/8' }}>
                 <AdMedia ad={popupAd} />
               </a>
             ) : (
-              <div style={{ display:'block', aspectRatio: isMobile ? '4/3' : '21/8' }}>
+              <div style={{ display:'block', aspectRatio: isMobile ? '2/1' : '21/8' }}>
                 <AdMedia ad={popupAd} />
               </div>
             )}
@@ -284,18 +289,17 @@ export default function HomeHeroAdBanner() {
               }}
             >✕</button>
 
-            {/* Countdown chip */}
-            <div style={{
-              position: 'absolute', bottom: '14px', left: '14px', zIndex: 10,
-              background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255,255,255,0.14)',
-              color: 'rgba(255,255,255,0.84)', fontSize: '11px',
-              padding: '5px 12px', borderRadius: '20px',
-              letterSpacing: '0.4px',
-            }}>
-              {countdown}с-ын дараа хаагдана
-            </div>
           </div>
+
+          {/* Countdown — below the card, never overlaps ad content */}
+          <div style={{
+            color: 'rgba(255,255,255,0.5)', fontSize: '11px',
+            letterSpacing: '0.3px', userSelect: 'none',
+          }}>
+            {countdown}с-ын дараа хаагдана
+          </div>
+
+          </div>{/* end card+countdown wrapper */}
         </div>
       )}
 
