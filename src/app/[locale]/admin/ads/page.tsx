@@ -26,7 +26,8 @@ const SLOT_LABELS: Record<string, string> = {
   article_sidebar:      'Нийтлэл дэлгэрэнгүй — Sidebar (300×250)',
   courses_sidebar:      'Хичээлүүд — Sidebar (300×250)',
   videos_sidebar:       'Видеонууд — Sidebar (300×250)',
-  home_below_hero:      'Нүүр хуудас — Hero доор',
+  home_popup:           'Нүүр хуудас — Поп-ап (8с оверлей)',
+  home_below_hero:      'Нүүр хуудас — Hero доор (хөндлөн баннер)',
 };
 
 const EMPTY_FORM = {

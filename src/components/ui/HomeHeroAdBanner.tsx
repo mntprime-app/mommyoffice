@@ -17,7 +17,9 @@ const BANNER_SESSION_KEY = 'mo_homeBannerHidden';
 const POPUP_DURATION_MS = 8000;
 
 export default function HomeHeroAdBanner() {
-  const [ad, setAd] = useState<Ad | null | 'loading'>('loading');
+  // popup ad (home_popup slot) and banner ad (home_below_hero slot) are independent
+  const [popupAd,  setPopupAd]  = useState<Ad | null | 'loading'>('loading');
+  const [bannerAd, setBannerAd] = useState<Ad | null | 'loading'>('loading');
   const [isMobile, setIsMobile] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [isClosingPopup, setIsClosingPopup] = useState(false);
@@ -33,29 +35,41 @@ export default function HomeHeroAdBanner() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Fetch active ad for home_below_hero slot
+  // Fetch popup ad (home_popup slot)
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/ads/home_popup')
+      .then((r) => r.json())
+      .then(({ ad: result }) => { if (!cancelled) setPopupAd(result ?? null); })
+      .catch(() => { if (!cancelled) setPopupAd(null); });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Fetch inline banner ad (home_below_hero slot)
   useEffect(() => {
     let cancelled = false;
     fetch('/api/ads/home_below_hero')
       .then((r) => r.json())
-      .then(({ ad: result }) => { if (!cancelled) setAd(result ?? null); })
-      .catch(() => { if (!cancelled) setAd(null); });
+      .then(({ ad: result }) => { if (!cancelled) setBannerAd(result ?? null); })
+      .catch(() => { if (!cancelled) setBannerAd(null); });
     return () => { cancelled = true; };
   }, []);
 
-  // Once ad is loaded, determine initial visibility from sessionStorage
+  // Activate popup once its ad is loaded
   useEffect(() => {
-    if (ad === 'loading' || ad === null) return;
-    // If video ad on mobile with no fallback, still show banner but skip popup
-    const hasMedia = ad.media_type === 'image' || (ad.media_type === 'video' && (!isMobile || !!ad.mobile_image_url));
+    if (popupAd === 'loading' || popupAd === null) return;
+    const hasMedia = popupAd.media_type === 'image' || (popupAd.media_type === 'video' && (!isMobile || !!popupAd.mobile_image_url));
     if (!hasMedia) return;
+    if (!sessionStorage.getItem(POPUP_SESSION_KEY)) setShowPopup(true);
+  }, [popupAd, isMobile]);
 
-    const popupSeen = sessionStorage.getItem(POPUP_SESSION_KEY);
-    const bannerHidden = sessionStorage.getItem(BANNER_SESSION_KEY);
-
-    if (!popupSeen) setShowPopup(true);
-    if (!bannerHidden) setShowBanner(true);
-  }, [ad, isMobile]);
+  // Activate inline banner once its ad is loaded
+  useEffect(() => {
+    if (bannerAd === 'loading' || bannerAd === null) return;
+    const hasMedia = bannerAd.media_type === 'image' || (bannerAd.media_type === 'video' && (!isMobile || !!bannerAd.mobile_image_url));
+    if (!hasMedia) return;
+    if (!sessionStorage.getItem(BANNER_SESSION_KEY)) setShowBanner(true);
+  }, [bannerAd, isMobile]);
 
   // Auto-dismiss popup after POPUP_DURATION_MS
   useEffect(() => {
@@ -88,36 +102,29 @@ export default function HomeHeroAdBanner() {
     setShowBanner(false);
   }, []);
 
-  // Nothing to render
-  if (ad === 'loading' || ad === null) return null;
+  // Nothing to render if both slots empty
   if (!showPopup && !showBanner) return null;
 
-  // Resolve which media to show
-  const useVideo = ad.media_type === 'video' && !isMobile;
-  const imageSrc = isMobile && ad.mobile_image_url ? ad.mobile_image_url : ad.media_url;
-
-  // If video on mobile and no mobile_image_url — skip rendering entirely
-  if (ad.media_type === 'video' && isMobile && !ad.mobile_image_url) return null;
-
-  const AdMedia = ({ style }: { style?: React.CSSProperties }) =>
-    useVideo ? (
+  // Helper: build media element for a given ad
+  const AdMedia = ({ ad, style }: { ad: Ad; style?: React.CSSProperties }) => {
+    const useVid = ad.media_type === 'video' && !isMobile;
+    const src = isMobile && ad.mobile_image_url ? ad.mobile_image_url : ad.media_url;
+    return useVid ? (
       <video
         src={ad.media_url}
-        autoPlay
-        muted
-        loop
-        playsInline
+        autoPlay muted loop playsInline
         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', ...style }}
       />
     ) : (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={imageSrc}
+        src={src}
         alt={ad.title ?? 'Сурталчилгаа'}
         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', ...style }}
         loading="eager"
       />
     );
+  };
 
   return (
     <>
@@ -125,7 +132,7 @@ export default function HomeHeroAdBanner() {
           POPUP OVERLAY — full viewport, appears for 8 seconds
           on first homepage visit per session
       ══════════════════════════════════════════════════════ */}
-      {showPopup && (
+      {showPopup && popupAd && popupAd !== 'loading' && (
         <div
           style={{
             position: 'fixed',
@@ -202,13 +209,13 @@ export default function HomeHeroAdBanner() {
 
             {/* Ad content — clickable */}
             <a
-              href={ad.target_url}
+              href={popupAd.target_url}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              title={ad.title ?? undefined}
+              title={popupAd.title ?? undefined}
               style={{ display: 'block', aspectRatio: isMobile ? '4/3' : '16/6', background: '#111' }}
             >
-              <AdMedia style={{ aspectRatio: 'inherit' }} />
+              <AdMedia ad={popupAd} style={{ aspectRatio: 'inherit' }} />
             </a>
           </div>
         </div>
@@ -218,7 +225,7 @@ export default function HomeHeroAdBanner() {
           PERMANENT INLINE BANNER — below Featured Courses,
           above Trending Articles. Dismissible per session.
       ══════════════════════════════════════════════════════ */}
-      {showBanner && (
+      {showBanner && bannerAd && bannerAd !== 'loading' && (
         <section style={{ padding: '0 2rem 2rem', maxWidth: '1400px', margin: '0 auto', position: 'relative' }}>
           <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', background: '#111' }}>
             {/* Dismiss button */}
@@ -251,17 +258,17 @@ export default function HomeHeroAdBanner() {
             </button>
 
             <a
-              href={ad.target_url}
+              href={bannerAd.target_url}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              title={ad.title ?? undefined}
+              title={bannerAd.title ?? undefined}
               style={{
                 display: 'block',
                 width: '100%',
                 minHeight: isMobile ? '100px' : '120px',
               }}
             >
-              <AdMedia />
+              <AdMedia ad={bannerAd} />
             </a>
           </div>
         </section>
