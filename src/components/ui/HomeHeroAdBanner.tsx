@@ -58,7 +58,11 @@ export default function HomeHeroAdBanner() {
   // Activate popup once its ad is loaded
   useEffect(() => {
     if (popupAd === 'loading' || popupAd === null) return;
-    const hasMedia = popupAd.media_type === 'image' || (popupAd.media_type === 'video' && (!isMobile || !!popupAd.mobile_image_url));
+    // Guard: media_url must be a non-empty absolute URL
+    if (!popupAd.media_url || !popupAd.media_url.startsWith('http')) return;
+    // On mobile, video ads need a mobile_image_url fallback; skip otherwise
+    const hasMedia = popupAd.media_type === 'image' ||
+      (popupAd.media_type === 'video' && (!isMobile || !!popupAd.mobile_image_url));
     if (!hasMedia) return;
     if (!sessionStorage.getItem(POPUP_SESSION_KEY)) setShowPopup(true);
   }, [popupAd, isMobile]);
@@ -66,7 +70,10 @@ export default function HomeHeroAdBanner() {
   // Activate inline banner once its ad is loaded
   useEffect(() => {
     if (bannerAd === 'loading' || bannerAd === null) return;
-    const hasMedia = bannerAd.media_type === 'image' || (bannerAd.media_type === 'video' && (!isMobile || !!bannerAd.mobile_image_url));
+    // Guard: media_url must be a non-empty absolute URL
+    if (!bannerAd.media_url || !bannerAd.media_url.startsWith('http')) return;
+    const hasMedia = bannerAd.media_type === 'image' ||
+      (bannerAd.media_type === 'video' && (!isMobile || !!bannerAd.mobile_image_url));
     if (!hasMedia) return;
     if (!sessionStorage.getItem(BANNER_SESSION_KEY)) setShowBanner(true);
   }, [bannerAd, isMobile]);

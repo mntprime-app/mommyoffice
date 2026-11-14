@@ -53,31 +53,42 @@ export async function saveHomeConfig(config: Partial<HomeConfig>): Promise<{ err
 const BUCKET = 'mommyoffice-media';
 
 export async function uploadImage(formData: FormData, folder: string): Promise<{ error: string | null; url: string | null }> {
-  await assertAdmin();
-  const file = formData.get('file') as File | null;
-  if (!file) return { error: 'Файл олдсонгүй', url: null };
+  try {
+    await assertAdmin();
+    const file = formData.get('file') as File | null;
+    if (!file) return { error: 'Файл олдсонгүй', url: null };
 
-  const supabase = await createAdminClient();
+    // Reject clearly oversized uploads early (50MB hard cap)
+    const MAX_BYTES = 50 * 1024 * 1024;
+    if (file.size > MAX_BYTES) return { error: `Файл хэт том байна (макс 50MB)`, url: null };
 
-  // Ensure bucket exists (service role can create it; ignores error if already exists)
-  await supabase.storage.createBucket(BUCKET, { public: true, fileSizeLimit: 10485760 });
+    const supabase = await createAdminClient();
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  const ext = file.type === 'image/webp' ? 'webp' : (file.name.split('.').pop() || 'jpg');
-  const path = `${folder}/${Date.now()}.${ext}`;
+    // Ensure bucket exists — service role only; silently ignores "already exists"
+    await supabase.storage.createBucket(BUCKET, { public: true, fileSizeLimit: MAX_BYTES });
 
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, buffer, { upsert: true, contentType: file.type || 'image/webp' });
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const ext = file.type === 'image/webp' ? 'webp'
+              : file.type === 'video/mp4'   ? 'mp4'
+              : file.type === 'video/webm'  ? 'webm'
+              : (file.name.split('.').pop() || 'bin');
+    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-  if (error) return { error: error.message, url: null };
+    const { error } = await supabase.storage
+      .from(BUCKET)
+      .upload(path, buffer, { upsert: false, contentType: file.type || 'application/octet-stream' });
 
-  const { data: { publicUrl } } = supabase.storage
-    .from(BUCKET)
-    .getPublicUrl(path);
+    if (error) return { error: error.message, url: null };
 
-  return { error: null, url: publicUrl };
+    const { data: { publicUrl } } = supabase.storage
+      .from(BUCKET)
+      .getPublicUrl(path);
+
+    return { error: null, url: publicUrl };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Upload алдаа гарлаа', url: null };
+  }
 }
 
 // ─── COURSES ──────────────────────────────────────────────────────────────────

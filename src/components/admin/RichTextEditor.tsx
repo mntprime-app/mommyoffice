@@ -41,18 +41,22 @@ export default function RichTextEditor({ value, onChange, placeholder = 'HTML э
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
-      const fd = new FormData();
-      fd.append('file', file);
-      const { url, error } = await uploadImage(fd, folder);
-      if (url) {
-        const ta = ref.current;
-        if (!ta) return;
-        const pos  = ta.selectionStart;
-        const tag  = `<img src="${url}" alt="" style="max-width:100%;border-radius:8px;margin:1rem 0;" />`;
-        const next = ta.value.slice(0, pos) + tag + ta.value.slice(pos);
-        onChange(next);
-      } else {
-        alert('Зураг upload хийхэд алдаа: ' + error);
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const { url, error } = await uploadImage(fd, folder);
+        if (url) {
+          const ta = ref.current;
+          if (!ta) return;
+          const pos  = ta.selectionStart;
+          const tag  = `<img src="${url}" alt="" style="max-width:100%;border-radius:8px;margin:1rem 0;" />`;
+          const next = ta.value.slice(0, pos) + tag + ta.value.slice(pos);
+          onChange(next);
+        } else {
+          alert('Зураг upload хийхэд алдаа: ' + error);
+        }
+      } catch (err) {
+        alert('Зураг upload хийхэд алдаа: ' + (err instanceof Error ? err.message : 'Тодорхойгүй алдаа'));
       }
     };
     input.click();

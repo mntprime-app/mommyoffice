@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { listAds, createAd, updateAd, deleteAd } from './actions';
 import { uploadImage } from '@/app/actions/admin';
+import { compressImage, fmtSize } from '@/lib/imageCompress';
 
 type Ad = {
   id: string;
@@ -110,15 +111,33 @@ export default function AdminAdsPage() {
     // Reset so the same file can be re-selected on the next click
     e.target.value = '';
     setUploadingMedia(true);
-    const fd = new FormData();
-    fd.append('file', file);
-    const { error, url } = await uploadImage(fd, 'ads');
-    setUploadingMedia(false);
-    if (error) { setErr(`Медиа байршуулахад алдаа: ${error}`); return; }
-    set('media_url', url!);
-    // Auto-detect video
-    if (file.type.startsWith('video/')) set('media_type', 'video');
-    else set('media_type', 'image');
+    setErr(null);
+    try {
+      let uploadFile = file;
+      // Compress images to WebP before upload (videos go through as-is)
+      if (file.type.startsWith('image/')) {
+        try {
+          const before = file.size;
+          uploadFile = await compressImage(file, { preset: 'ads', fit: true, quality: 0.85 });
+          console.log(`[Ads] Image compressed: ${fmtSize(before)} → ${fmtSize(uploadFile.size)} (WebP)`);
+        } catch {
+          // Compression failed — upload original
+          uploadFile = file;
+        }
+      }
+      const fd = new FormData();
+      fd.append('file', uploadFile);
+      const { error, url } = await uploadImage(fd, 'ads');
+      if (error) { setErr(`Медиа байршуулахад алдаа: ${error}`); return; }
+      set('media_url', url!);
+      // Auto-detect type from original file
+      if (file.type.startsWith('video/')) set('media_type', 'video');
+      else set('media_type', 'image');
+    } catch (e) {
+      setErr(`Медиа байршуулахад алдаа: ${e instanceof Error ? e.message : 'Тодорхойгүй алдаа'}`);
+    } finally {
+      setUploadingMedia(false);
+    }
   }
 
   async function handleSave() {
@@ -294,12 +313,22 @@ export default function AdminAdsPage() {
                   if (!file) return;
                   e.target.value = '';
                   setUploadingMedia(true);
-                  const fd = new FormData();
-                  fd.append('file', file);
-                  const { error, url } = await uploadImage(fd, 'ads');
-                  setUploadingMedia(false);
-                  if (error) { setErr(`Мобайл зураг байршуулахад алдаа: ${error}`); return; }
-                  set('mobile_image_url', url!);
+                  setErr(null);
+                  try {
+                    let uploadFile = file;
+                    try {
+                      uploadFile = await compressImage(file, { preset: 'ads', fit: true, quality: 0.85 });
+                    } catch { uploadFile = file; }
+                    const fd = new FormData();
+                    fd.append('file', uploadFile);
+                    const { error, url } = await uploadImage(fd, 'ads');
+                    if (error) { setErr(`Мобайл зураг байршуулахад алдаа: ${error}`); return; }
+                    set('mobile_image_url', url!);
+                  } catch (e) {
+                    setErr(`Мобайл зураг байршуулахад алдаа: ${e instanceof Error ? e.message : 'Тодорхойгүй алдаа'}`);
+                  } finally {
+                    setUploadingMedia(false);
+                  }
                 }} style={{ display: 'none' }} />
                 {form.mobile_image_url && (
                   <div style={{ marginTop: '8px', borderRadius: '6px', overflow: 'hidden', height: '60px', background: '#0f0f0f' }}>
