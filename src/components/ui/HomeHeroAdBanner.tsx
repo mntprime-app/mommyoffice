@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 type Ad = {
   id: string;
@@ -20,8 +20,10 @@ export default function HomeHeroAdBanner() {
   const [ad, setAd] = useState<Ad | null | 'loading'>('loading');
   const [isMobile, setIsMobile] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [isClosingPopup, setIsClosingPopup] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const [countdown, setCountdown] = useState(8);
+  const closingRef = useRef(false); // prevents double-trigger during animation
 
   // Mobile detection
   useEffect(() => {
@@ -70,8 +72,15 @@ export default function HomeHeroAdBanner() {
   }, [showPopup]);
 
   const dismissPopup = useCallback(() => {
-    sessionStorage.setItem(POPUP_SESSION_KEY, '1');
-    setShowPopup(false);
+    if (closingRef.current) return; // already animating out — ignore
+    closingRef.current = true;
+    setIsClosingPopup(true); // triggers exit animation
+    setTimeout(() => {
+      sessionStorage.setItem(POPUP_SESSION_KEY, '1');
+      setShowPopup(false);
+      setIsClosingPopup(false);
+      closingRef.current = false;
+    }, 280); // matches moAdModalOut duration
   }, []);
 
   const dismissBanner = useCallback(() => {
@@ -127,7 +136,8 @@ export default function HomeHeroAdBanner() {
             alignItems: 'center',
             justifyContent: 'center',
             padding: isMobile ? '1rem' : '2rem',
-            animation: 'moAdFadeIn 0.3s ease',
+            // Overlay fades in/out independently of the modal card
+            animation: `${isClosingPopup ? 'moAdOverlayOut' : 'moAdOverlayIn'} 0.28s ease forwards`,
           }}
           onClick={(e) => { if (e.target === e.currentTarget) dismissPopup(); }}
         >
@@ -138,11 +148,13 @@ export default function HomeHeroAdBanner() {
             margin: '0 auto',
             borderRadius: '14px',
             overflow: 'hidden',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.7)',
+            // Modal card: spring-scale in, smooth scale-fade out
+            animation: `${isClosingPopup ? 'moAdModalOut' : 'moAdModalIn'} 0.32s ${isClosingPopup ? 'ease' : 'cubic-bezier(0.34,1.4,0.64,1)'} forwards`,
           }}>
-            {/* Close button — top right */}
+            {/* Close button — top right. stopPropagation prevents triggering the <a> link. */}
             <button
-              onClick={dismissPopup}
+              onClick={(e) => { e.stopPropagation(); dismissPopup(); }}
               aria-label="Зарыг хаах"
               style={{
                 position: 'absolute',
@@ -255,11 +267,20 @@ export default function HomeHeroAdBanner() {
         </section>
       )}
 
-      {/* Keyframe for fade-in animation */}
+      {/* Animation keyframes — overlay backdrop + modal card */}
       <style>{`
-        @keyframes moAdFadeIn {
-          from { opacity: 0; }
-          to   { opacity: 1; }
+        /* Overlay backdrop */
+        @keyframes moAdOverlayIn  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes moAdOverlayOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* Modal card — spring-scale entry, smooth exit */
+        @keyframes moAdModalIn {
+          from { opacity: 0; transform: scale(0.88) translateY(12px); }
+          to   { opacity: 1; transform: scale(1)    translateY(0px);  }
+        }
+        @keyframes moAdModalOut {
+          from { opacity: 1; transform: scale(1)    translateY(0px);  }
+          to   { opacity: 0; transform: scale(0.95) translateY(6px);  }
         }
       `}</style>
     </>
