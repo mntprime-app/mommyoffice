@@ -316,13 +316,18 @@ export default function AdminAdsPage() {
               )}
             </div>
 
-            {/* Mobile image fallback — shown for video ads + POP-UP slot (needs separate mobile crop) */}
-            {(form.media_type === 'video' || form.slot === 'home_popup') && (
+            {/* Mobile image fallback — shown for ALL slots except article_body_mobile
+                (that slot is mobile-only by definition — no desktop counterpart exists) */}
+            {form.slot !== 'article_body_mobile' && (
               <div style={{ marginBottom: '14px', background: 'rgba(0,181,173,0.07)', border: '1px solid rgba(0,181,173,0.2)', borderRadius: '10px', padding: '12px 14px' }}>
                 <label style={{ display: 'block', fontSize: '12px', color: '#00B5AD', marginBottom: '6px', fontWeight: 700 }}>
                   {form.slot === 'home_popup'
                     ? '📱 Мобайл зураг (800 × 400px — поп-ап мобайл хувилбар)'
-                    : '📱 Мобайл зураг (видео зарын мобайл дээрх орлуулга)'}
+                    : form.slot === 'home_below_hero'
+                    ? '📱 Мобайл зураг (дүүрэн өргөн × 100px — хөндлөн мобайл хувилбар)'
+                    : form.media_type === 'video'
+                    ? '📱 Мобайл зураг (видео зарын мобайл дээрх орлуулга)'
+                    : '📱 Мобайл зураг (мобайл дээрх хувилбар — заавал биш)'}
                 </label>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <button
@@ -365,9 +370,11 @@ export default function AdminAdsPage() {
                 )}
                 {!form.mobile_image_url && (
                   <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#6b7280' }}>
-                    {form.slot === 'home_popup'
-                      ? 'Мобайл зураг оруулаагүй бол desktop зураг 4:3 хайрцагт cropped харагдана.'
-                      : 'Мобайл зураг оруулаагүй бол видео зар мобайл дээр харагдахгүй.'}
+                    {form.media_type === 'video'
+                      ? 'Мобайл зураг оруулаагүй бол видео зар мобайл дээр харагдахгүй.'
+                      : form.slot === 'home_popup'
+                      ? 'Мобайл зураг оруулаагүй бол desktop зураг 2:1 хайрцагт харагдана.'
+                      : 'Мобайл зураг оруулаагүй бол desktop зурагтай адил зургийг ашиглана.'}
                   </p>
                 )}
               </div>

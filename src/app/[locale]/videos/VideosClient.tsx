@@ -533,7 +533,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
 
       {/* ══ AD BANNER ════════════════════════════════════════════════════════ */}
       <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'0 2rem 1rem' }}>
-        <LiveAdBanner slot="videos_sidebar" type="leaderboard" />
+        <LiveAdBanner slot="videos_sidebar" type="sidebar" />
       </div>
 
       {/* ══ COMING SOON: MOVIES ═══════════════════════════════════════════════ */}
