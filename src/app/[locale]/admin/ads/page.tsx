@@ -67,6 +67,8 @@ export default function AdminAdsPage() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [uploadingMobileImage, setUploadingMobileImage] = useState(false);
+  const [mobileUploadDone, setMobileUploadDone] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const imagePickerRef = useRef<HTMLInputElement>(null);
@@ -85,11 +87,13 @@ export default function AdminAdsPage() {
     setEditing(null);
     setForm({ ...EMPTY_FORM });
     setErr(null);
+    setMobileUploadDone(false);
     setShowForm(true);
   }
 
   function openEdit(ad: Ad) {
     setEditing(ad);
+    setMobileUploadDone(false);
     setForm({
       slot: ad.slot,
       title: ad.title ?? '',
@@ -332,19 +336,24 @@ export default function AdminAdsPage() {
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <button
                     onClick={() => mobileImageRef.current?.click()}
-                    style={{ padding: '7px 14px', background: '#2a2a2a', border: '1px solid #333', borderRadius: '8px', color: '#e5e5e5', fontSize: '12px', fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}
+                    disabled={uploadingMobileImage}
+                    style={{ padding: '7px 14px', background: '#2a2a2a', border: '1px solid #333', borderRadius: '8px', color: '#e5e5e5', fontSize: '12px', fontWeight: 600, cursor: uploadingMobileImage ? 'not-allowed' : 'pointer', flexShrink: 0, opacity: uploadingMobileImage ? 0.6 : 1 }}
                   >
-                    📁 Мобайл зураг сонгох
+                    {uploadingMobileImage ? '⏳ Байршуулж байна...' : '📁 Мобайл зураг сонгох'}
                   </button>
-                  {form.mobile_image_url && (
-                    <span style={{ fontSize: '11px', color: '#10b981' }}>✓ Байршуулагдлаа</span>
+                  {mobileUploadDone && !uploadingMobileImage && (
+                    <span style={{ fontSize: '11px', color: '#10b981' }}>✓ Шинэ зураг байршуулагдлаа</span>
+                  )}
+                  {!mobileUploadDone && form.mobile_image_url && !uploadingMobileImage && (
+                    <span style={{ fontSize: '11px', color: '#6b7280' }}>✓ Зураг байна</span>
                   )}
                 </div>
                 <input ref={mobileImageRef} type="file" accept="image/*" onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
                   e.target.value = '';
-                  setUploadingMedia(true);
+                  setUploadingMobileImage(true);
+                  setMobileUploadDone(false);
                   setErr(null);
                   try {
                     let uploadFile = file;
@@ -356,10 +365,11 @@ export default function AdminAdsPage() {
                     const { error, url } = await uploadImage(fd, 'ads');
                     if (error) { setErr(`Мобайл зураг байршуулахад алдаа: ${error}`); return; }
                     set('mobile_image_url', url!);
+                    setMobileUploadDone(true);
                   } catch (e) {
                     setErr(`Мобайл зураг байршуулахад алдаа: ${e instanceof Error ? e.message : 'Тодорхойгүй алдаа'}`);
                   } finally {
-                    setUploadingMedia(false);
+                    setUploadingMobileImage(false);
                   }
                 }} style={{ display: 'none' }} />
                 {form.mobile_image_url && (

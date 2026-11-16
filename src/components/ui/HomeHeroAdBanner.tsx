@@ -8,6 +8,26 @@ type Ad = {
   media_type: 'image' | 'video'; mobile_image_url: string | null;
 };
 
+// ── Module-level component — MUST be outside HomeHeroAdBanner ─────────────
+// If AdMedia is defined inside the render function, React creates a new
+// component reference every render → unmounts/remounts the <video> element
+// on every state change → autoplay is destroyed → banner appears static.
+// By placing it here (module level) the reference is stable forever.
+function AdMedia({ ad, isMobile, style }: { ad: Ad; isMobile: boolean; style?: React.CSSProperties }) {
+  const useVid    = ad.media_type === 'video' && !isMobile;
+  const hasMobImg = !!(isMobile && ad.mobile_image_url);
+  const src       = hasMobImg ? ad.mobile_image_url! : ad.media_url;
+  // Desktop-only 11:1 image letterboxed in a 100px mobile box → use contain.
+  // With a dedicated 390×100px mobile upload → cover fills perfectly.
+  const fit: React.CSSProperties['objectFit'] = isMobile && !hasMobImg ? 'contain' : 'cover';
+  return useVid
+    ? <video src={ad.media_url} autoPlay muted loop playsInline
+        style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', background:'#000', ...style }} />
+    // eslint-disable-next-line @next/next/no-img-element
+    : <img src={src} alt={ad.title ?? 'Сурталчилгаа'} loading="eager"
+        style={{ width:'100%', height:'100%', objectFit: fit, display:'block', background:'#000', ...style }} />;
+}
+
 const POPUP_SESSION_KEY  = 'mo_homePopupSeen';
 const BANNER_SESSION_KEY = 'mo_homeBannerHidden';
 const POPUP_DURATION_MS  = 8000;
@@ -149,23 +169,6 @@ export default function HomeHeroAdBanner() {
   // ── Early exit — only after every hook ────────────────────────────────────
   if (!showPopup && !showBanner) return null;
 
-  // ── Media helper ───────────────────────────────────────────────────────────
-  const AdMedia = ({ ad, style }: { ad: Ad; style?: React.CSSProperties }) => {
-    const useVid = ad.media_type === 'video' && !isMobile;
-    const hasMobileImg = !!(isMobile && ad.mobile_image_url);
-    const src = hasMobileImg ? ad.mobile_image_url! : ad.media_url;
-    // On mobile without a dedicated mobile image, use 'contain' so the landscape
-    // desktop image doesn't get awkwardly cropped inside the 4:3 popup box.
-    const fit: React.CSSProperties['objectFit'] =
-      isMobile && !hasMobileImg ? 'contain' : 'cover';
-    return useVid
-      ? <video src={ad.media_url} autoPlay muted loop playsInline
-          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', background:'#000', ...style }} />
-      // eslint-disable-next-line @next/next/no-img-element
-      : <img src={src} alt={ad.title ?? 'Сурталчилгаа'} loading="eager"
-          style={{ width:'100%', height:'100%', objectFit: fit, display:'block', background:'#000', ...style }} />;
-  };
-
   const NAV_H  = isMobile ? 60 : 72;
   const isActive = tilePhase === 'active'; // tiles removed from DOM when image fully visible
 
@@ -211,11 +214,11 @@ export default function HomeHeroAdBanner() {
               <a href={popupAd.target_url} target="_blank" rel="noopener noreferrer nofollow"
                 title={popupAd.title ?? undefined}
                 style={{ display:'block', aspectRatio: isMobile ? '2/1' : '21/8' }}>
-                <AdMedia ad={popupAd} />
+                <AdMedia ad={popupAd} isMobile={isMobile} />
               </a>
             ) : (
               <div style={{ display:'block', aspectRatio: isMobile ? '2/1' : '21/8' }}>
-                <AdMedia ad={popupAd} />
+                <AdMedia ad={popupAd} isMobile={isMobile} />
               </div>
             )}
 
@@ -333,11 +336,11 @@ export default function HomeHeroAdBanner() {
               <a href={bannerAd.target_url} target="_blank" rel="noopener noreferrer nofollow"
                 title={bannerAd.title ?? undefined}
                 style={{ display:'block', width:'100%', height: isMobile ? '100px' : '120px' }}>
-                <AdMedia ad={bannerAd} />
+                <AdMedia ad={bannerAd} isMobile={isMobile} />
               </a>
             ) : (
               <div style={{ display:'block', width:'100%', height: isMobile ? '100px' : '120px' }}>
-                <AdMedia ad={bannerAd} />
+                <AdMedia ad={bannerAd} isMobile={isMobile} />
               </div>
             )}
           </div>
