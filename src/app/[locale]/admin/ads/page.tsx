@@ -230,7 +230,7 @@ export default function AdminAdsPage() {
               )}
               {form.slot === 'home_below_hero' && (
                 <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
-                  🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>дүүрэн өргөн × 120px</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>дүүрэн өргөн × 100px</strong>
+                  🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>1336 × 120px</strong> (11:1) &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>390 × 100px</strong> (3.9:1) — мобайл зураг тусад нь оруулна
                 </p>
               )}
               {['articles_leaderboard', 'articles_footer'].includes(form.slot) && (
@@ -324,7 +324,7 @@ export default function AdminAdsPage() {
                   {form.slot === 'home_popup'
                     ? '📱 Мобайл зураг (800 × 400px — поп-ап мобайл хувилбар)'
                     : form.slot === 'home_below_hero'
-                    ? '📱 Мобайл зураг (дүүрэн өргөн × 100px — хөндлөн мобайл хувилбар)'
+                    ? '📱 Мобайл зураг (390 × 100px — хөндлөн мобайл хувилбар)'
                     : form.media_type === 'video'
                     ? '📱 Мобайл зураг (видео зарын мобайл дээрх орлуулга)'
                     : '📱 Мобайл зураг (мобайл дээрх хувилбар — заавал биш)'}

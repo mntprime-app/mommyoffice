@@ -8,7 +8,7 @@
 | Code | Slot ID (DB) | Page | Location | Desktop Size | Mobile Size | Status |
 |------|-------------|------|----------|-------------|-------------|--------|
 | **POP-UP** | `home_popup` | Homepage | Full-viewport 8s overlay, first visit | 1100×413px (16:6 ratio) | 100vw × 75vw (4:3 ratio) | ✅ Live |
-| **H1** | `home_below_hero` | Homepage | Between Онцлох хичээлүүд & Трэндинг нийтлэл | Full width × 120px | Full width × 100px | ✅ Live |
+| **H1** | `home_below_hero` | Homepage | Between Онцлох хичээлүүд & Трэндинг нийтлэл | 1336 × 120px (11:1) | 390 × 100px (3.9:1) | ✅ Live |
 | **A1** | `articles_leaderboard` | Articles list | Mid-content horizontal | 728×90px | 320×50px | ✅ Live |
 | **A2** | `articles_sidebar` | Articles list | Right sidebar | 300×250px | 300×250px | ✅ Live |
 | **A3** | `articles_footer` | Articles list | Bottom of page | 970×90px | 320×50px | ✅ Live |
@@ -30,7 +30,9 @@
 
 ### H1 — `home_below_hero`
 - **What it does:** Permanent horizontal banner strip between Featured Courses and Trending Articles sections. Has ✕ dismiss button (hides for session).
-- **Desktop/Mobile:** Same image/video behavior as POP-UP
+- **Desktop canvas:** 1336 × 120px — container is `maxWidth: 1400px` with 32px padding each side
+- **Mobile canvas:** 390 × 100px — standard mobile viewport safe zone (minimum 326px on small phones)
+- **Design note:** Upload separate mobile image — aspect ratios differ significantly (11:1 desktop vs 3.9:1 mobile). Use `objectFit: cover` so keep key content centered.
 - **Admin label:** `[H1] Нүүр хуудас — Hero доор хөндлөн`
 
 ---
