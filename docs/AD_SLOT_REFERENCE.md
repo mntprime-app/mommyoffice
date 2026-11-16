@@ -31,8 +31,8 @@
 ### H1 — `home_below_hero`
 - **What it does:** Permanent horizontal banner strip between Featured Courses and Trending Articles sections. Has ✕ dismiss button (hides for session).
 - **Desktop canvas:** 1336 × 120px — container is `maxWidth: 1400px` with 32px padding each side
-- **Mobile canvas:** 390 × 100px — standard mobile viewport safe zone (minimum 326px on small phones)
-- **Design note:** Upload separate mobile image — aspect ratios differ significantly (11:1 desktop vs 3.9:1 mobile). Use `objectFit: cover` so keep key content centered.
+- **Mobile canvas:** 390 × 100px — full-bleed on mobile (no side padding), designs edge-to-edge
+- **Design note:** Upload separate mobile image — aspect ratios differ significantly (11:1 desktop vs 3.9:1 mobile). Keep key content centered within the 390px width.
 - **Admin label:** `[H1] Нүүр хуудас — Hero доор хөндлөн`
 
 ---

@@ -312,8 +312,10 @@ export default function HomeHeroAdBanner() {
           INLINE BANNER — below hero
       ══════════════════════════════════════════════════════════════════ */}
       {showBanner && bannerAd && bannerAd !== 'loading' && (
-        <section style={{ padding: '0 2rem 2rem', maxWidth: '1400px', margin: '0 auto', position: 'relative' }}>
-          <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', background: '#111' }}>
+        <section style={{ padding: isMobile ? '0 0 2rem' : '0 2rem 2rem', maxWidth: '1400px', margin: '0 auto', position: 'relative' }}>
+          {/* Mobile: full-bleed (no radius) so 390×100px image shows edge-to-edge without cropping.
+              Desktop: rounded card with side padding, same as before. */}
+          <div style={{ position: 'relative', borderRadius: isMobile ? '0' : '10px', overflow: 'hidden', background: '#111' }}>
             <button
               onClick={dismissBanner} aria-label="Зарыг нуух"
               style={{
