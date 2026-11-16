@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'; // useCallback kept for dismissPopup
 
 type Ad = {
   id: string; slot: string; title: string | null;
@@ -29,7 +29,7 @@ function AdMedia({ ad, isMobile, style }: { ad: Ad; isMobile: boolean; style?: R
 }
 
 const POPUP_SESSION_KEY  = 'mo_homePopupSeen';
-const BANNER_SESSION_KEY = 'mo_homeBannerHidden';
+// H1 banner has no dismiss — it is a permanent paid ad placement.
 const POPUP_DURATION_MS  = 8000;
 
 // ── Mosaic tile grid config ────────────────────────────────────────────────────
@@ -115,7 +115,8 @@ export default function HomeHeroAdBanner() {
     const hasMedia = isMobile
       ? !!bannerAd.mobile_image_url
       : bannerAd.media_type === 'image' || bannerAd.media_type === 'video';
-    if (!hasMedia || sessionStorage.getItem(BANNER_SESSION_KEY)) return;
+    if (!hasMedia) return;
+    // No sessionStorage check — H1 is a permanent paid placement, never dismissable.
     setShowBanner(true);
   }, [bannerAd, isMobile]);
 
@@ -141,11 +142,6 @@ export default function HomeHeroAdBanner() {
       setShowPopup(false);
       closingRef.current = false;
     }, totalMs(cols, rows) + 80);
-  }, []);
-
-  const dismissBanner = useCallback(() => {
-    sessionStorage.setItem(BANNER_SESSION_KEY, '1');
-    setShowBanner(false);
   }, []);
 
   // ── Tile grid — ALL hooks must be above any early return ───────────────────
@@ -319,19 +315,6 @@ export default function HomeHeroAdBanner() {
           {/* Mobile: full-bleed (no radius) so 390×100px image shows edge-to-edge without cropping.
               Desktop: rounded card with side padding, same as before. */}
           <div style={{ position: 'relative', borderRadius: isMobile ? '0' : '10px', overflow: 'hidden', background: '#111' }}>
-            <button
-              onClick={dismissBanner} aria-label="Зарыг нуух"
-              style={{
-                position: 'absolute', top: '8px', right: '8px', zIndex: 10,
-                width: '28px', height: '28px', borderRadius: '50%',
-                background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.2)',
-                color: 'rgba(255,255,255,0.75)', fontSize: '12px', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                backdropFilter: 'blur(3px)', transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.85)')}
-              onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.55)')}
-            >✕</button>
             {bannerAd.target_url?.trim() ? (
               <a href={bannerAd.target_url} target="_blank" rel="noopener noreferrer nofollow"
                 title={bannerAd.title ?? undefined}
