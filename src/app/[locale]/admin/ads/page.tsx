@@ -451,11 +451,13 @@ export default function AdminAdsPage() {
             const active = ads.filter((a) => a.slot === k && a.is_active).length;
             return (
               <div key={k} style={{ background: '#0f0f0f', borderRadius: '8px', padding: '10px 12px', border: '1px solid #222' }}>
-                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#e5e5e5', fontWeight: 600 }}>{v}</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#e5e5e5', fontWeight: 600, flexShrink: 1, minWidth: 0 }}>{v}</p>
+                  <span style={{ fontSize: '10px', whiteSpace: 'nowrap', flexShrink: 0, fontWeight: 600, color: active > 0 ? '#10b981' : '#555' }}>
+                    {active > 0 ? `✓ ${active} идэвхтэй` : count > 0 ? `⚠ ${count} идэвхгүй` : '— хоосон'}
+                  </span>
+                </div>
                 <p style={{ margin: 0, fontSize: '10px', color: '#555', fontFamily: 'monospace' }}>{k}</p>
-                <p style={{ margin: '6px 0 0', fontSize: '11px', color: active > 0 ? '#10b981' : '#555' }}>
-                  {active > 0 ? `✓ ${active} идэвхтэй` : count > 0 ? `⚠ ${count} идэвхгүй` : '— хоосон'}
-                </p>
               </div>
             );
           })}
