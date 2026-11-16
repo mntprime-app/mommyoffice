@@ -57,13 +57,21 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
   const isSidebar = type === 'sidebar';
   const hasLink = !!ad.target_url?.trim();
 
+  // On mobile for non-sidebar slots (leaderboard/footer/mobile), we let the
+  // image dictate its own height so nothing gets cropped. `height: '100%'`
+  // only works against an explicit parent height — not minHeight — so images
+  // in a minHeight container effectively get objectFit: cover against 0px,
+  // causing the bottom of the banner to be cut off. On mobile we use
+  // `height: auto` + `objectFit: unset` so the full banner is always visible.
+  const mobileNonSidebar = isMobile && !isSidebar;
+
   const containerStyle: React.CSSProperties = {
     display: 'block',
     borderRadius: '10px',
     overflow: 'hidden',
     textDecoration: 'none',
     width: '100%',
-    ...(isSidebar ? { minHeight: '250px' } : { minHeight: '80px' }),
+    ...(isSidebar ? { minHeight: '250px' } : mobileNonSidebar ? {} : { minHeight: '80px' }),
     background: '#111',
     ...style,
   };
@@ -82,7 +90,12 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
     <img
       src={isMobile && ad.mobile_image_url ? ad.mobile_image_url : ad.media_url}
       alt={ad.title ?? 'Сурталчилгаа'}
-      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+      style={mobileNonSidebar
+        // Mobile: natural height — image fills full width, no cropping
+        ? { width: '100%', height: 'auto', display: 'block' }
+        // Desktop: fill the fixed-height container with cover crop
+        : { width: '100%', height: '100%', objectFit: 'cover', display: 'block' }
+      }
       loading="lazy"
     />
   );
