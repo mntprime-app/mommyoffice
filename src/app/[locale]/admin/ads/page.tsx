@@ -473,50 +473,89 @@ export default function AdminAdsPage() {
             Эхний зар нэмэх
           </button>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {ads.map((ad) => (
-            <div key={ad.id} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', border: '1px solid #2a2a2a', borderRadius: '10px', background: '#1a1a1a' }}>
-              {/* Media preview */}
-              <div style={{ width: '60px', height: '40px', borderRadius: '6px', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
-                {ad.media_type === 'video'
-                  ? <video src={ad.media_url} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  // eslint-disable-next-line @next/next/no-img-element
-                  : <img src={ad.media_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                }
-              </div>
+      ) : (() => {
+          // Group ads by slot so the rotation count is immediately visible
+          const slotOrder = Object.keys(SLOT_LABELS);
+          const grouped = slotOrder
+            .map(slot => ({ slot, items: ads.filter(a => a.slot === slot) }))
+            .filter(g => g.items.length > 0);
+          // Append any ads whose slot isn't in SLOT_LABELS (future-proof)
+          const knownSlots = new Set(slotOrder);
+          const extra = ads.filter(a => !knownSlots.has(a.slot));
+          if (extra.length) grouped.push({ slot: 'other', items: extra });
 
-              {/* Info */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 600, color: '#e5e5e5' }}>{ad.title || '(гарчиггүй)'}</span>
-                  <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '6px', background: ad.is_active ? 'rgba(16,185,129,0.15)' : 'rgba(107,114,128,0.15)', color: ad.is_active ? '#10b981' : '#6b7280', fontWeight: 700 }}>
-                    {ad.is_active ? '● Идэвхтэй' : '○ Идэвхгүй'}
-                  </span>
-                  <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '6px', background: 'rgba(99,102,241,0.15)', color: '#818cf8', fontWeight: 600 }}>
-                    {ad.media_type === 'video' ? '🎬 Видео' : '🖼 Зураг'}
-                  </span>
-                </div>
-                <p style={{ margin: 0, fontSize: '11px', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {SLOT_LABELS[ad.slot] || ad.slot} · <a href={ad.target_url} target="_blank" rel="noopener noreferrer" style={{ color: '#00B5AD', textDecoration: 'none' }}>{ad.target_url}</a>
-                </p>
-              </div>
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {grouped.map(({ slot, items }) => {
+                const activeCount = items.filter(a => a.is_active).length;
+                return (
+                  <div key={slot}>
+                    {/* Slot group header */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #222' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                        {SLOT_LABELS[slot] || slot}
+                      </span>
+                      {activeCount > 1 && (
+                        <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: 'rgba(0,181,173,0.15)', color: '#00B5AD', fontWeight: 700, border: '1px solid rgba(0,181,173,0.3)' }}>
+                          🔄 {activeCount} зар ротейшнд
+                        </span>
+                      )}
+                      {activeCount === 1 && (
+                        <span style={{ fontSize: '10px', color: '#10b981', fontWeight: 600 }}>✓ 1 идэвхтэй</span>
+                      )}
+                      {activeCount === 0 && (
+                        <span style={{ fontSize: '10px', color: '#555', fontWeight: 600 }}>○ идэвхгүй</span>
+                      )}
+                    </div>
 
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                <button
-                  onClick={() => handleToggle(ad.id, ad.is_active)}
-                  style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, border: 'none', cursor: 'pointer', background: ad.is_active ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)', color: ad.is_active ? '#f59e0b' : '#10b981' }}
-                >
-                  {ad.is_active ? 'Зогсоох' : 'Идэвхжүүлэх'}
-                </button>
-                <button onClick={() => openEdit(ad)} style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, background: '#2a2a2a', color: '#e5e5e5', border: '1px solid #333', cursor: 'pointer' }}>Засах</button>
-                <button onClick={() => handleDelete(ad.id, ad.title || '')} style={{ padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: 'none', cursor: 'pointer' }}>Устгах</button>
-              </div>
+                    {/* Ads in this slot */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {items.map((ad) => (
+                        <div key={ad.id} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 14px', border: `1px solid ${ad.is_active ? 'rgba(16,185,129,0.2)' : '#222'}`, borderRadius: '10px', background: '#1a1a1a' }}>
+                          {/* Thumbnail */}
+                          <div style={{ width: '56px', height: '36px', borderRadius: '5px', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
+                            {ad.media_type === 'video'
+                              ? <video src={ad.media_url} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              // eslint-disable-next-line @next/next/no-img-element
+                              : <img src={ad.media_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            }
+                          </div>
+
+                          {/* Info row — all inline */}
+                          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#e5e5e5', marginRight: '2px' }}>
+                              {ad.title || '(гарчиггүй)'}
+                            </span>
+                            <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '5px', background: ad.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(107,114,128,0.12)', color: ad.is_active ? '#10b981' : '#6b7280', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                              {ad.is_active ? '● Идэвхтэй' : '○ Идэвхгүй'}
+                            </span>
+                            <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '5px', background: 'rgba(99,102,241,0.12)', color: '#818cf8', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                              {ad.media_type === 'video' ? '🎬 Видео' : '🖼 Зураг'}
+                            </span>
+                            {ad.target_url && (
+                              <a href={ad.target_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '10px', color: '#00B5AD', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px' }}>
+                                {ad.target_url.replace(/^https?:\/\//, '')}
+                              </a>
+                            )}
+                          </div>
+
+                          {/* Actions */}
+                          <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                            <button onClick={() => handleToggle(ad.id, ad.is_active)} style={{ padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, border: 'none', cursor: 'pointer', background: ad.is_active ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)', color: ad.is_active ? '#f59e0b' : '#10b981', whiteSpace: 'nowrap' }}>
+                              {ad.is_active ? 'Зогсоох' : 'Идэвхжүүлэх'}
+                            </button>
+                            <button onClick={() => openEdit(ad)} style={{ padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, background: '#2a2a2a', color: '#e5e5e5', border: '1px solid #333', cursor: 'pointer' }}>Засах</button>
+                            <button onClick={() => handleDelete(ad.id, ad.title || '')} style={{ padding: '5px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: 'none', cursor: 'pointer' }}>Устгах</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      )}
+          );
+        })()}
     </div>
   );
 }
