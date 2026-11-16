@@ -11,6 +11,18 @@
 
 ## Session Log
 
+### Session 53 — 2026-11-16 — Ad Banner System Complete: Video Fix + Mobile No-Crop + H1 Permanent + Random Rotation + Admin Grouped UI
+
+**Commits:** `7202fdf`, `3e59e54`, `c1c568d`, `113ab61`, `126fbdb`, `2b37d09`
+
+**Focus:** Six workstreams completing the full ad banner system. (1) H1 desktop video not animating — root cause: `AdMedia` defined inside render body, new React reference every render, `<video>` unmounted/remounted on every state change destroying autoplay. Fix: moved `AdMedia` to module level with `isMobile` prop. (2) Mobile A1 banner cropped at bottom — root cause: `height: 100%` on `<img>` resolves against explicit `height` not `minHeight`; container used `minHeight` so child resolved to 0px and `objectFit: cover` cropped bottom off. Fix: `mobileNonSidebar` flag removes `minHeight` from container and uses `height: auto` on img. Applied to all non-sidebar slots via `LiveAdBanner.tsx`. (3) H1 dismiss button removed — paid placement is permanent; removed ✕ button, `BANNER_SESSION_KEY`, `dismissBanner` callback, and all sessionStorage logic for the inline banner. (4) Random rotation engine — API changed from `.limit(1).single()` to fetch ALL active in-schedule ads + `Math.random()` selection; `Cache-Control: no-store` for true per-request randomization. No DB schema changes, no component changes (API shape unchanged). (5) Admin UI grouped by slot — slot groups with rotation badge (`🔄 N зар ротейшнд` teal / `✓ 1 идэвхтэй` green / `○ идэвхгүй` grey), active ads highlighted with green border, all info inline (title · status · type · URL). Mobile image upload loading/done states added. (6) Slot summary cards inline badge — flex `justify-content: space-between` so title and status badge sit on one row.
+
+**Ad banner system — fully live and complete:** POP-UP mosaic animation, H1 permanent full-bleed, all slots mobile no-crop, random rotation across all slots, clean grouped admin UI.
+
+**Session note:** `docs/sessions/SESSION_NOTES_2026_11_16_S53.md`
+
+---
+
 ### Session 51 — 2026-11-14 — Ad Slot Codes + Upload Fix + Compression + Mosaic Popup Animation + Mobile Polish
 
 **Commits:** `d2a0983`, `a7950c2`, `d3199a5` (HOTFIX), `a834bde`, `4257874`, `0fd76b8`, `1bc27fc`
