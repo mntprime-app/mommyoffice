@@ -88,8 +88,13 @@ export default function HomeHeroAdBanner() {
   useEffect(() => {
     if (bannerAd === 'loading' || !bannerAd) return;
     if (!bannerAd.media_url?.startsWith('http')) return;
-    const hasMedia = bannerAd.media_type === 'image' ||
-      (bannerAd.media_type === 'video' && (!isMobile || !!bannerAd.mobile_image_url));
+    // On mobile: image ads require a dedicated mobile_image_url (desktop 11:1 image
+    // letterboxes to ~34px tall in a 100px box — not usable). Video ads also require
+    // mobile_image_url (can't autoplay video on mobile). Neither shows on mobile
+    // without a proper 390×100px mobile upload.
+    const hasMedia = isMobile
+      ? !!bannerAd.mobile_image_url
+      : bannerAd.media_type === 'image' || bannerAd.media_type === 'video';
     if (!hasMedia || sessionStorage.getItem(BANNER_SESSION_KEY)) return;
     setShowBanner(true);
   }, [bannerAd, isMobile]);
@@ -325,11 +330,11 @@ export default function HomeHeroAdBanner() {
             {bannerAd.target_url?.trim() ? (
               <a href={bannerAd.target_url} target="_blank" rel="noopener noreferrer nofollow"
                 title={bannerAd.title ?? undefined}
-                style={{ display:'block', width:'100%', minHeight: isMobile ? '100px' : '120px' }}>
+                style={{ display:'block', width:'100%', height: isMobile ? '100px' : '120px' }}>
                 <AdMedia ad={bannerAd} />
               </a>
             ) : (
-              <div style={{ display:'block', width:'100%', minHeight: isMobile ? '100px' : '120px' }}>
+              <div style={{ display:'block', width:'100%', height: isMobile ? '100px' : '120px' }}>
                 <AdMedia ad={bannerAd} />
               </div>
             )}
