@@ -73,6 +73,11 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style, mobile
 
   const mh = `${mobileHeight}px`;
 
+  // On mobile horizontal slots:
+  //   - mobile image uploaded → cover + fixed mobileHeight (fills 390×100 perfectly)
+  //   - no mobile image (desktop fallback) → height: auto, natural proportions, no bars/crop
+  const hasMobileImg = isMobile && !!ad.mobile_image_url;
+
   const containerStyle: React.CSSProperties = {
     display: 'block',
     borderRadius: '10px',
@@ -80,18 +85,13 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style, mobile
     textDecoration: 'none',
     width: '100%',
     ...(isSidebar                        ? { minHeight: '250px' }
-      : mobileHorizontal && hasMobileImg ? { height: mh }       // proper mobile image → fixed height
-      : mobileHorizontal                 ? {}                    // desktop fallback → natural height
+      : mobileHorizontal && hasMobileImg ? { height: mh }   // proper mobile image → fixed height
+      : mobileHorizontal                 ? {}               // desktop fallback → natural height
       : mobileFlowHeight                 ? {}
       :                                    { minHeight: '80px' }),
     background: '#111',
     ...style,
   };
-
-  // On mobile horizontal slots:
-  //   - mobile image uploaded → cover + fixed mobileHeight (fills 390×100 perfectly)
-  //   - no mobile image (desktop fallback) → height: auto, no objectFit (natural proportions, no bars/crop)
-  const hasMobileImg = isMobile && !!ad.mobile_image_url;
 
   const media = ad.media_type === 'video' && !isMobile ? (
     <video
