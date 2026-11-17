@@ -43,7 +43,7 @@ const SLOT_LABELS: Record<string, string> = {
   // ── Article detail ────────────────────────────────────
   article_sidebar:      '[AR1]    Нийтлэл — Sidebar Desktop (300×250) + Mobile (390×100)',
   // ── Other pages ───────────────────────────────────────
-  courses_sidebar:      '[C1]     Хичээлүүд — Sidebar Desktop (300×250) + Mobile (390×100)',
+  courses_sidebar:      '[C1]     Хичээлүүд — Хөндлөн (Desktop 1336×120 + Mobile 390×100)',
   videos_sidebar:       '[V1]     Видеонүүд — Хөндлөн (Desktop 1336×120 + Mobile 390×100)',
 };
 
@@ -266,7 +266,7 @@ export default function AdminAdsPage() {
               )}
               {form.slot === 'courses_sidebar' && (
                 <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
-                  🖥 Дesktoп sidebar: <strong style={{ color: '#9ca3af' }}>300 × 250px</strong> &nbsp;·&nbsp; 📱 Мобайл хэвтээ: <strong style={{ color: '#9ca3af' }}>390 × 100px</strong> — мобайл зургийг тусад нь оруулна уу
+                  🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>1336 × 120px</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>390 × 100px</strong>
                 </p>
               )}
             </div>

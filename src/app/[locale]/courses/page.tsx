@@ -134,11 +134,8 @@ export default async function CoursesPage({
         }
       `}</style>
 
-      {/* ── COURSE GRID + SIDEBAR ── */}
+      {/* ── COURSE GRID + C1 LEADERBOARD ── */}
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1rem' }}>
-        <div className="mo-courses-layout">
-          {/* Main course grid */}
-          <div style={{ minWidth: 0 }}>
         <div className="mo-card-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
@@ -261,44 +258,17 @@ export default async function CoursesPage({
               </Link>
             );
           })}
-        </div>
-          </div>{/* end main grid */}
+        </div>{/* end card grid */}
 
-          {/* C1 Sidebar — 300×250, desktop only (hidden on mobile) */}
-          <div className="mo-courses-sidebar mo-c1-desktop">
-            <LiveAdBanner slot="courses_sidebar" type="sidebar" />
-          </div>
-        </div>{/* end mo-courses-layout */}
-
-        {/* C1 Mobile banner — 390×100 slim strip, mobile only (hidden on desktop) */}
-        {/* Full-bleed: negative margin cancels parent 1rem padding → edge-to-edge like H1 mobile */}
-        <div className="mo-c1-mobile">
+        {/* C1 — full-width leaderboard below course grid (Desktop 1336×120 + Mobile 390×100) */}
+        <div className="mo-c1-banner" style={{ marginTop: '2rem' }}>
           <LiveAdBanner slot="courses_sidebar" type="leaderboard" mobileHeight={100} />
         </div>
       </div>
       <style>{`
-        /* ── Courses layout: main grid + 300px sticky sidebar ── */
-        .mo-courses-layout {
-          display: grid;
-          grid-template-columns: 1fr 300px;
-          gap: 2rem;
-          align-items: flex-start;
-        }
-        .mo-courses-sidebar {
-          position: sticky;
-          top: 80px;
-          min-width: 0;
-        }
-        /* Desktop: show sidebar, hide mobile strip */
-        .mo-c1-desktop { display: block; }
-        .mo-c1-mobile  { display: none; }
-
-        /* Tablet/mobile (≤900px): hide sidebar, show slim horizontal strip instead */
-        @media (max-width: 900px) {
-          .mo-courses-layout { grid-template-columns: 1fr; gap: 1.5rem; }
-          .mo-courses-sidebar { position: static; }
-          .mo-c1-desktop { display: none; }
-          .mo-c1-mobile  { display: block; margin-top: 1.5rem; margin-left: -1rem; margin-right: -1rem; }
+        /* ── C1 banner: full-bleed on mobile ── */
+        @media (max-width: 767px) {
+          .mo-c1-banner { margin-left: -1rem !important; margin-right: -1rem !important; }
         }
 
         /* 2-col card grid on mobile */
