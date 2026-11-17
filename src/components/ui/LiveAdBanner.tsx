@@ -79,18 +79,19 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style, mobile
     overflow: 'hidden',
     textDecoration: 'none',
     width: '100%',
-    ...(isSidebar        ? { minHeight: '250px' }
-      : mobileHorizontal ? { height: mh }
-      : mobileFlowHeight ? {}
-      :                    { minHeight: '80px' }),
+    ...(isSidebar                        ? { minHeight: '250px' }
+      : mobileHorizontal && hasMobileImg ? { height: mh }       // proper mobile image → fixed height
+      : mobileHorizontal                 ? {}                    // desktop fallback → natural height
+      : mobileFlowHeight                 ? {}
+      :                                    { minHeight: '80px' }),
     background: '#111',
     ...style,
   };
 
-  // On mobile horizontal slots: cover only if a dedicated mobile image was uploaded
-  // (matches the slot's aspect ratio). Fall back to contain so desktop image isn't side-cropped.
+  // On mobile horizontal slots:
+  //   - mobile image uploaded → cover + fixed mobileHeight (fills 390×100 perfectly)
+  //   - no mobile image (desktop fallback) → height: auto, no objectFit (natural proportions, no bars/crop)
   const hasMobileImg = isMobile && !!ad.mobile_image_url;
-  const mobileObjFit: React.CSSProperties['objectFit'] = hasMobileImg ? 'cover' : 'contain';
 
   const media = ad.media_type === 'video' && !isMobile ? (
     <video
@@ -107,9 +108,12 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style, mobile
       src={isMobile && ad.mobile_image_url ? ad.mobile_image_url : ad.media_url}
       alt={ad.title ?? 'Сурталчилгаа'}
       style={
-        mobileHorizontal
-          // cover when proper mobile image uploaded; contain when falling back to desktop image (prevents side-crop)
-          ? { width: '100%', height: mh, objectFit: mobileObjFit, display: 'block', background: '#111' }
+        mobileHorizontal && hasMobileImg
+          // proper 390×100 mobile image → cover, fills slot perfectly
+          ? { width: '100%', height: mh, objectFit: 'cover' as const, display: 'block' }
+          : mobileHorizontal
+          // desktop image fallback → natural proportions, no dark bars
+          ? { width: '100%', height: 'auto', display: 'block' }
           : mobileFlowHeight
           // Mobile-only slots (ARM etc): natural height, no crop
           ? { width: '100%', height: 'auto', display: 'block' }
