@@ -401,7 +401,7 @@ export default async function ArticlesPage({
                 {/* Mid-feed ad */}
                 {!isFiltered && (
                   <div className="mo-a1-wrap">
-                    <LiveAdBanner slot="articles_leaderboard" type="leaderboard" mobileHeight={100} style={{ borderRadius: 0 }} />
+                    <LiveAdBanner slot="articles_leaderboard" type="leaderboard" mobileHeight={100} />
                   </div>
                 )}
 
@@ -453,7 +453,7 @@ export default async function ArticlesPage({
         {/* ── FOOTER AD ── */}
         {/* mo-a3-wrap: full-bleed on mobile (cancels parent 2rem padding) → edge-to-edge 390×100 like C1 */}
         <div className="mo-a3-wrap">
-          <LiveAdBanner slot="articles_footer" type="footer" mobileHeight={100} style={{ borderRadius: 0 }} />
+          <LiveAdBanner slot="articles_footer" type="footer" mobileHeight={100} />
         </div>
       </div>
 

@@ -401,7 +401,7 @@ export default async function ArticleDetailPage({
 
           {/* Mobile-only: Ad Banner — same slot as desktop sidebar, renders as 390×100 strip */}
           <div className="mo-mobile-ad">
-            <LiveAdBanner slot="article_sidebar" type="leaderboard" mobileHeight={100} style={{ borderRadius: 0 }} />
+            <LiveAdBanner slot="article_sidebar" type="leaderboard" mobileHeight={100} />
           </div>
 
           {/* Mobile-only: Related articles (hidden on desktop — sidebar shows it) */}
