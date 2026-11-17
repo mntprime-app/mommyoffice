@@ -87,6 +87,11 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style, mobile
     ...style,
   };
 
+  // On mobile horizontal slots: cover only if a dedicated mobile image was uploaded
+  // (matches the slot's aspect ratio). Fall back to contain so desktop image isn't side-cropped.
+  const hasMobileImg = isMobile && !!ad.mobile_image_url;
+  const mobileObjFit: React.CSSProperties['objectFit'] = hasMobileImg ? 'cover' : 'contain';
+
   const media = ad.media_type === 'video' && !isMobile ? (
     <video
       src={ad.media_url}
@@ -103,8 +108,8 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style, mobile
       alt={ad.title ?? 'Сурталчилгаа'}
       style={
         mobileHorizontal
-          // Leaderboard/footer on mobile: slim strip at mobileHeight (A1/A3=50px, C1=100px), center-cropped
-          ? { width: '100%', height: mh, objectFit: 'cover' as const, display: 'block' }
+          // cover when proper mobile image uploaded; contain when falling back to desktop image (prevents side-crop)
+          ? { width: '100%', height: mh, objectFit: mobileObjFit, display: 'block', background: '#111' }
           : mobileFlowHeight
           // Mobile-only slots (ARM etc): natural height, no crop
           ? { width: '100%', height: 'auto', display: 'block' }
