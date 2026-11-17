@@ -531,7 +531,7 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
               {/* V1 full-width leaderboard — between Шинээр нэмэгдсэн and Санал болгох */}
               {row.key === 'new' && (
                 <div className="mo-v1-banner" style={{ maxWidth:'1400px', margin:'0 auto', padding:'0.75rem 2rem' }}>
-                  <LiveAdBanner slot="videos_sidebar" type="leaderboard" mobileHeight={100} style={{ borderRadius: 0 }} />
+                  <LiveAdBanner slot="videos_sidebar" type="leaderboard" mobileHeight={100} />
                 </div>
               )}
             </Fragment>
