@@ -3,8 +3,21 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { listAds, createAd, updateAd, deleteAd } from './actions';
-import { uploadImage } from '@/app/actions/admin';
 import { compressImage, fmtSize } from '@/lib/imageCompress';
+
+/**
+ * Upload a file to /api/admin/upload (plain fetch — avoids React 19 error #441
+ * that occurs when calling Server Actions from async event handlers outside startTransition).
+ */
+async function uploadMedia(fd: FormData): Promise<{ error: string | null; url: string | null }> {
+  try {
+    const res = await fetch('/api/admin/upload?folder=ads', { method: 'POST', body: fd });
+    const data = await res.json() as { error: string | null; url: string | null };
+    return data;
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Upload алдаа гарлаа', url: null };
+  }
+}
 
 type Ad = {
   id: string;
@@ -130,7 +143,7 @@ export default function AdminAdsPage() {
       }
       const fd = new FormData();
       fd.append('file', uploadFile);
-      const { error, url } = await uploadImage(fd, 'ads');
+      const { error, url } = await uploadMedia(fd);
       if (error) { setErr(`Медиа байршуулахад алдаа: ${error}`); return; }
       set('media_url', url!);
       // Auto-detect type from original file
@@ -367,7 +380,7 @@ export default function AdminAdsPage() {
                     } catch { uploadFile = file; }
                     const fd = new FormData();
                     fd.append('file', uploadFile);
-                    const { error, url } = await uploadImage(fd, 'ads');
+                    const { error, url } = await uploadMedia(fd);
                     if (error) { setErr(`Мобайл зураг байршуулахад алдаа: ${error}`); return; }
                     set('mobile_image_url', url!);
                     setMobileUploadDone(true);
