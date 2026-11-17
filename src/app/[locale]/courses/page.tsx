@@ -273,7 +273,7 @@ export default async function CoursesPage({
         {/* C1 Mobile banner — 390×100 slim strip, mobile only (hidden on desktop) */}
         {/* Full-bleed: negative margin cancels parent 1rem padding → edge-to-edge like H1 mobile */}
         <div className="mo-c1-mobile">
-          <LiveAdBanner slot="courses_sidebar" type="leaderboard" style={{ borderRadius: 0 }} />
+          <LiveAdBanner slot="courses_sidebar" type="leaderboard" mobileHeight={100} style={{ borderRadius: 0 }} />
         </div>
       </div>
       <style>{`

@@ -18,9 +18,11 @@ interface LiveAdBannerProps {
   slot: string;
   type?: BannerType;
   style?: React.CSSProperties;
+  /** Height (px) to enforce on mobile for leaderboard/footer type. Default 50 (320×50 spec). C1 passes 100. */
+  mobileHeight?: number;
 }
 
-export default function LiveAdBanner({ slot, type = 'leaderboard', style }: LiveAdBannerProps) {
+export default function LiveAdBanner({ slot, type = 'leaderboard', style, mobileHeight = 50 }: LiveAdBannerProps) {
   const [ad, setAd] = useState<Ad | null | 'loading'>('loading');
   const [isMobile, setIsMobile] = useState(false);
 
@@ -60,15 +62,16 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
   const isHorizontal = type === 'leaderboard' || type === 'footer';
 
   // Mobile rendering strategy:
-  // - sidebar       → minHeight 250px, objectFit cover (unchanged)
-  // - leaderboard / footer → fixed 90px slim strip, objectFit cover (like H1 mobile)
-  //   Reason: these slots are DEFINED as horizontal banners. Uploaded images may be
-  //   portrait (300×250 sidebar repurposed) — we crop to a slim strip rather than
-  //   rendering a giant square block that dominates the page.
-  // - mobile / other non-sidebar → height auto (let image dictate height, no crop)
+  // - sidebar           → minHeight 250px, objectFit cover (unchanged)
+  // - leaderboard/footer→ slim strip at mobileHeight px, objectFit cover
+  //     Default mobileHeight=50  → A1/A3 (320×50 spec)
+  //     C1 passes mobileHeight=100 → courses_sidebar (390×100 spec)
+  // - mobile / other non-sidebar → height auto (natural image height, no crop)
   const mobileNonSidebar  = isMobile && !isSidebar;
-  const mobileHorizontal  = isMobile && isHorizontal;   // slim 100px strip (matches H1 mobile)
-  const mobileFlowHeight  = mobileNonSidebar && !isHorizontal; // natural height
+  const mobileHorizontal  = isMobile && isHorizontal;
+  const mobileFlowHeight  = mobileNonSidebar && !isHorizontal;
+
+  const mh = `${mobileHeight}px`;
 
   const containerStyle: React.CSSProperties = {
     display: 'block',
@@ -77,7 +80,7 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
     textDecoration: 'none',
     width: '100%',
     ...(isSidebar        ? { minHeight: '250px' }
-      : mobileHorizontal ? { height: '100px' }
+      : mobileHorizontal ? { height: mh }
       : mobileFlowHeight ? {}
       :                    { minHeight: '80px' }),
     background: '#111',
@@ -100,8 +103,8 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
       alt={ad.title ?? 'Сурталчилгаа'}
       style={
         mobileHorizontal
-          // Leaderboard/footer on mobile: slim 100px horizontal strip (matches H1 mobile), center-cropped
-          ? { width: '100%', height: '100px', objectFit: 'cover', display: 'block' }
+          // Leaderboard/footer on mobile: slim strip at mobileHeight (A1/A3=50px, C1=100px), center-cropped
+          ? { width: '100%', height: mh, objectFit: 'cover' as const, display: 'block' }
           : mobileFlowHeight
           // Mobile-only slots (ARM etc): natural height, no crop
           ? { width: '100%', height: 'auto', display: 'block' }
