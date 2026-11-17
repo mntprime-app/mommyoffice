@@ -92,7 +92,7 @@ export default async function Footer() {
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <Link href={lp('/courses')}  style={linkStyle}>Хичээлүүд</Link>
               <Link href={lp('/articles')} style={linkStyle}>Нийтлэлүүд</Link>
-              <Link href={lp('/videos')}   style={linkStyle}>Кино &amp; Видео</Link>
+              <Link href={lp('/videos')}   style={linkStyle}>Видео &amp; Кино</Link>
               <Link href={lp('/shop')}     style={linkStyle}>Дэлгүүр</Link>
             </div>
           </nav>

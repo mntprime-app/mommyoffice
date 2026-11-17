@@ -176,7 +176,7 @@ export default function Navbar() {
     { href: lp('/'), label: 'Нүүр', soon: false },
     { href: lp('/courses'), label: 'Сургалтууд', soon: false },
     { href: lp('/articles'), label: 'Нийтлэл', soon: false },
-    { href: lp('/videos'), label: 'Кино & Видео', soon: true },
+    { href: lp('/videos'), label: 'Видео & Кино', soon: false },
     { href: lp('/shop'), label: 'Дэлгүүр', soon: true },
     // { href: lp('/become-instructor'), label: 'Багш болох', soon: false }, // TEMP HIDDEN
   ];
