@@ -28,8 +28,7 @@ const SLOT_LABELS: Record<string, string> = {
   articles_sidebar:     '[A2]     Нийтлэлүүд — Sidebar (300×250)',
   articles_footer:      '[A3]     Нийтлэлүүд — Footer (970×90)',
   // ── Article detail ────────────────────────────────────
-  article_sidebar:      '[AR1]    Нийтлэл — Sidebar (300×250)',
-  article_body_mobile:  '[ARM]    Нийтлэл — Мобайл',
+  article_sidebar:      '[AR1]    Нийтлэл — Sidebar Desktop (300×250) + Mobile (390×100)',
   // ── Other pages ───────────────────────────────────────
   courses_sidebar:      '[C1]     Хичээлүүд — Sidebar (300×250)',
   videos_sidebar:       '[V1]     Видеонууд — Sidebar (300×250)',
@@ -252,11 +251,6 @@ export default function AdminAdsPage() {
                   🖥 Дesktoп sidebar: <strong style={{ color: '#9ca3af' }}>300 × 250px</strong> &nbsp;·&nbsp; 📱 Мобайл хэвтээ: <strong style={{ color: '#9ca3af' }}>390 × 100px</strong> — мобайл зургийг тусад нь оруулна уу
                 </p>
               )}
-              {form.slot === 'article_body_mobile' && (
-                <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
-                  📱 Зөвхөн мобайл: <strong style={{ color: '#9ca3af' }}>320 × 100px</strong>
-                </p>
-              )}
             </div>
 
             {/* Title */}
@@ -325,16 +319,15 @@ export default function AdminAdsPage() {
               )}
             </div>
 
-            {/* Mobile image fallback — shown for ALL slots except article_body_mobile
-                (that slot is mobile-only by definition — no desktop counterpart exists) */}
-            {form.slot !== 'article_body_mobile' && (
+            {/* Mobile image fallback — shown for ALL slots */}
+            {(
               <div style={{ marginBottom: '14px', background: 'rgba(0,181,173,0.07)', border: '1px solid rgba(0,181,173,0.2)', borderRadius: '10px', padding: '12px 14px' }}>
                 <label style={{ display: 'block', fontSize: '12px', color: '#00B5AD', marginBottom: '6px', fontWeight: 700 }}>
                   {form.slot === 'home_popup'
                     ? '📱 Мобайл зураг (800 × 400px — поп-ап мобайл хувилбар)'
                     : form.slot === 'home_below_hero'
                     ? '📱 Мобайл зураг (390 × 100px — хөндлөн мобайл хувилбар)'
-                    : form.slot === 'courses_sidebar'
+                    : (form.slot === 'courses_sidebar' || form.slot === 'article_sidebar')
                     ? `📱 Мобайл зураг (390 × 100px — мобайл хэвтээ${form.media_type === 'video' ? ' · видео орлуулга' : ''})`
                     : form.media_type === 'video'
                     ? '📱 Мобайл зураг (видео зарын мобайл дээрх орлуулга)'

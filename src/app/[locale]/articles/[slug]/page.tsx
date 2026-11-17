@@ -399,9 +399,9 @@ export default async function ArticleDetailPage({
             </Link>
           </div>
 
-          {/* Mobile-only: Ad Banner (hidden on desktop — sidebar shows it) */}
-          <div className="mo-mobile-ad" style={{ marginTop: '2.5rem' }}>
-            <LiveAdBanner slot="article_body_mobile" type="mobile" />
+          {/* Mobile-only: Ad Banner — same slot as desktop sidebar, renders as 390×100 strip */}
+          <div className="mo-mobile-ad">
+            <LiveAdBanner slot="article_sidebar" type="leaderboard" mobileHeight={100} style={{ borderRadius: 0 }} />
           </div>
 
           {/* Mobile-only: Related articles (hidden on desktop — sidebar shows it) */}
@@ -490,7 +490,7 @@ export default async function ArticleDetailPage({
         @media (max-width: 1024px) {
           .mo-detail-grid { grid-template-columns: 1fr; padding: 1.5rem 1.5rem 3rem; gap: 2rem; }
           .mo-detail-grid > aside { display: none !important; }
-          .mo-mobile-ad { display: flex !important; }
+          .mo-mobile-ad { display: block !important; margin-top: 2.5rem; margin-left: -1.5rem; margin-right: -1.5rem; }
           .mo-mobile-related { display: block !important; }
         }
 
