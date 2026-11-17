@@ -134,8 +134,11 @@ export default async function CoursesPage({
         }
       `}</style>
 
-      {/* ── COURSE GRID ── */}
+      {/* ── COURSE GRID + SIDEBAR ── */}
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1rem' }}>
+        <div className="mo-courses-layout">
+          {/* Main grid */}
+          <div style={{ minWidth: 0 }}>
         <div className="mo-card-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
@@ -259,14 +262,34 @@ export default async function CoursesPage({
             );
           })}
         </div>
+          </div>{/* end main grid */}
 
-        {/* ── SIDEBAR AD ── */}
-        <div style={{ marginTop: '1rem' }}>
-          <LiveAdBanner slot="courses_sidebar" type="sidebar" />
-        </div>
+          {/* Sticky sidebar — 300px, C1 ad */}
+          <div className="mo-courses-sidebar">
+            <LiveAdBanner slot="courses_sidebar" type="sidebar" />
+          </div>
+        </div>{/* end mo-courses-layout */}
       </div>
       <style>{`
-        /* 2-col grid on mobile — overrides auto-fill minmax which gives 1-col at 375px */
+        /* ── Courses layout: main grid + 300px sticky sidebar ── */
+        .mo-courses-layout {
+          display: grid;
+          grid-template-columns: 1fr 300px;
+          gap: 2rem;
+          align-items: flex-start;
+        }
+        .mo-courses-sidebar {
+          position: sticky;
+          top: 80px;
+          min-width: 0;
+        }
+        /* Collapse to single column on tablet/mobile — sidebar stacks below */
+        @media (max-width: 900px) {
+          .mo-courses-layout { grid-template-columns: 1fr; gap: 1.5rem; }
+          .mo-courses-sidebar { position: static; }
+        }
+
+        /* 2-col card grid on mobile */
         @media (max-width: 767px) {
           .mo-card-grid {
             grid-template-columns: repeat(2, 1fr) !important;
