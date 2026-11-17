@@ -399,7 +399,11 @@ export default async function ArticlesPage({
                 ))}
 
                 {/* Mid-feed ad */}
-                {!isFiltered && <LiveAdBanner slot="articles_leaderboard" type="leaderboard" style={{ margin: '24px 0' }} />}
+                {!isFiltered && (
+                  <div className="mo-a1-wrap">
+                    <LiveAdBanner slot="articles_leaderboard" type="leaderboard" mobileHeight={100} style={{ borderRadius: 0 }} />
+                  </div>
+                )}
 
                 {mainFeedArticles.slice(4).map((a, i) => (
                   <ArticleCard key={String(a.id || i + 4)} a={a} locale={locale} />
@@ -454,6 +458,11 @@ export default async function ArticlesPage({
       </div>
 
       <style>{`
+        /* ── A1 mid-feed: full-bleed on mobile, normal on desktop ── */
+        .mo-a1-wrap { margin: 24px 0; }
+        @media (max-width: 767px) {
+          .mo-a1-wrap { margin-left: -2rem; margin-right: -2rem; margin-top: 24px; margin-bottom: 24px; }
+        }
         /* ── A3 footer: full-bleed on mobile, normal on desktop ── */
         .mo-a3-wrap { padding-top: 1rem; margin-bottom: 2rem; }
         @media (max-width: 767px) {
