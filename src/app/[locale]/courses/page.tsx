@@ -264,11 +264,16 @@ export default async function CoursesPage({
         </div>
           </div>{/* end main grid */}
 
-          {/* C1 Sidebar — 300×250, sticky on desktop, stacks below on mobile (capped at 300px) */}
-          <div className="mo-courses-sidebar">
+          {/* C1 Sidebar — 300×250, desktop only (hidden on mobile) */}
+          <div className="mo-courses-sidebar mo-c1-desktop">
             <LiveAdBanner slot="courses_sidebar" type="sidebar" />
           </div>
         </div>{/* end mo-courses-layout */}
+
+        {/* C1 Mobile banner — 390×100 slim strip, mobile only (hidden on desktop) */}
+        <div className="mo-c1-mobile">
+          <LiveAdBanner slot="courses_sidebar" type="leaderboard" style={{ marginTop: '1.5rem' }} />
+        </div>
       </div>
       <style>{`
         /* ── Courses layout: main grid + 300px sticky sidebar ── */
@@ -283,11 +288,16 @@ export default async function CoursesPage({
           top: 80px;
           min-width: 0;
         }
-        /* Tablet/mobile: collapse to 1 col; sidebar stacks below, capped at 300px so it
-           doesn't stretch full-viewport width like a leaderboard banner */
+        /* Desktop: show sidebar, hide mobile strip */
+        .mo-c1-desktop { display: block; }
+        .mo-c1-mobile  { display: none; }
+
+        /* Tablet/mobile (≤900px): hide sidebar, show slim horizontal strip instead */
         @media (max-width: 900px) {
           .mo-courses-layout { grid-template-columns: 1fr; gap: 1.5rem; }
-          .mo-courses-sidebar { position: static; max-width: 300px; }
+          .mo-courses-sidebar { position: static; }
+          .mo-c1-desktop { display: none; }
+          .mo-c1-mobile  { display: block; }
         }
 
         /* 2-col card grid on mobile */

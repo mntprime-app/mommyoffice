@@ -242,9 +242,14 @@ export default function AdminAdsPage() {
                   🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>{form.slot === 'articles_leaderboard' ? '728 × 90px' : '970 × 90px'}</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>320 × 50px</strong>
                 </p>
               )}
-              {['articles_sidebar', 'article_sidebar', 'courses_sidebar', 'videos_sidebar'].includes(form.slot) && (
+              {['articles_sidebar', 'article_sidebar', 'videos_sidebar'].includes(form.slot) && (
                 <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
                   Хэмжээ: <strong style={{ color: '#9ca3af' }}>300 × 250px</strong>
+                </p>
+              )}
+              {form.slot === 'courses_sidebar' && (
+                <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
+                  🖥 Дesktoп sidebar: <strong style={{ color: '#9ca3af' }}>300 × 250px</strong> &nbsp;·&nbsp; 📱 Мобайл хэвтээ: <strong style={{ color: '#9ca3af' }}>390 × 100px</strong> — мобайл зургийг тусад нь оруулна уу
                 </p>
               )}
               {form.slot === 'article_body_mobile' && (
