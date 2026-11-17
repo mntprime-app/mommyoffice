@@ -532,9 +532,11 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       </div>
 
       {/* ══ AD BANNER ════════════════════════════════════════════════════════ */}
-      {/* Desktop: 300×250 sidebar-style block */}
+      {/* Desktop: 300×250 block — constrained width so it doesn't stretch full container */}
       <div className="mo-v1-desktop" style={{ maxWidth:'1400px', margin:'0 auto', padding:'0 2rem 1rem' }}>
-        <LiveAdBanner slot="videos_sidebar" type="sidebar" />
+        <div style={{ maxWidth:'300px' }}>
+          <LiveAdBanner slot="videos_sidebar" type="sidebar" />
+        </div>
       </div>
       {/* Mobile: 390×100 full-bleed horizontal strip */}
       <div className="mo-v1-mobile">
