@@ -447,12 +447,18 @@ export default async function ArticlesPage({
         )}
 
         {/* ── FOOTER AD ── */}
-        <div style={{ paddingTop: '1rem', marginBottom: '2rem' }}>
-          <LiveAdBanner slot="articles_footer" type="footer" />
+        {/* mo-a3-wrap: full-bleed on mobile (cancels parent 2rem padding) → edge-to-edge 390×100 like C1 */}
+        <div className="mo-a3-wrap">
+          <LiveAdBanner slot="articles_footer" type="footer" mobileHeight={100} style={{ borderRadius: 0 }} />
         </div>
       </div>
 
       <style>{`
+        /* ── A3 footer: full-bleed on mobile, normal on desktop ── */
+        .mo-a3-wrap { padding-top: 1rem; margin-bottom: 2rem; }
+        @media (max-width: 767px) {
+          .mo-a3-wrap { margin-left: -2rem; margin-right: -2rem; padding-top: 1rem; }
+        }
         /* ── Base interactions ── */
         .mo-art-card { transition: background 0.15s; border-radius: 8px; }
         .mo-art-card:hover { background: rgba(255,255,255,0.025); }

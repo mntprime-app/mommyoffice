@@ -239,7 +239,7 @@ export default function AdminAdsPage() {
               )}
               {['articles_leaderboard', 'articles_footer'].includes(form.slot) && (
                 <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
-                  🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>{form.slot === 'articles_leaderboard' ? '728 × 90px' : '970 × 90px'}</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>320 × 50px</strong>
+                  🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>{form.slot === 'articles_leaderboard' ? '728 × 90px' : '970 × 90px'}</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>{form.slot === 'articles_footer' ? '390 × 100px' : '320 × 50px'}</strong>
                 </p>
               )}
               {['articles_sidebar', 'article_sidebar', 'videos_sidebar'].includes(form.slot) && (
