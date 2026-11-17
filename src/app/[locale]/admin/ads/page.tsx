@@ -31,7 +31,7 @@ const SLOT_LABELS: Record<string, string> = {
   article_sidebar:      '[AR1]    Нийтлэл — Sidebar Desktop (300×250) + Mobile (390×100)',
   // ── Other pages ───────────────────────────────────────
   courses_sidebar:      '[C1]     Хичээлүүд — Sidebar Desktop (300×250) + Mobile (390×100)',
-  videos_sidebar:       '[V1]     Видеонүүд — Sidebar (300×250 · Desktop тал)',
+  videos_sidebar:       '[V1]     Видеонүүд — Sidebar Desktop (300×250) + Mobile (390×100)',
 };
 
 const EMPTY_FORM = {

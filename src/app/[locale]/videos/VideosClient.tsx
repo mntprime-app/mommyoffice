@@ -532,8 +532,13 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
       </div>
 
       {/* ══ AD BANNER ════════════════════════════════════════════════════════ */}
-      <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'0 2rem 1rem' }}>
+      {/* Desktop: 300×250 sidebar-style block */}
+      <div className="mo-v1-desktop" style={{ maxWidth:'1400px', margin:'0 auto', padding:'0 2rem 1rem' }}>
         <LiveAdBanner slot="videos_sidebar" type="sidebar" />
+      </div>
+      {/* Mobile: 390×100 full-bleed horizontal strip */}
+      <div className="mo-v1-mobile">
+        <LiveAdBanner slot="videos_sidebar" type="leaderboard" mobileHeight={100} style={{ borderRadius: 0 }} />
       </div>
 
       {/* ══ COMING SOON: MOVIES ═══════════════════════════════════════════════ */}
@@ -812,6 +817,13 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
         @media (max-width: 767px) {
           .mo-hero-mobile  { display: block; }
           .mo-hero-desktop { display: none;  }
+        }
+        /* ── V1 banner: desktop block / mobile full-bleed strip ── */
+        .mo-v1-desktop { display: block; }
+        .mo-v1-mobile  { display: none;  }
+        @media (max-width: 767px) {
+          .mo-v1-desktop { display: none; }
+          .mo-v1-mobile  { display: block; margin-left: -2rem; margin-right: -2rem; padding: 1rem 0; }
         }
         /* ── Video card responsive sizing ── */
         @media (max-width: 767px) {
