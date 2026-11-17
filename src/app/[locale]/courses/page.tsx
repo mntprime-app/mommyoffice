@@ -271,8 +271,9 @@ export default async function CoursesPage({
         </div>{/* end mo-courses-layout */}
 
         {/* C1 Mobile banner — 390×100 slim strip, mobile only (hidden on desktop) */}
+        {/* Full-bleed: negative margin cancels parent 1rem padding → edge-to-edge like H1 mobile */}
         <div className="mo-c1-mobile">
-          <LiveAdBanner slot="courses_sidebar" type="leaderboard" style={{ marginTop: '1.5rem' }} />
+          <LiveAdBanner slot="courses_sidebar" type="leaderboard" style={{ borderRadius: 0 }} />
         </div>
       </div>
       <style>{`
@@ -297,7 +298,7 @@ export default async function CoursesPage({
           .mo-courses-layout { grid-template-columns: 1fr; gap: 1.5rem; }
           .mo-courses-sidebar { position: static; }
           .mo-c1-desktop { display: none; }
-          .mo-c1-mobile  { display: block; }
+          .mo-c1-mobile  { display: block; margin-top: 1.5rem; margin-left: -1rem; margin-right: -1rem; }
         }
 
         /* 2-col card grid on mobile */
