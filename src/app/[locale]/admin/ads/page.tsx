@@ -31,7 +31,7 @@ const SLOT_LABELS: Record<string, string> = {
   article_sidebar:      '[AR1]    Нийтлэл — Sidebar Desktop (300×250) + Mobile (390×100)',
   // ── Other pages ───────────────────────────────────────
   courses_sidebar:      '[C1]     Хичээлүүд — Sidebar Desktop (300×250) + Mobile (390×100)',
-  videos_sidebar:       '[V1]     Видеонүүд — Sidebar Desktop (300×250) + Mobile (390×100)',
+  videos_sidebar:       '[V1]     Видеонүүд — Хөндлөн (Desktop 1336×120 + Mobile 390×100)',
 };
 
 const EMPTY_FORM = {
@@ -241,9 +241,14 @@ export default function AdminAdsPage() {
                   🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>{form.slot === 'articles_leaderboard' ? '728 × 90px' : '970 × 90px'}</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>390 × 100px</strong>
                 </p>
               )}
-              {['articles_sidebar', 'article_sidebar', 'videos_sidebar'].includes(form.slot) && (
+              {['articles_sidebar', 'article_sidebar'].includes(form.slot) && (
                 <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
                   Хэмжээ: <strong style={{ color: '#9ca3af' }}>300 × 250px</strong>
+                </p>
+              )}
+              {form.slot === 'videos_sidebar' && (
+                <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
+                  🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>1336 × 120px</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>390 × 100px</strong>
                 </p>
               )}
               {form.slot === 'courses_sidebar' && (
@@ -327,7 +332,7 @@ export default function AdminAdsPage() {
                     ? '📱 Мобайл зураг (800 × 400px — поп-ап мобайл хувилбар)'
                     : form.slot === 'home_below_hero'
                     ? '📱 Мобайл зураг (390 × 100px — хөндлөн мобайл хувилбар)'
-                    : (form.slot === 'courses_sidebar' || form.slot === 'article_sidebar')
+                    : (form.slot === 'courses_sidebar' || form.slot === 'article_sidebar' || form.slot === 'videos_sidebar')
                     ? `📱 Мобайл зураг (390 × 100px — мобайл хэвтээ${form.media_type === 'video' ? ' · видео орлуулга' : ''})`
                     : form.media_type === 'video'
                     ? '📱 Мобайл зураг (видео зарын мобайл дээрх орлуулга)'

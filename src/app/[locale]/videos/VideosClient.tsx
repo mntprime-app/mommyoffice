@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CategoryBadge, StatusBadge } from '@/components/ui/CategoryBadge';
@@ -513,34 +513,30 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
         </div>
       </div>
 
-      {/* ══ VIDEO ROWS ════════════════════════════════════════════════════════ */}
+      {/* ══ VIDEO ROWS + V1 BANNER between Шинээр нэмэгдсэн and Санал болгох ═══ */}
       <div style={{ padding:'0.5rem 0 2rem' }}>
         {ROWS.map(row => {
           const rowVideos = filtered.filter(row.filter).sort(row.sort).slice(0,12);
           if (!rowVideos.length) return null;
           return (
-            <div key={row.key} style={{ maxWidth:'1400px', margin:'0 auto', padding:'1.5rem 2rem 0.5rem' }}>
-              <div style={{ fontSize:'16px', fontWeight:700, marginBottom:'1rem', color: row.gold ? '#f59e0b' : '#e5e5e5', display:'flex', alignItems:'center', gap:'8px' }}>{row.emoji} {row.label}</div>
-              <CarouselRow count={rowVideos.length}>
-                {rowVideos.map((v, i) => (
-                  <VideoCard key={v.id} video={v} index={i} locale={locale} onPlay={() => openPlayer(v)} onInfo={() => openInfo(v)} />
-                ))}
-              </CarouselRow>
-            </div>
+            <Fragment key={row.key}>
+              <div style={{ maxWidth:'1400px', margin:'0 auto', padding:'1.5rem 2rem 0.5rem' }}>
+                <div style={{ fontSize:'16px', fontWeight:700, marginBottom:'1rem', color: row.gold ? '#f59e0b' : '#e5e5e5', display:'flex', alignItems:'center', gap:'8px' }}>{row.emoji} {row.label}</div>
+                <CarouselRow count={rowVideos.length}>
+                  {rowVideos.map((v, i) => (
+                    <VideoCard key={v.id} video={v} index={i} locale={locale} onPlay={() => openPlayer(v)} onInfo={() => openInfo(v)} />
+                  ))}
+                </CarouselRow>
+              </div>
+              {/* V1 full-width leaderboard — between Шинээр нэмэгдсэн and Санал болгох */}
+              {row.key === 'new' && (
+                <div className="mo-v1-banner" style={{ maxWidth:'1400px', margin:'0 auto', padding:'0.75rem 2rem' }}>
+                  <LiveAdBanner slot="videos_sidebar" type="leaderboard" mobileHeight={100} style={{ borderRadius: 0 }} />
+                </div>
+              )}
+            </Fragment>
           );
         })}
-      </div>
-
-      {/* ══ AD BANNER ════════════════════════════════════════════════════════ */}
-      {/* Desktop: 300×250 block — constrained width so it doesn't stretch full container */}
-      <div className="mo-v1-desktop" style={{ maxWidth:'1400px', margin:'0 auto', padding:'0 2rem 1rem' }}>
-        <div style={{ maxWidth:'300px' }}>
-          <LiveAdBanner slot="videos_sidebar" type="sidebar" />
-        </div>
-      </div>
-      {/* Mobile: 390×100 full-bleed horizontal strip */}
-      <div className="mo-v1-mobile">
-        <LiveAdBanner slot="videos_sidebar" type="leaderboard" mobileHeight={100} style={{ borderRadius: 0 }} />
       </div>
 
       {/* ══ COMING SOON: MOVIES ═══════════════════════════════════════════════ */}
@@ -820,12 +816,9 @@ export default function VideosClient({ videos, locale }: { videos: Video[]; loca
           .mo-hero-mobile  { display: block; }
           .mo-hero-desktop { display: none;  }
         }
-        /* ── V1 banner: desktop block / mobile full-bleed strip ── */
-        .mo-v1-desktop { display: block; }
-        .mo-v1-mobile  { display: none;  }
+        /* ── V1 banner: full-width leaderboard between rows ── */
         @media (max-width: 767px) {
-          .mo-v1-desktop { display: none; }
-          .mo-v1-mobile  { display: block; margin-left: -2rem; margin-right: -2rem; padding: 1rem 0; }
+          .mo-v1-banner { margin-left: -2rem !important; margin-right: -2rem !important; padding-left: 0 !important; padding-right: 0 !important; }
         }
         /* ── Video card responsive sizing ── */
         @media (max-width: 767px) {
