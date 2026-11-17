@@ -109,8 +109,8 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style, mobile
       alt={ad.title ?? 'Сурталчилгаа'}
       style={
         mobileHorizontal && hasMobileImg
-          // proper 390×100 mobile image → cover, fills slot perfectly
-          ? { width: '100%', height: mh, objectFit: 'cover' as const, display: 'block' }
+          // proper 390×100 mobile image → contain, full image visible, no side-cropping
+          ? { width: '100%', height: mh, objectFit: 'contain' as const, display: 'block' }
           : mobileHorizontal
           // desktop image fallback → natural proportions, no dark bars
           ? { width: '100%', height: 'auto', display: 'block' }
