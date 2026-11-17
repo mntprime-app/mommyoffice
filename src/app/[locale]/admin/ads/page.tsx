@@ -21,17 +21,17 @@ type Ad = {
 
 const SLOT_LABELS: Record<string, string> = {
   // ── Homepage ──────────────────────────────────────────
-  home_popup:           '[POP-UP] Нүүр хуудас — 8с Поп-ап оверлей',
-  home_below_hero:      '[H1]     Нүүр хуудас — Hero доор хөндлөн',
+  home_popup:           '[POP-UP] Нүүр хуудас — 8с Поп-ап (Desktop 800×400 + Mobile 800×400)',
+  home_below_hero:      '[H1]     Нүүр хуудас — Hero доор (Desktop 1336×120 + Mobile 390×100)',
   // ── Articles list ─────────────────────────────────────
-  articles_leaderboard: '[A1]     Нийтлэлүүд — Дунд (728×90)',
-  articles_sidebar:     '[A2]     Нийтлэлүүд — Sidebar (300×250)',
-  articles_footer:      '[A3]     Нийтлэлүүд — Footer (970×90)',
+  articles_leaderboard: '[A1]     Нийтлэлүүд — Дунд (Desktop 728×90 + Mobile 390×100)',
+  articles_sidebar:     '[A2]     Нийтлэлүүд — Sidebar (300×250 · Desktop тал)',
+  articles_footer:      '[A3]     Нийтлэлүүд — Footer (Desktop 970×90 + Mobile 390×100)',
   // ── Article detail ────────────────────────────────────
   article_sidebar:      '[AR1]    Нийтлэл — Sidebar Desktop (300×250) + Mobile (390×100)',
   // ── Other pages ───────────────────────────────────────
-  courses_sidebar:      '[C1]     Хичээлүүд — Sidebar (300×250)',
-  videos_sidebar:       '[V1]     Видеонууд — Sidebar (300×250)',
+  courses_sidebar:      '[C1]     Хичээлүүд — Sidebar Desktop (300×250) + Mobile (390×100)',
+  videos_sidebar:       '[V1]     Видеонүүд — Sidebar (300×250 · Desktop тал)',
 };
 
 const EMPTY_FORM = {
