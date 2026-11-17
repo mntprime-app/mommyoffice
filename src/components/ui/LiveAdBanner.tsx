@@ -54,16 +54,21 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
     // Fall through with image rendering below using mobile_image_url
   }
 
-  const isSidebar = type === 'sidebar';
   const hasLink = !!ad.target_url?.trim();
 
-  // On mobile for non-sidebar slots (leaderboard/footer/mobile), we let the
-  // image dictate its own height so nothing gets cropped. `height: '100%'`
-  // only works against an explicit parent height — not minHeight — so images
-  // in a minHeight container effectively get objectFit: cover against 0px,
-  // causing the bottom of the banner to be cut off. On mobile we use
-  // `height: auto` + `objectFit: unset` so the full banner is always visible.
-  const mobileNonSidebar = isMobile && !isSidebar;
+  const isSidebar    = type === 'sidebar';
+  const isHorizontal = type === 'leaderboard' || type === 'footer';
+
+  // Mobile rendering strategy:
+  // - sidebar       → minHeight 250px, objectFit cover (unchanged)
+  // - leaderboard / footer → fixed 90px slim strip, objectFit cover (like H1 mobile)
+  //   Reason: these slots are DEFINED as horizontal banners. Uploaded images may be
+  //   portrait (300×250 sidebar repurposed) — we crop to a slim strip rather than
+  //   rendering a giant square block that dominates the page.
+  // - mobile / other non-sidebar → height auto (let image dictate height, no crop)
+  const mobileNonSidebar  = isMobile && !isSidebar;
+  const mobileHorizontal  = isMobile && isHorizontal;   // slim 90px strip
+  const mobileFlowHeight  = mobileNonSidebar && !isHorizontal; // natural height
 
   const containerStyle: React.CSSProperties = {
     display: 'block',
@@ -71,7 +76,10 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
     overflow: 'hidden',
     textDecoration: 'none',
     width: '100%',
-    ...(isSidebar ? { minHeight: '250px' } : mobileNonSidebar ? {} : { minHeight: '80px' }),
+    ...(isSidebar        ? { minHeight: '250px' }
+      : mobileHorizontal ? { height: '90px' }
+      : mobileFlowHeight ? {}
+      :                    { minHeight: '80px' }),
     background: '#111',
     ...style,
   };
@@ -90,11 +98,15 @@ export default function LiveAdBanner({ slot, type = 'leaderboard', style }: Live
     <img
       src={isMobile && ad.mobile_image_url ? ad.mobile_image_url : ad.media_url}
       alt={ad.title ?? 'Сурталчилгаа'}
-      style={mobileNonSidebar
-        // Mobile: natural height — image fills full width, no cropping
-        ? { width: '100%', height: 'auto', display: 'block' }
-        // Desktop: fill the fixed-height container with cover crop
-        : { width: '100%', height: '100%', objectFit: 'cover', display: 'block' }
+      style={
+        mobileHorizontal
+          // Leaderboard/footer on mobile: slim 90px horizontal strip, center-cropped
+          ? { width: '100%', height: '90px', objectFit: 'cover', display: 'block' }
+          : mobileFlowHeight
+          // Mobile-only slots (ARM etc): natural height, no crop
+          ? { width: '100%', height: 'auto', display: 'block' }
+          // Desktop: fill the fixed-height container
+          : { width: '100%', height: '100%', objectFit: 'cover', display: 'block' }
       }
       loading="lazy"
     />
