@@ -31,7 +31,7 @@ const SLOT_LABELS: Record<string, string> = {
   article_sidebar:      '[AR1]    Нийтлэл — Sidebar (300×250)',
   article_body_mobile:  '[ARM]    Нийтлэл — Мобайл',
   // ── Other pages ───────────────────────────────────────
-  courses_sidebar:      '[C1]     Хичээлүүд — Хөндлөн (970×90)',
+  courses_sidebar:      '[C1]     Хичээлүүд — Sidebar (300×250)',
   videos_sidebar:       '[V1]     Видеонууд — Sidebar (300×250)',
 };
 
@@ -242,14 +242,9 @@ export default function AdminAdsPage() {
                   🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>{form.slot === 'articles_leaderboard' ? '728 × 90px' : '970 × 90px'}</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>320 × 50px</strong>
                 </p>
               )}
-              {['articles_sidebar', 'article_sidebar', 'videos_sidebar'].includes(form.slot) && (
+              {['articles_sidebar', 'article_sidebar', 'courses_sidebar', 'videos_sidebar'].includes(form.slot) && (
                 <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
                   Хэмжээ: <strong style={{ color: '#9ca3af' }}>300 × 250px</strong>
-                </p>
-              )}
-              {form.slot === 'courses_sidebar' && (
-                <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#6b7280' }}>
-                  🖥 Дesktoп: <strong style={{ color: '#9ca3af' }}>970 × 90px</strong> &nbsp;·&nbsp; 📱 Мобайл: <strong style={{ color: '#9ca3af' }}>90px өндөртэй хэвтээ баннер</strong> (автомат кроп)
                 </p>
               )}
               {form.slot === 'article_body_mobile' && (

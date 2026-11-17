@@ -14,7 +14,7 @@
 | **A3** | `articles_footer` | Articles list | Bottom of page | 970×90px | 320×50px | ✅ Live |
 | **AR1** | `article_sidebar` | Article detail | Right sidebar | 300×250px | 300×250px | ✅ Live |
 | **ARM** | `article_body_mobile` | Article detail | In-body, mobile only | — (mobile only) | 320×100px | ✅ Live |
-| **C1** | `courses_sidebar` | Courses list | Horizontal below grid | 970×90px | 90px strip (auto-crop) | ✅ Live |
+| **C1** | `courses_sidebar` | Courses list | Right sidebar | 300×250px | 300×250px (max-width capped) | ✅ Live |
 | **V1** | `videos_sidebar` | Videos list | Right sidebar | 300×250px | 300×250px | ✅ Live |
 
 ---
