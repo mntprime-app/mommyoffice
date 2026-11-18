@@ -105,6 +105,18 @@ export default async function AdvertisePage() {
   let slotOverrides: SlotOverride[] = [];
   try { slotOverrides = JSON.parse(s(settings, 'advertise_slots_data', '[]')); } catch { slotOverrides = []; }
 
+  // ── Section visibility (default ON — missing key = shown) ─────────────────
+  const show = (key: string) => (settings[key] ?? '1') !== '0';
+  const showHero     = show('advertise_show_hero');
+  const showStats    = show('advertise_show_stats');
+  const showWhy      = show('advertise_show_why');
+  const showPillars  = show('advertise_show_pillars');
+  const showPackages = show('advertise_show_packages');
+  const showSlots    = show('advertise_show_slots');
+  const showSpecs    = show('advertise_show_specs');
+  const showMediakit = show('advertise_show_mediakit');
+  const showContact  = show('advertise_show_contact');
+
   // ── Table cell styles (plain objects — no React.CSSProperties needed) ─────
   const thS = { padding: '10px 16px', textAlign: 'left' as const, fontSize: '11px', fontWeight: 700, color: '#6b7280' as const, letterSpacing: '0.8px', textTransform: 'uppercase' as const, borderBottom: '1px solid #1e1e1e' as const, whiteSpace: 'nowrap' as const };
   const tdS = { padding: '10px 16px', fontSize: '13px', color: '#9ca3af' as const, borderBottom: '1px solid #111' as const };
@@ -115,26 +127,28 @@ export default async function AdvertisePage() {
       {/* ═══════════════════════════════════════════════════════════════════════
           1. HERO — UniversalHero (exact site-wide standard)
       ══════════════════════════════════════════════════════════════════════════ */}
-      <UniversalHero
-        badgeText="MommyOffice · Advertise"
-        title={headline}
-        description={subtitle}
-        coverImage={heroBg || undefined}
-        youtubeId={heroYtId || undefined}
-        primaryActionText={ctaText}
-        primaryHref={mediakitUrl || '#contact'}
-        secondaryActionText={ctaText2}
-        secondaryHref="#contact"
-        fallbackGradient="linear-gradient(135deg, #0a1a19 0%, #061412 50%, #0d0d0d 100%)"
-        desktopHeight="clamp(480px, 60vh, 640px)"
-        mobileCardHeight="220px"
-        titleFontSize="clamp(1.4rem, 2.6vw, 2.2rem)"
-      />
+      {showHero && (
+        <UniversalHero
+          badgeText="MommyOffice · Advertise"
+          title={headline}
+          description={subtitle}
+          coverImage={heroBg || undefined}
+          youtubeId={heroYtId || undefined}
+          primaryActionText={ctaText}
+          primaryHref={mediakitUrl || '#contact'}
+          secondaryActionText={ctaText2}
+          secondaryHref="#contact"
+          fallbackGradient="linear-gradient(135deg, #0a1a19 0%, #061412 50%, #0d0d0d 100%)"
+          desktopHeight="clamp(480px, 60vh, 640px)"
+          mobileCardHeight="220px"
+          titleFontSize="clamp(1.4rem, 2.6vw, 2.2rem)"
+        />
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
           2. STATS — full-width banner image (or number fallback)
       ══════════════════════════════════════════════════════════════════════════ */}
-      {statsImg ? (
+      {showStats && (statsImg ? (
         <section style={{ background: '#0a0a0a', borderBottom: '1px solid #111' }}>
           <img
             src={statsImg}
@@ -162,29 +176,32 @@ export default async function AdvertisePage() {
             </div>
           </div>
         </section>
-      )}
+      ))}
 
       {/* ═══════════════════════════════════════════════════════════════════════
           3. WHY ADVERTISE
       ══════════════════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: 'clamp(2.5rem, 7vw, 4rem) 1.5rem', borderBottom: '1px solid #111' }}>
-        <div style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{
-            fontSize: 'clamp(1.6rem, 3.5vw, 2.25rem)',
-            fontWeight: 900, color: '#fff', margin: '0 0 1rem',
-            letterSpacing: '-0.02em',
-          }}>
-            {whyTitle}
-          </h2>
-          <p style={{ fontSize: 'clamp(14px, 1.6vw, 16px)', color: '#6b7280', lineHeight: 1.8, margin: 0 }}>
-            {whyText}
-          </p>
-        </div>
-      </section>
+      {showWhy && (
+        <section style={{ padding: 'clamp(2.5rem, 7vw, 4rem) 1.5rem', borderBottom: '1px solid #111' }}>
+          <div style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
+            <h2 style={{
+              fontSize: 'clamp(1.6rem, 3.5vw, 2.25rem)',
+              fontWeight: 900, color: '#fff', margin: '0 0 1rem',
+              letterSpacing: '-0.02em',
+            }}>
+              {whyTitle}
+            </h2>
+            <p style={{ fontSize: 'clamp(14px, 1.6vw, 16px)', color: '#6b7280', lineHeight: 1.8, margin: 0 }}>
+              {whyText}
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
           4. 6 CONTENT PILLARS
       ══════════════════════════════════════════════════════════════════════════ */}
+      {showPillars && (
       <section style={{ padding: 'clamp(2.5rem, 7vw, 4rem) 1.5rem', borderBottom: '1px solid #111' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ marginBottom: '2.5rem' }}>
@@ -242,10 +259,12 @@ export default async function AdvertisePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
           5. PACKAGES
       ══════════════════════════════════════════════════════════════════════════ */}
+      {showPackages && (
       <section style={{ padding: 'clamp(2.5rem, 7vw, 4rem) 1.5rem', borderBottom: '1px solid #111' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ marginBottom: '2.5rem' }}>
@@ -316,10 +335,12 @@ export default async function AdvertisePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
           6. INDIVIDUAL SLOT PRICING
       ══════════════════════════════════════════════════════════════════════════ */}
+      {showSlots && (
       <section style={{ padding: 'clamp(2.5rem, 7vw, 4rem) 1.5rem', borderBottom: '1px solid #111' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ marginBottom: '2rem' }}>
@@ -336,10 +357,12 @@ export default async function AdvertisePage() {
           <AdvertiseSlots email={email} overrides={slotOverrides} />
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
           6B. BANNER SPECIFICATIONS TABLE
       ══════════════════════════════════════════════════════════════════════════ */}
+      {showSpecs && (
       <section style={{ padding: '3rem 1.5rem', borderBottom: '1px solid #111' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ marginBottom: '1.5rem' }}>
@@ -382,10 +405,12 @@ export default async function AdvertisePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
           7. MEDIA KIT DOWNLOAD BANNER — compact
       ══════════════════════════════════════════════════════════════════════════ */}
+      {showMediakit && (
       <section style={{
         padding: '2.25rem 1.5rem',
         background: mediakitBg
@@ -448,10 +473,12 @@ export default async function AdvertisePage() {
           )}
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
           8. CONTACT FORM
       ══════════════════════════════════════════════════════════════════════════ */}
+      {showContact && (
       <section id="contact" style={{ padding: '5rem 1.5rem' }}>
         <div style={{ maxWidth: '640px', margin: '0 auto' }}>
           <div style={{ marginBottom: '2.5rem' }}>
@@ -476,6 +503,7 @@ export default async function AdvertisePage() {
           <AdvertiseContactForm />
         </div>
       </section>
+      )}
 
     </main>
   );

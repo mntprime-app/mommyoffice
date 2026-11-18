@@ -21,15 +21,54 @@ const inp: React.CSSProperties = {
 const ta: React.CSSProperties = { ...inp, resize: 'vertical', minHeight: '72px', lineHeight: 1.6 };
 const field: React.CSSProperties = { marginBottom: '1.25rem' };
 
-function SectionHead({ label }: { label: string }) {
+function SectionHead({ label, toggleValue, onToggle }: {
+  label: string;
+  toggleValue?: string;
+  onToggle?: (val: string) => void;
+}) {
+  const isOn = (toggleValue ?? '1') !== '0';
   return (
-    <h2 style={{
-      fontSize: '14px', fontWeight: 800, color: '#e5e5e5',
-      margin: '2.25rem 0 1.25rem', paddingBottom: '8px',
-      borderBottom: '1px solid #1e1e1e',
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      margin: '2.25rem 0 1.25rem', paddingBottom: '8px', borderBottom: '1px solid #1e1e1e',
     }}>
-      {label}
-    </h2>
+      <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#e5e5e5', margin: 0 }}>
+        {label}
+      </h2>
+      {onToggle && (
+        <button
+          type="button"
+          onClick={() => onToggle(isOn ? '0' : '1')}
+          title={isOn ? 'Нуух' : 'Харуулах'}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '7px',
+            background: isOn ? 'rgba(0,181,173,0.08)' : 'rgba(107,114,128,0.08)',
+            border: `1px solid ${isOn ? 'rgba(0,181,173,0.25)' : '#2a2a2a'}`,
+            borderRadius: '20px', padding: '4px 10px 4px 6px', cursor: 'pointer',
+          }}
+        >
+          {/* pill track */}
+          <span style={{
+            width: '30px', height: '17px', borderRadius: '9px', flexShrink: 0,
+            background: isOn ? '#00B5AD' : '#2a2a2a',
+            position: 'relative', display: 'inline-block', transition: 'background 0.18s',
+          }}>
+            <span style={{
+              position: 'absolute', top: '2px',
+              left: isOn ? '15px' : '2px',
+              width: '13px', height: '13px', borderRadius: '50%',
+              background: '#fff', transition: 'left 0.18s',
+            }} />
+          </span>
+          <span style={{
+            fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px',
+            textTransform: 'uppercase', color: isOn ? '#00B5AD' : '#6b7280',
+          }}>
+            {isOn ? 'ON' : 'OFF'}
+          </span>
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -93,6 +132,10 @@ const FLAT_KEYS = [
   'advertise_mediakit_section_bg',
   // Contact
   'advertise_contact_email', 'advertise_contact_phone',
+  // Section visibility toggles (default ON — missing key = shown)
+  'advertise_show_hero', 'advertise_show_stats', 'advertise_show_why',
+  'advertise_show_pillars', 'advertise_show_packages', 'advertise_show_slots',
+  'advertise_show_specs', 'advertise_show_mediakit', 'advertise_show_contact',
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -279,7 +322,7 @@ export default function AdminAdvertisePage() {
       {/* ══════════════════════════════════════════════════════════
           1. HERO
       ══════════════════════════════════════════════════════════ */}
-      <SectionHead label="🎯  Hero хэсэг" />
+      <SectionHead label="🎯  Hero хэсэг" toggleValue={v['advertise_show_hero'] ?? '1'} onToggle={(val) => set('advertise_show_hero', val)} />
       <Field label="Гарчиг (H1)" type="textarea" hint="Хуудасны том гарчиг." value={v['advertise_hero_headline'] ?? ''} onChange={(val) => set('advertise_hero_headline', val)} />
       <Field label="Дэд гарчиг" type="textarea" value={v['advertise_hero_subtitle'] ?? ''} onChange={(val) => set('advertise_hero_subtitle', val)} />
 
@@ -337,7 +380,7 @@ export default function AdminAdvertisePage() {
       {/* ══════════════════════════════════════════════════════════
           2. STATS / REACH BANNER
       ══════════════════════════════════════════════════════════ */}
-      <SectionHead label="📊  Хүрэлцээний баннер" />
+      <SectionHead label="📊  Хүрэлцээний баннер" toggleValue={v['advertise_show_stats'] ?? '1'} onToggle={(val) => set('advertise_show_stats', val)} />
       <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '-0.75rem', marginBottom: '1.25rem' }}>
         Зураг оруулбал hero-ийн доор бүтэн өргөний баннер болж харагдана. Хоосон үлдээвэл 3 тоо харагдана.
       </p>
@@ -369,14 +412,14 @@ export default function AdminAdvertisePage() {
       {/* ══════════════════════════════════════════════════════════
           3. WHY ADVERTISE
       ══════════════════════════════════════════════════════════ */}
-      <SectionHead label="💡  Яагаад MommyOffice?" />
+      <SectionHead label="💡  Яагаад MommyOffice?" toggleValue={v['advertise_show_why'] ?? '1'} onToggle={(val) => set('advertise_show_why', val)} />
       <Field label="Гарчиг" value={v['advertise_why_title'] ?? ''} onChange={(val) => set('advertise_why_title', val)} />
       <Field label="Текст" type="textarea" hint="Товч тайлбар (2–3 өгүүлбэр)." value={v['advertise_why_text'] ?? ''} onChange={(val) => set('advertise_why_text', val)} />
 
       {/* ══════════════════════════════════════════════════════════
           4. 6 CONTENT PILLARS
       ══════════════════════════════════════════════════════════ */}
-      <SectionHead label="🏆  Агуулгын 6 багана" />
+      <SectionHead label="🏆  Агуулгын 6 багана" toggleValue={v['advertise_show_pillars'] ?? '1'} onToggle={(val) => set('advertise_show_pillars', val)} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
         <Field label="Хэсгийн гарчиг"    value={v['advertise_pillars_section_title'] ?? ''} onChange={(val) => set('advertise_pillars_section_title', val)} />
         <Field label="Хэсгийн дэд текст" value={v['advertise_pillars_section_desc'] ?? ''}  onChange={(val) => set('advertise_pillars_section_desc', val)} />
@@ -415,7 +458,7 @@ export default function AdminAdvertisePage() {
       {/* ══════════════════════════════════════════════════════════
           5. PACKAGES
       ══════════════════════════════════════════════════════════ */}
-      <SectionHead label="💰  Багцууд (Gold / Premium / Platinum)" />
+      <SectionHead label="💰  Багцууд (Gold / Premium / Platinum)" toggleValue={v['advertise_show_packages'] ?? '1'} onToggle={(val) => set('advertise_show_packages', val)} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
         <Field label="Хэсгийн гарчиг"    value={v['advertise_packages_section_title'] ?? ''} onChange={(val) => set('advertise_packages_section_title', val)} />
         <Field label="Хэсгийн дэд текст" value={v['advertise_packages_section_desc'] ?? ''}  onChange={(val) => set('advertise_packages_section_desc', val)} />
@@ -463,7 +506,7 @@ export default function AdminAdvertisePage() {
       {/* ══════════════════════════════════════════════════════════
           6. SLOT CARDS
       ══════════════════════════════════════════════════════════ */}
-      <SectionHead label="🗂  Байршуулалтын карт (7 слот)" />
+      <SectionHead label="🗂  Байршуулалтын карт (7 слот)" toggleValue={v['advertise_show_slots'] ?? '1'} onToggle={(val) => set('advertise_show_slots', val)} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
         <Field label="Хэсгийн гарчиг"    value={v['advertise_slots_section_title'] ?? ''} onChange={(val) => set('advertise_slots_section_title', val)} />
         <Field label="Хэсгийн дэд текст" value={v['advertise_slots_section_desc'] ?? ''}  onChange={(val) => set('advertise_slots_section_desc', val)} />
@@ -516,7 +559,12 @@ export default function AdminAdvertisePage() {
       {/* ══════════════════════════════════════════════════════════
           7. MEDIA KIT BANNER
       ══════════════════════════════════════════════════════════ */}
-      <SectionHead label="📥  Media Kit баннер" />
+      <SectionHead label="📋  Баннерийн техникийн шаардлага (хүснэгт)" toggleValue={v['advertise_show_specs'] ?? '1'} onToggle={(val) => set('advertise_show_specs', val)} />
+      <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '-0.75rem', marginBottom: '1.25rem' }}>
+        Статик хүснэгт — агуулга засах боломжгүй, зөвхөн харуулах/нуулах.
+      </p>
+
+      <SectionHead label="📥  Media Kit баннер" toggleValue={v['advertise_show_mediakit'] ?? '1'} onToggle={(val) => set('advertise_show_mediakit', val)} />
       <Field label="Гарчиг"    value={v['advertise_mediakit_section_title'] ?? ''} onChange={(val) => set('advertise_mediakit_section_title', val)} />
       <Field label="Дэд текст" type="textarea" value={v['advertise_mediakit_section_desc'] ?? ''} onChange={(val) => set('advertise_mediakit_section_desc', val)} />
       <div style={field}>
@@ -532,7 +580,7 @@ export default function AdminAdvertisePage() {
       {/* ══════════════════════════════════════════════════════════
           8. CONTACT
       ══════════════════════════════════════════════════════════ */}
-      <SectionHead label="📬  Холбоо барих" />
+      <SectionHead label="📬  Холбоо барих" toggleValue={v['advertise_show_contact'] ?? '1'} onToggle={(val) => set('advertise_show_contact', val)} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div>
           <label style={lbl}>Имэйл</label>
