@@ -1,84 +1,73 @@
 import { getLocale } from 'next-intl/server';
-import Link from 'next/link';
 import { getSiteSettings } from '@/app/actions/admin';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Сурталчилгаа байршуулах | MommyOffice',
   description:
-    'MommyOffice платформд сурталчилгаа байршуулж, Монголын шийдвэр гаргагч эмэгтэйчүүдэд хүрнэ үү. 31,570+ дагагч, 88.8% эмэгтэй, 85% 25–44 насны үзэгчид.',
+    'MommyOffice платформд сурталчилгаа байршуулж, Монголын шийдвэр гаргагч эмэгтэйчүүдэд хүрнэ үү.',
 };
 
-// ─── Static data ──────────────────────────────────────────────────────────────
-
-const AUDIENCE_STATS = [
-  { icon: '👩', label: 'Эмэгтэй үзэгч', value: '88.8%', sub: '85% нь 25–44 нас' },
-  { icon: '📍', label: 'Улаанбаатар', value: '74.6%', sub: 'Үлдсэн нь Солонгос, АНУ, Австрали, Япон' },
-  { icon: '👥', label: 'Дагагч', value: '31,570+', sub: 'Facebook + Instagram' },
-  { icon: '🎬', label: 'Reel үзэлт', value: '40K–800K+', sub: 'Нэг видео тутамд' },
-  { icon: '🔁', label: 'Органик шэйр', value: '300–600', sub: 'Нийтлэл тутамд' },
-  { icon: '📊', label: 'Сарын хүрэх', value: '50,000+', sub: 'Органик дагагч' },
-];
+// ─── Package data ─────────────────────────────────────────────────────────────
 
 const PACKAGES = [
   {
+    id: 'gold',
     name: 'GOLD',
-    price: '₮900,000',
+    priceKey: 'advertise_gold_price',
+    defaultPrice: '₮900,000',
     period: '/сар',
-    color: '#B8860B',
-    bg: 'rgba(184,134,11,0.08)',
-    border: 'rgba(184,134,11,0.3)',
-    badge: 'Эхлэлийн багц',
-    saves: '₮360,000 (29%) хэмнэнэ',
+    color: '#d4a017',
+    glow: 'rgba(212,160,23,0.15)',
+    badge: 'Эхлэх',
     items: [
-      'H1 нүүр хуудасны баннер — 2 долоо хоног',
-      'C1 хичээлүүд хуудасны баннер',
-      'V1 видео хуудасны баннер',
-      '1× Reel байршуулалт (₮500,000 үнэтэй)',
+      '🏠  Нүүр хуудасны баннер — 2 долоо хоног',
+      '📄  3 хуудасны баннер',
+      '🎬  1 Facebook / Instagram Reel',
     ],
+    cta: 'Нэмэлт мэдээлэл авах',
   },
   {
+    id: 'premium',
     name: 'PREMIUM',
-    price: '₮1,800,000',
+    priceKey: 'advertise_premium_price',
+    defaultPrice: '₮1,800,000',
     period: '/сар',
     color: '#00B5AD',
-    bg: 'rgba(0,181,173,0.08)',
-    border: 'rgba(0,181,173,0.4)',
+    glow: 'rgba(0,181,173,0.15)',
     badge: '⭐ Хамгийн алдартай',
-    saves: '₮1,200,000 (40%) хэмнэнэ',
     items: [
-      'POP-UP 7 хоногийн блок',
-      'H1 нүүр хуудасны баннер — бүтэн сар',
-      'AR1 + C1 + V1 — 3 баннер',
-      '2× Reel байршуулалт (₮1,000,000 үнэтэй)',
+      '💥  Popup зар — 1 долоо хоног',
+      '🏠  Нүүр хуудасны баннер — бүтэн сар',
+      '📄  5 хуудасны баннер',
+      '🎬  2 Facebook / Instagram Reel',
     ],
+    cta: 'Нэмэлт мэдээлэл авах',
   },
   {
+    id: 'platinum',
     name: 'PLATINUM',
-    price: '₮2,800,000',
+    priceKey: 'advertise_platinum_price',
+    defaultPrice: '₮2,800,000',
     period: '/сар',
     color: '#a78bfa',
-    bg: 'rgba(167,139,250,0.08)',
-    border: 'rgba(167,139,250,0.3)',
-    badge: 'Максимум хүрэх',
-    saves: '₮2,550,000 (48%) хэмнэнэ',
+    glow: 'rgba(167,139,250,0.15)',
+    badge: 'Максимум',
     items: [
-      'POP-UP 2×7 хоногийн блок',
-      'H1 нүүр хуудасны баннер — бүтэн сар',
-      'Бүх 6 баннер цэг (AR1, A1, A2, A3, C1, V1)',
-      '4× Reel байршуулалт (₮2,000,000 үнэтэй)',
-      '1 ивээн тэтгэгчийн редакцийн нийтлэл',
+      '💥  Popup зар — 2 долоо хоног',
+      '🏠  Нүүр хуудасны баннер — бүтэн сар',
+      '📄  Бүх 8 байршуулалт',
+      '🎬  4 Facebook / Instagram Reel',
+      '✍️  1 Брэндийн нийтлэл',
     ],
+    cta: 'Нэмэлт мэдээлэл авах',
   },
 ];
 
-const SLOTS = [
-  { code: 'POP-UP', name: 'Popup баннер', size: 'Desktop 800×600 · Mobile 390×600', price: '₮350,000 / 3 хоног', note: 'Bundle only — 1 хэрэглэгч 24цаг тутамд 1 удаа' },
-  { code: 'H1', name: 'Нүүр хуудас Hero баннер', size: 'Desktop 1600×420 · Mobile 390×200', price: '₮200K–₮650K', note: '1 долоо хоног–4 долоо хоног' },
-  { code: 'A1–A3', name: 'Нийтлэл хуудасны баннерууд', size: 'Desktop 1336×120 · Mobile 390×100', price: 'от ₮100,000', note: 'Leaderboard' },
-  { code: 'AR1', name: 'Нийтлэлийн дотор баннер', size: 'Desktop 728×90 · Mobile 390×100', price: 'от ₮100,000', note: 'Нийтлэлийн эхэнд' },
-  { code: 'C1', name: 'Хичээлүүд хуудасны баннер', size: 'Desktop 1336×120 · Mobile 390×100', price: 'от ₮100,000', note: 'Leaderboard' },
-  { code: 'V1', name: 'Видео хуудасны баннер', size: 'Desktop 1336×120 · Mobile 390×100', price: 'от ₮100,000', note: 'Leaderboard' },
+const STATS = [
+  { value: '88.8%', label: 'Эмэгтэй үзэгч' },
+  { value: '31K+', label: 'Дагагч' },
+  { value: '50K+', label: 'Сарын хүрэх' },
 ];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -87,284 +76,295 @@ export default async function AdvertisePage() {
   const locale = await getLocale();
   const settings = await getSiteSettings();
 
-  const email   = settings.advertise_contact_email || settings.footer_contact_email || 'info.mommyoffice@gmail.com';
-  const phone   = settings.advertise_contact_phone || '';
-  const lp = (p: string) => `/${locale}${p}`;
+  const email    = settings.advertise_contact_email || settings.footer_contact_email || 'info.mommyoffice@gmail.com';
+  const phone    = settings.advertise_contact_phone || '';
+  const headline = settings.advertise_hero_headline || 'Монголын шийдвэр гаргагч эмэгтэйчүүдийн №1 платформд брэндээ байршуул';
+  const subtitle = settings.advertise_hero_subtitle || '25–44 насны өрхийн худалдан авалтыг шийддэг эмэгтэйчүүдэд чиглэсэн эерэг орчинд брэндийн мессежийг хүргэнэ үү.';
 
-  const sectionHead: React.CSSProperties = {
-    fontSize: '11px', fontWeight: 800, letterSpacing: '2px',
-    textTransform: 'uppercase', color: '#00B5AD', marginBottom: '0.5rem',
-  };
+  void locale; // locale available for future i18n use
 
   return (
-    <main style={{ background: '#080808', color: '#e5e5e5', minHeight: '100vh' }}>
+    <main style={{ background: '#070707', color: '#e5e5e5', minHeight: '100vh', overflowX: 'hidden' }}>
 
-      {/* ── HERO ───────────────────────────────────────────────────────── */}
+      {/* ═══════════════════════════════════════════════════════════
+          HERO
+      ════════════════════════════════════════════════════════════ */}
       <section style={{
-        background: 'linear-gradient(135deg, #0D2137 0%, #0a1628 60%, #061018 100%)',
-        padding: 'clamp(4rem,10vw,8rem) 6% clamp(3rem,8vw,6rem)',
-        borderBottom: '1px solid #1a2a3a',
+        minHeight: '90vh',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
         textAlign: 'center',
+        padding: '6rem 1.5rem 4rem',
+        background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,181,173,0.12) 0%, transparent 70%), #070707',
       }}>
-        <p style={sectionHead}>Advertise with us</p>
+        {/* eyebrow */}
+        <span style={{
+          display: 'inline-block',
+          fontSize: '11px', fontWeight: 800, letterSpacing: '3px',
+          textTransform: 'uppercase', color: '#00B5AD',
+          marginBottom: '1.5rem',
+          padding: '5px 16px',
+          border: '1px solid rgba(0,181,173,0.3)',
+          borderRadius: '20px',
+        }}>
+          Advertise with MommyOffice
+        </span>
+
+        {/* headline */}
         <h1 style={{
-          fontSize: 'clamp(2rem,5vw,3.5rem)', fontWeight: 900, lineHeight: 1.15,
-          color: '#fff', maxWidth: '860px', margin: '0 auto 1.25rem',
+          fontSize: 'clamp(2.2rem, 5.5vw, 4rem)',
+          fontWeight: 900,
+          lineHeight: 1.1,
+          letterSpacing: '-0.02em',
+          color: '#ffffff',
+          maxWidth: '820px',
+          margin: '0 auto 1.5rem',
         }}>
-          Монголын шийдвэр гаргагч эмэгтэйчүүдийн<br />
-          <span style={{ color: '#00B5AD' }}>№1 платформд</span> брэндээ байршуул
+          {headline}
         </h1>
+
+        {/* subtitle */}
         <p style={{
-          fontSize: 'clamp(1rem,2vw,1.2rem)', color: '#9ca3af',
-          maxWidth: '660px', margin: '0 auto 2.5rem', lineHeight: 1.7,
+          fontSize: 'clamp(1rem, 1.8vw, 1.2rem)',
+          color: '#6b7280',
+          maxWidth: '560px',
+          lineHeight: 1.75,
+          margin: '0 auto 3rem',
         }}>
-          Өрхийн худалдан авалтын шийдвэр гаргагч, 25–44 насны эмэгтэйчүүдэд чиглэсэн
-          эерэг орчинд брэндийн мессежийг хүргэнэ үү.
+          {subtitle}
         </p>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a
-            href={`mailto:${email}?subject=Сурталчилгааны асуулга — MommyOffice`}
-            style={{
-              display: 'inline-block', padding: '14px 36px',
-              background: '#00B5AD', color: '#fff',
-              borderRadius: '10px', fontWeight: 800, fontSize: '15px',
-              textDecoration: 'none', letterSpacing: '0.3px',
-            }}
-          >
-            Холбогдох →
-          </a>
-          <a
-            href="#packages"
-            style={{
-              display: 'inline-block', padding: '14px 36px',
-              background: 'transparent', color: '#00B5AD',
-              border: '1px solid rgba(0,181,173,0.4)',
-              borderRadius: '10px', fontWeight: 700, fontSize: '15px',
-              textDecoration: 'none',
-            }}
-          >
-            Багцуудыг харах
-          </a>
+
+        {/* CTA */}
+        <a
+          href={`mailto:${email}?subject=Сурталчилгааны асуулга — MommyOffice`}
+          style={{
+            display: 'inline-block',
+            padding: '16px 48px',
+            background: '#00B5AD',
+            color: '#fff',
+            borderRadius: '100px',
+            fontWeight: 800,
+            fontSize: '15px',
+            textDecoration: 'none',
+            letterSpacing: '0.3px',
+            boxShadow: '0 0 40px rgba(0,181,173,0.25)',
+          }}
+        >
+          Холбогдох →
+        </a>
+
+        {/* scroll hint */}
+        <div style={{ marginTop: '5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '1px', height: '48px', background: 'linear-gradient(to bottom, transparent, #2a2a2a)' }} />
+          <span style={{ fontSize: '11px', color: '#3a3a3a', letterSpacing: '2px', textTransform: 'uppercase' }}>scroll</span>
         </div>
       </section>
 
-      {/* ── AUDIENCE STATS ─────────────────────────────────────────────── */}
-      <section style={{ padding: 'clamp(3rem,7vw,5rem) 6%', background: '#0d0d0d' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <p style={{ ...sectionHead, textAlign: 'center' }}>Манай үзэгчид</p>
-          <h2 style={{ fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 800, textAlign: 'center', marginBottom: '2.5rem', color: '#fff' }}>
-            Өрхийн шийдвэр гаргагчид — хамгийн чухал зорилтот бүлэг
-          </h2>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '1.25rem',
-          }}>
-            {AUDIENCE_STATS.map((s) => (
-              <div key={s.label} style={{
-                background: '#161616', border: '1px solid #2a2a2a',
-                borderRadius: '14px', padding: '1.5rem 1.25rem',
-                textAlign: 'center',
+      {/* ═══════════════════════════════════════════════════════════
+          AUDIENCE — 3 BIG NUMBERS
+      ════════════════════════════════════════════════════════════ */}
+      <section style={{
+        padding: '5rem 1.5rem',
+        borderTop: '1px solid #111',
+        borderBottom: '1px solid #111',
+      }}>
+        <div style={{
+          maxWidth: '900px', margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '0',
+        }}>
+          {STATS.map((s, i) => (
+            <div key={s.label} style={{
+              textAlign: 'center',
+              padding: '2rem 1rem',
+              borderRight: i < STATS.length - 1 ? '1px solid #1a1a1a' : 'none',
+            }}>
+              <div style={{
+                fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
+                fontWeight: 900,
+                color: '#fff',
+                letterSpacing: '-0.03em',
+                lineHeight: 1,
+                marginBottom: '0.5rem',
               }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{s.icon}</div>
-                <div style={{ fontSize: 'clamp(1.6rem,3vw,2.2rem)', fontWeight: 900, color: '#00B5AD', lineHeight: 1 }}>
-                  {s.value}
-                </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#e5e5e5', margin: '0.4rem 0 0.25rem' }}>
-                  {s.label}
-                </div>
-                <div style={{ fontSize: '11px', color: '#6b7280', lineHeight: 1.5 }}>{s.sub}</div>
+                {s.value}
               </div>
-            ))}
-          </div>
+              <div style={{ fontSize: '14px', color: '#4b5563', fontWeight: 500, letterSpacing: '0.5px' }}>
+                {s.label}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ── PACKAGES ───────────────────────────────────────────────────── */}
-      <section id="packages" style={{ padding: 'clamp(3rem,7vw,5rem) 6%', background: '#080808' }}>
+      {/* ═══════════════════════════════════════════════════════════
+          PACKAGES — NETFLIX CARDS
+      ════════════════════════════════════════════════════════════ */}
+      <section style={{ padding: 'clamp(4rem,8vw,7rem) 1.5rem' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <p style={{ ...sectionHead, textAlign: 'center' }}>Багцууд</p>
-          <h2 style={{ fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 800, textAlign: 'center', marginBottom: '0.5rem', color: '#fff' }}>
-            Нэг багцаар илүү хэмнэнэ
-          </h2>
-          <p style={{ textAlign: 'center', color: '#6b7280', fontSize: '14px', marginBottom: '2.5rem' }}>
-            Reel байршуулалт зөвхөн багцад орно — тусдаа худалдаалагдахгүй
-          </p>
+
+          {/* section header */}
+          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+            <h2 style={{
+              fontSize: 'clamp(1.6rem, 3.5vw, 2.5rem)',
+              fontWeight: 900,
+              color: '#fff',
+              letterSpacing: '-0.02em',
+              margin: '0 0 0.75rem',
+            }}>
+              Сурталчилгааны багцууд
+            </h2>
+            <p style={{ fontSize: '15px', color: '#4b5563', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>
+              Нэг багцаар олон байршуул — тусдаа худалдан авснаас хэмнэлттэй
+            </p>
+          </div>
+
+          {/* cards */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
             gap: '1.5rem',
           }}>
-            {PACKAGES.map((pkg) => (
-              <div key={pkg.name} style={{
-                background: pkg.bg, border: `1px solid ${pkg.border}`,
-                borderRadius: '16px', padding: '2rem 1.75rem',
-                display: 'flex', flexDirection: 'column',
-              }}>
-                {/* Badge */}
-                <span style={{
-                  display: 'inline-block', fontSize: '11px', fontWeight: 800,
-                  letterSpacing: '0.5px', padding: '4px 12px',
-                  background: `${pkg.color}22`, color: pkg.color,
-                  borderRadius: '20px', border: `1px solid ${pkg.border}`,
-                  marginBottom: '1rem', alignSelf: 'flex-start',
+            {PACKAGES.map((pkg) => {
+              const price = settings[pkg.priceKey] || pkg.defaultPrice;
+              return (
+                <div key={pkg.id} style={{
+                  position: 'relative',
+                  background: '#0f0f0f',
+                  border: `1px solid ${pkg.id === 'premium' ? pkg.color + '55' : '#1e1e1e'}`,
+                  borderRadius: '20px',
+                  padding: '2.25rem 2rem',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
                 }}>
-                  {pkg.badge}
-                </span>
-                <h3 style={{ fontSize: '1.6rem', fontWeight: 900, color: pkg.color, margin: '0 0 0.25rem' }}>
-                  {pkg.name}
-                </h3>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <span style={{ fontSize: '2rem', fontWeight: 900, color: '#fff' }}>{pkg.price}</span>
-                  <span style={{ fontSize: '14px', color: '#9ca3af' }}>{pkg.period}</span>
-                </div>
-                {/* Items */}
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem', flex: 1 }}>
-                  {pkg.items.map((item) => (
-                    <li key={item} style={{
-                      fontSize: '13px', color: '#d1d5db',
-                      padding: '0.4rem 0',
-                      borderBottom: '1px solid rgba(255,255,255,0.05)',
-                      display: 'flex', gap: '0.5rem', alignItems: 'flex-start',
-                    }}>
-                      <span style={{ color: pkg.color, flexShrink: 0, marginTop: '1px' }}>✓</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                {/* Savings callout */}
-                <div style={{
-                  background: `${pkg.color}15`, border: `1px solid ${pkg.border}`,
-                  borderRadius: '8px', padding: '0.75rem 1rem',
-                  fontSize: '12px', fontWeight: 700, color: pkg.color,
-                  textAlign: 'center',
-                }}>
-                  🎯 {pkg.saves}
-                </div>
-              </div>
-            ))}
-          </div>
-          <p style={{ textAlign: 'center', fontSize: '12px', color: '#4b5563', marginTop: '1.5rem' }}>
-            * Hot Mic Diaries (ижил 25–44 насны эмэгтэй үзэгчид) нэг ангид ₮1,500,000–₮5,000,000 авдаг. MommyOffice Reel ₮500,000 — хамгийн өрсөлдөхүйц үнэ.
-          </p>
-        </div>
-      </section>
+                  {/* glow blob */}
+                  <div style={{
+                    position: 'absolute', top: '-60px', right: '-60px',
+                    width: '200px', height: '200px',
+                    borderRadius: '50%',
+                    background: pkg.glow,
+                    filter: 'blur(60px)',
+                    pointerEvents: 'none',
+                  }} />
 
-      {/* ── AD SLOTS ───────────────────────────────────────────────────── */}
-      <section style={{ padding: 'clamp(3rem,7vw,5rem) 6%', background: '#0d0d0d' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <p style={{ ...sectionHead, textAlign: 'center' }}>Тусдаа байршуулалт</p>
-          <h2 style={{ fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 800, textAlign: 'center', marginBottom: '2.5rem', color: '#fff' }}>
-            Байршуулалтын цэгүүд
-          </h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{
-              width: '100%', borderCollapse: 'collapse',
-              fontSize: '13px', color: '#d1d5db',
-            }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #2a2a2a' }}>
-                  {['Код', 'Нэр', 'Хэмжээ', 'Үнэ', 'Тэмдэглэл'].map((h) => (
-                    <th key={h} style={{
-                      padding: '10px 14px', textAlign: 'left',
-                      fontSize: '11px', fontWeight: 800, letterSpacing: '1px',
-                      textTransform: 'uppercase', color: '#6b7280',
-                    }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {SLOTS.map((slot, i) => (
-                  <tr key={slot.code} style={{
-                    borderBottom: '1px solid #1a1a1a',
-                    background: i % 2 === 0 ? 'transparent' : '#111',
+                  {/* badge */}
+                  <span style={{
+                    display: 'inline-block',
+                    fontSize: '11px', fontWeight: 800, letterSpacing: '0.5px',
+                    padding: '4px 12px',
+                    background: `${pkg.color}18`,
+                    color: pkg.color,
+                    borderRadius: '20px',
+                    border: `1px solid ${pkg.color}44`,
+                    marginBottom: '1.5rem',
+                    alignSelf: 'flex-start',
                   }}>
-                    <td style={{ padding: '12px 14px' }}>
-                      <span style={{
-                        display: 'inline-block', background: 'rgba(0,181,173,0.1)',
-                        color: '#00B5AD', fontWeight: 800, fontSize: '11px',
-                        padding: '2px 8px', borderRadius: '6px', letterSpacing: '0.5px',
-                      }}>{slot.code}</span>
-                    </td>
-                    <td style={{ padding: '12px 14px', fontWeight: 600, color: '#e5e5e5' }}>{slot.name}</td>
-                    <td style={{ padding: '12px 14px', color: '#9ca3af', fontSize: '12px' }}>{slot.size}</td>
-                    <td style={{ padding: '12px 14px', fontWeight: 700, color: '#00B5AD', whiteSpace: 'nowrap' }}>{slot.price}</td>
-                    <td style={{ padding: '12px 14px', color: '#6b7280', fontSize: '12px' }}>{slot.note}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    {pkg.badge}
+                  </span>
+
+                  {/* name + price */}
+                  <h3 style={{
+                    fontSize: '13px', fontWeight: 800, letterSpacing: '3px',
+                    textTransform: 'uppercase', color: pkg.color,
+                    margin: '0 0 0.5rem',
+                  }}>
+                    {pkg.name}
+                  </h3>
+                  <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                    <span style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                      {price}
+                    </span>
+                    <span style={{ fontSize: '14px', color: '#4b5563' }}>{pkg.period}</span>
+                  </div>
+
+                  {/* items */}
+                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 2.5rem', flex: 1 }}>
+                    {pkg.items.map((item) => (
+                      <li key={item} style={{
+                        fontSize: '14px',
+                        color: '#9ca3af',
+                        padding: '0.6rem 0',
+                        borderBottom: '1px solid #161616',
+                        lineHeight: 1.5,
+                      }}>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* CTA */}
+                  <a
+                    href={`mailto:${email}?subject=${encodeURIComponent(`${pkg.name} багцын асуулга — MommyOffice`)}`}
+                    style={{
+                      display: 'block',
+                      textAlign: 'center',
+                      padding: '13px',
+                      borderRadius: '12px',
+                      border: `1px solid ${pkg.color}66`,
+                      color: pkg.color,
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      textDecoration: 'none',
+                      background: `${pkg.color}0d`,
+                      letterSpacing: '0.3px',
+                    }}
+                  >
+                    {pkg.cta}
+                  </a>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* ── WHY MOMMYOFFICE ────────────────────────────────────────────── */}
-      <section style={{ padding: 'clamp(3rem,7vw,5rem) 6%', background: '#080808' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
-          <p style={sectionHead}>Яагаад MommyOffice?</p>
-          <h2 style={{ fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 800, marginBottom: '2.5rem', color: '#fff' }}>
-            Нэг байршуулалт — долоон цэгийн хүрэх чадвар
-          </h2>
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-            gap: '1.25rem', textAlign: 'left',
-          }}>
-            {[
-              { icon: '🎯', title: 'Яг зорилтот үзэгч', body: 'Өрхийн шийдвэр гаргагч, худалдан авалтын эрхийг эзэмшигч эмэгтэйчүүд.' },
-              { icon: '🤝', title: 'Итгэлийн орчин', body: 'Контент бүр эерэг — брэнд итгэмжлэлтэй орчинд байрладаг.' },
-              { icon: '📱', title: 'Вэб + Нийгмийн сүлжээ', body: 'Нэг багцаар вэбсайт болон Facebook/Instagram Reel-д хоёуланд нь хүрнэ.' },
-              { icon: '📈', title: 'Хэмжигдэхүйц үр дүн', body: 'GA4-аар клик, хардалт, конверсийн тайлан авах боломжтой.' },
-            ].map((item) => (
-              <div key={item.title} style={{
-                background: '#161616', border: '1px solid #2a2a2a',
-                borderRadius: '14px', padding: '1.5rem',
-              }}>
-                <div style={{ fontSize: '1.75rem', marginBottom: '0.75rem' }}>{item.icon}</div>
-                <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>{item.title}</h3>
-                <p style={{ fontSize: '13px', color: '#6b7280', lineHeight: 1.6, margin: 0 }}>{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA ────────────────────────────────────────────────────────── */}
+      {/* ═══════════════════════════════════════════════════════════
+          CONTACT CTA
+      ════════════════════════════════════════════════════════════ */}
       <section style={{
-        padding: 'clamp(4rem,8vw,6rem) 6%',
-        background: 'linear-gradient(135deg, #0D2137 0%, #061018 100%)',
+        padding: 'clamp(4rem,8vw,7rem) 1.5rem',
+        borderTop: '1px solid #111',
         textAlign: 'center',
-        borderTop: '1px solid #1a2a3a',
       }}>
-        <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: 'clamp(1.6rem,4vw,2.5rem)', fontWeight: 900, color: '#fff', marginBottom: '1rem' }}>
+        <div style={{ maxWidth: '560px', margin: '0 auto' }}>
+          <h2 style={{
+            fontSize: 'clamp(1.6rem, 3.5vw, 2.2rem)',
+            fontWeight: 900,
+            color: '#fff',
+            letterSpacing: '-0.02em',
+            margin: '0 0 1rem',
+          }}>
             Одоо захиалга өгнө үү
           </h2>
-          <p style={{ fontSize: '15px', color: '#9ca3af', lineHeight: 1.7, marginBottom: '2rem' }}>
-            Бидний багтай холбогдоод тохиромжтой багц, байршуулалтын хуваарийг зохицуулна уу.
+          <p style={{ fontSize: '15px', color: '#4b5563', marginBottom: '2.5rem', lineHeight: 1.7 }}>
+            Та бидэнтэй холбогдоод тохиромжтой багцаа сонгоорой.
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-            <a
-              href={`mailto:${email}?subject=Сурталчилгааны асуулга — MommyOffice`}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '16px 48px', background: '#00B5AD', color: '#fff',
-                borderRadius: '12px', fontWeight: 800, fontSize: '16px',
-                textDecoration: 'none', letterSpacing: '0.3px',
-              }}
-            >
-              ✉ {email}
-            </a>
-            {phone && (
-              <a href={`tel:${phone.replace(/\s/g, '')}`} style={{
-                fontSize: '15px', color: '#00B5AD', textDecoration: 'none', fontWeight: 600,
-              }}>
-                📞 {phone}
+          <a
+            href={`mailto:${email}?subject=Сурталчилгааны асуулга — MommyOffice`}
+            style={{
+              display: 'inline-block',
+              padding: '16px 48px',
+              background: '#fff',
+              color: '#070707',
+              borderRadius: '100px',
+              fontWeight: 800,
+              fontSize: '15px',
+              textDecoration: 'none',
+              letterSpacing: '0.3px',
+            }}
+          >
+            {email}
+          </a>
+          {phone && (
+            <p style={{ marginTop: '1.25rem' }}>
+              <a href={`tel:${phone.replace(/\s/g, '')}`} style={{ fontSize: '15px', color: '#4b5563', textDecoration: 'none', fontWeight: 500 }}>
+                {phone}
               </a>
-            )}
-          </div>
-          <p style={{ marginTop: '1.5rem', fontSize: '12px', color: '#4b5563' }}>
-            Та мөн <Link href={lp('/contact')} style={{ color: '#00B5AD', textDecoration: 'none' }}>Холбоо барих</Link> хуудсаар мессеж илгээх боломжтой.
-          </p>
+            </p>
+          )}
         </div>
       </section>
 

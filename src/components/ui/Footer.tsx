@@ -40,6 +40,29 @@ const headStyle: React.CSSProperties = {
   marginBottom: '0.875rem', letterSpacing: '0.2px',
 };
 
+type NavLink = { label: string; href: string };
+
+function parseLinks(raw: string | undefined, fallback: NavLink[]): NavLink[] {
+  if (!raw) return fallback;
+  try { return JSON.parse(raw) as NavLink[]; } catch { return fallback; }
+}
+
+const DEFAULT_PLATFORM: NavLink[] = [
+  { label: 'Хичээлүүд',    href: '/courses'  },
+  { label: 'Нийтлэлүүд',   href: '/articles' },
+  { label: 'Видео & Кино', href: '/videos'   },
+  { label: 'Дэлгүүр',      href: '/shop'     },
+];
+
+const DEFAULT_COMPANY: NavLink[] = [
+  { label: 'Бидний тухай',              href: '/about'               },
+  { label: 'Холбоо барих',             href: '/contact'             },
+  { label: 'Багш болох',               href: '/become-instructor'   },
+  { label: 'Сурталчилгаа байршуулах', href: '/advertise'           },
+  { label: 'Нууцлалын бодлого',        href: '/privacy'             },
+  { label: 'Үйлчилгээний нөхцөл',     href: '/terms'               },
+];
+
 export default async function Footer() {
   const locale = await getLocale();
   const settings = await getSiteSettings();
@@ -51,6 +74,9 @@ export default async function Footer() {
   const tt    = settings.footer_tiktok_url    || '';
   const email = settings.footer_contact_email || 'info.mommyoffice@gmail.com';
   const tag   = settings.footer_tagline       || 'Монголын эмэгтэйчүүдийн №1 платформ';
+
+  const platformLinks = parseLinks(settings.footer_links_platform, DEFAULT_PLATFORM);
+  const companyLinks  = parseLinks(settings.footer_links_company,  DEFAULT_COMPANY);
 
   const lp = (path: string) => `/${locale}${path}`;
 
@@ -86,27 +112,33 @@ export default async function Footer() {
             </p>
           </div>
 
-          {/* Platform */}
+          {/* Platform — dynamic from admin/footer */}
           <nav aria-label="Платформ хэсгүүд">
             <p style={headStyle}>Платформ</p>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Link href={lp('/courses')}  style={linkStyle}>Хичээлүүд</Link>
-              <Link href={lp('/articles')} style={linkStyle}>Нийтлэлүүд</Link>
-              <Link href={lp('/videos')}   style={linkStyle}>Видео &amp; Кино</Link>
-              <Link href={lp('/shop')}     style={linkStyle}>Дэлгүүр</Link>
+              {platformLinks.map((l) => (
+                <Link key={l.href} href={lp(l.href)} style={linkStyle}>
+                  {l.label}
+                </Link>
+              ))}
             </div>
           </nav>
 
-          {/* Company */}
+          {/* Company — dynamic from admin/footer */}
           <nav aria-label="Компанийн мэдээлэл">
             <p style={headStyle}>Компани</p>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Link href={lp('/about')}              style={linkStyle}>Бидний тухай</Link>
-              <Link href={lp('/contact')}            style={linkStyle}>Холбоо барих</Link>
-              <Link href={lp('/become-instructor')}  style={linkStyle}>Багш болох</Link>
-              <Link href={lp('/advertise')}          style={{ ...linkStyle, color: '#00B5AD', fontWeight: 600 }}>Сурталчилгаа байршуулах</Link>
-              <Link href={lp('/privacy')}            style={linkStyle}>Нууцлалын бодлого</Link>
-              <Link href={lp('/terms')}              style={linkStyle}>Үйлчилгээний нөхцөл</Link>
+              {companyLinks.map((l) => (
+                <Link
+                  key={l.href}
+                  href={lp(l.href)}
+                  style={l.href === '/advertise'
+                    ? { ...linkStyle, color: '#00B5AD', fontWeight: 600 }
+                    : linkStyle}
+                >
+                  {l.label}
+                </Link>
+              ))}
             </div>
           </nav>
 
