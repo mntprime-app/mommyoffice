@@ -19,7 +19,8 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   advertise_hero_bg: '',            // background image URL for hero (optional)
   advertise_hero_cta: 'Сурталчилгааны санал татаж авах',
   advertise_mediakit_url: '',       // PDF download link
-  advertise_hero_video_url: '',     // YouTube or direct video URL for hero right panel
+  advertise_hero_youtube_id: '',    // YouTube ID for hero autoplay background
+  advertise_hero_video_url: '',     // legacy — YouTube or direct video URL
   // Stats / reach section
   advertise_stats_image: '',        // banner or image URL for stats section
   advertise_stats_title: 'Манай платформын хүрэлцээ',
@@ -43,6 +44,7 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   advertise_slots_section_desc: 'Захиалах товч дарж яг тохирох байршуулалтаа сонгоорой',
   advertise_mediakit_section_title: 'Дэлгэрэнгүй мэдээллийг татаж авна уу',
   advertise_mediakit_section_desc: 'Аудиторийн тайлан, байршуулалтын жагсаалт болон үнийн санал бүхий бүрэн медиа кит.',
+  advertise_mediakit_section_bg: '',  // optional background image for media kit banner
   // Package overrides — JSON array of { id, name, badge, price, items: string[] }
   advertise_packages_data: '[]',
   // Why advertise section

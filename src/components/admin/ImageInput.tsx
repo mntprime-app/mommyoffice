@@ -6,7 +6,7 @@ import { uploadImage } from '@/app/actions/admin';
 interface ImageInputProps {
   value: string;
   onChange: (url: string) => void;
-  folder: 'articles' | 'courses' | 'videos';
+  folder: 'articles' | 'courses' | 'videos' | 'advertise';
   hint?: string;
 }
 
@@ -19,6 +19,8 @@ export default function ImageInput({ value, onChange, folder, hint }: ImageInput
     ? '💡 Зөвлөмж: 1200×630px (16:9, макс 5MB)'
     : folder === 'courses'
     ? '💡 Зөвлөмж: 1280×720px (HD 16:9, макс 5MB)'
+    : folder === 'advertise'
+    ? '💡 Зөвлөмж: 1600×420px (баннер, макс 5MB)'
     : '💡 Зөвлөмж: 1280×720px (HD 16:9, макс 5MB)';
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -27,7 +29,7 @@ export default function ImageInput({ value, onChange, folder, hint }: ImageInput
     setUploading(true); setIsError(false);
     setStatus('Зургийг шахаж байна...');
     try {
-      const file = await compressImage(raw, { preset: folder === 'articles' ? 'article' : 'course' });
+      const file = await compressImage(raw, { preset: folder === 'articles' ? 'article' : folder === 'advertise' ? 'article' : 'course' });
       setStatus(`✓ Шахагдсан: ${fmtSize(raw.size)} → ${fmtSize(file.size)} (WebP)`);
       const fd = new FormData();
       fd.append('file', file);

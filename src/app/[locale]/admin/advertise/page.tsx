@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getSiteSettings, updateSiteSetting } from '@/app/actions/admin';
+import { getSiteSettings, updateSiteSetting, uploadImage } from '@/app/actions/admin';
+import ImageInput from '@/components/admin/ImageInput';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
@@ -19,6 +20,7 @@ const inp: React.CSSProperties = {
 };
 const ta: React.CSSProperties = { ...inp, resize: 'vertical', minHeight: '72px', lineHeight: 1.6 };
 const field: React.CSSProperties = { marginBottom: '1.25rem' };
+
 function SectionHead({ label }: { label: string }) {
   return (
     <h2 style={{
@@ -31,15 +33,26 @@ function SectionHead({ label }: { label: string }) {
   );
 }
 
-// ─── Default slot data (mirrors AdvertiseSlots SLOTS) ────────────────────────
+// ─── Extract YouTube ID from URL, youtu.be link, or bare 11-char ID ──────────
+function extractYouTubeId(input: string): string {
+  if (!input) return '';
+  const full = input.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if (full) return full[1];
+  const short = input.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+  if (short) return short[1];
+  if (/^[A-Za-z0-9_-]{11}$/.test(input.trim())) return input.trim();
+  return '';
+}
+
+// ─── Default slot data — IDs must match AdvertiseSlots SLOTS ─────────────────
 const DEFAULT_SLOTS = [
-  { id: 'C1',  name: 'C1 — Контент лидерборд',    placement: 'Нийтлэлийн эхэнд',          desc: 'Нийтлэлийн эхэнд том хэмжээний баннер',  price: '₮400,000', priceSub: '/сар' },
-  { id: 'C2',  name: 'C2 — Контент лидерборд',    placement: 'Нийтлэлийн дунд',           desc: 'Нийтлэлийн дунд байрлах баннер',         price: '₮350,000', priceSub: '/сар' },
-  { id: 'V1',  name: 'V1 — Видео лидерборд',      placement: 'Видео хуудасны эхэнд',      desc: 'Видео контентын дэргэдэх баннер',        price: '₮380,000', priceSub: '/сар' },
-  { id: 'H1',  name: 'H1 — Нүүр хуудасны баннер', placement: 'Нүүр хуудасны эхэнд',      desc: 'Нүүр хуудасны хамгийн дээд байр',       price: '₮500,000', priceSub: '/сар' },
-  { id: 'POP', name: 'POP — Попап зар',            placement: 'Сайтын бүх хуудас',         desc: 'Нэг удаагийн попап зар бүх хуудаст',    price: '₮600,000', priceSub: '/сар' },
-  { id: 'AR1', name: 'AR1 — Нийтлэлийн хажуу',    placement: 'Нийтлэлийн хажуугийн баар', desc: 'Sticky sidebar баннер',                 price: '₮300,000', priceSub: '/сар' },
-  { id: 'SH1', name: 'SH1 — Дэлгүүрийн баннер',   placement: 'Дэлгүүрийн хуудас',         desc: 'Дэлгүүрийн хуудасны дээд баннер',       price: '₮320,000', priceSub: '/сар' },
+  { id: 'popup',    name: 'Popup зар',               placement: 'Нүүр хуудас — дэлгэцийн дунд',    desc: 'Хуудас ачаалахад дэлгэцийн дунд гарна. Хамгийн өндөр харагдах чадвар.',               price: '₮350,000',         priceSub: '/ 3 хоногийн блок' },
+  { id: 'hero',     name: 'Нүүр хуудасны баннер',    placement: 'Нүүр хуудас — hero хэсгийн доор', desc: 'Сайтад орсон бүх хэрэглэгч харна. Хамгийн өндөр хүрэх чадвар бүхий байнгын байршуулалт.', price: '₮200,000–₮650,000', priceSub: '/ 1–4 долоо хоног' },
+  { id: 'articles', name: 'Нийтлэлийн баннер',       placement: 'Нийтлэл хуудас — дээд хэсэг',     desc: 'Нийтлэлийн жагсаалт болон дэлгэрэнгүй хуудсуудад харагдана.',                          price: '₮100,000-с',       priceSub: '/ сар' },
+  { id: 'inline',   name: 'Нийтлэлийн дотор баннер', placement: 'Нийтлэлийн эхэнд — агуулгын дотор', desc: 'Нийтлэлийг унших үед хуудсыг гүйлгэх явцад харагдана.',                             price: '₮100,000-с',       priceSub: '/ сар' },
+  { id: 'courses',  name: 'Хичээлийн баннер',         placement: 'Хичээлүүд хуудас — доод хэсэг',   desc: 'Хичээл үзэж буй болон сурахыг хүсэж буй хэрэглэгчид харна.',                          price: '₮100,000-с',       priceSub: '/ сар' },
+  { id: 'videos',   name: 'Видео хуудасны баннер',    placement: 'Видео & Кино хуудас — доод хэсэг', desc: 'Видео контент үзэж буй хэрэглэгчид харна.',                                           price: '₮100,000-с',       priceSub: '/ сар' },
+  { id: 'reel',     name: 'Facebook / Instagram Reel', placement: 'Нийгмийн сүлжээ',               desc: 'MommyOffice-ийн Facebook болон Instagram хуудаст Reel байршуулалт.',                   price: '₮500,000',         priceSub: '/ 1 Reel (зөвхөн багцад)' },
 ];
 
 // ─── Default package data ─────────────────────────────────────────────────────
@@ -53,7 +66,9 @@ const DEFAULT_PACKAGES = [
 const FLAT_KEYS = [
   // Hero
   'advertise_hero_headline', 'advertise_hero_subtitle',
-  'advertise_hero_bg', 'advertise_hero_cta', 'advertise_hero_cta2', 'advertise_mediakit_url',
+  'advertise_hero_bg', 'advertise_hero_cta', 'advertise_hero_cta2',
+  'advertise_hero_youtube_id',
+  'advertise_mediakit_url',
   // Stats numbers
   'advertise_stat_1_value', 'advertise_stat_1_label',
   'advertise_stat_2_value', 'advertise_stat_2_label',
@@ -73,8 +88,9 @@ const FLAT_KEYS = [
   'advertise_packages_section_title', 'advertise_packages_section_desc',
   // Slots section heading
   'advertise_slots_section_title', 'advertise_slots_section_desc',
-  // Media Kit section heading
+  // Media Kit section
   'advertise_mediakit_section_title', 'advertise_mediakit_section_desc',
+  'advertise_mediakit_section_bg',
   // Contact
   'advertise_contact_email', 'advertise_contact_phone',
 ];
@@ -106,20 +122,17 @@ export default function AdminAdvertisePage() {
 
   useEffect(() => {
     getSiteSettings().then((s) => {
-      // flat keys
       const init: V = {};
       FLAT_KEYS.forEach((k) => { init[k] = s[k] ?? ''; });
       setV(init);
 
-      // slot state
       let savedSlots: Partial<SlotItem>[] = [];
       try { savedSlots = JSON.parse(s['advertise_slots_data'] ?? '[]'); } catch { savedSlots = []; }
       setSlots(DEFAULT_SLOTS.map((def) => {
         const ov = savedSlots.find((x) => x.id === def.id) ?? {};
-        return { ...def, ...ov } as SlotItem;
+        return { ...def, ...ov, image: (ov as SlotItem).image ?? '' } as SlotItem;
       }));
 
-      // package state
       let savedPkgs: Partial<{ id: string; name: string; badge: string; price: string; items: string[] }>[] = [];
       try { savedPkgs = JSON.parse(s['advertise_packages_data'] ?? '[]'); } catch { savedPkgs = []; }
       setPackages(DEFAULT_PACKAGES.map((def) => {
@@ -161,6 +174,61 @@ export default function AdminAdvertisePage() {
 
   if (loading) return <div style={{ padding: '3rem', color: '#555' }}>Уншиж байна...</div>;
 
+  // ── DocumentInput — file upload for PDFs/docx/pptx ────────────────────────
+  function DocumentInput({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+    const [uploading, setUploading] = useState(false);
+    const [status, setStatus] = useState('');
+    const [isError, setIsError] = useState(false);
+    const filename = value ? (value.split('/').pop()?.split('?')[0] ?? 'файл') : '';
+
+    async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+      const raw = e.target.files?.[0];
+      if (!raw) return;
+      setUploading(true); setIsError(false); setStatus('Файл upload хийж байна...');
+      try {
+        const fd = new FormData();
+        fd.append('file', raw);
+        // uploadImage accepts any file type; 'advertise' folder is now supported
+        const { error, url } = await uploadImage(fd, 'advertise' as 'articles');
+        if (error || !url) {
+          setIsError(true); setStatus(`Алдаа: ${error ?? 'URL хоосон'}`);
+        } else {
+          onChange(url);
+          setStatus('✓ Амжилттай upload хийлээ');
+          setTimeout(() => setStatus(''), 3000);
+        }
+      } catch {
+        setIsError(true); setStatus('Upload хийхэд алдаа гарлаа.');
+      }
+      setUploading(false);
+    }
+
+    return (
+      <div>
+        {value && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', padding: '8px 12px', background: 'rgba(0,181,173,0.08)', border: '1px solid rgba(0,181,173,0.2)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '18px' }}>📄</span>
+            <span style={{ fontSize: '12px', color: '#00B5AD', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filename}</span>
+            <button onClick={() => onChange('')} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }}>✕</button>
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#2a2a2a', border: '1px solid #333', color: '#e5e5e5', padding: '9px 16px', borderRadius: '8px', cursor: uploading ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', opacity: uploading ? 0.6 : 1 }}>
+            {uploading ? '⏳ Uploading...' : '📁 Файл upload (.pdf .docx .pptx)'}
+            <input type="file" accept=".pdf,.docx,.pptx,.doc" disabled={uploading} onChange={handleFile} style={{ display: 'none' }} />
+          </label>
+          <input type="url" value={value} onChange={(e) => { onChange(e.target.value); setStatus(''); }} placeholder="https://...pdf (URL-аар оруулах)" style={{ ...inp, flex: 1, minWidth: '180px' }} />
+        </div>
+        {status && (
+          <p style={{ fontSize: '12px', marginTop: '6px', padding: '6px 12px', borderRadius: '6px', background: isError ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', border: `1px solid ${isError ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`, color: isError ? '#fca5a5' : '#6ee7b7', margin: '6px 0 0' }}>
+            {status}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // ── Shared field helper ───────────────────────────────────────────────────
   function Field({ k, label, hint, type = 'text' }: { k: string; label: string; hint?: string; type?: string }) {
     return (
       <div style={field}>
@@ -174,6 +242,9 @@ export default function AdminAdvertisePage() {
       </div>
     );
   }
+
+  // ── YouTube ID ──────────────────────────────────────────────────────────
+  const ytId = extractYouTubeId(v['advertise_hero_youtube_id'] ?? '');
 
   return (
     <div style={{ padding: '2rem', maxWidth: '800px' }}>
@@ -205,19 +276,76 @@ export default function AdminAdvertisePage() {
       <SectionHead label="🎯  Hero хэсэг" />
       <Field k="advertise_hero_headline" label="Гарчиг (H1)" type="textarea" hint="Хуудасны том гарчиг." />
       <Field k="advertise_hero_subtitle" label="Дэд гарчиг" type="textarea" />
-      <Field k="advertise_hero_bg"       label="Дэвсгэр зургийн URL" hint="Hero хэсгийн дэвсгэр зураг. Хоосон үлдээвэл teal gradient харагдана." />
+
+      <div style={field}>
+        <label style={lbl}>Дэвсгэр зураг (Hero background)</label>
+        <ImageInput
+          value={v['advertise_hero_bg'] ?? ''}
+          onChange={(url) => set('advertise_hero_bg', url)}
+          folder="advertise"
+          hint="Hero хэсгийн дэвсгэр зураг. Хоосон үлдээвэл teal gradient харагдана. Зөвлөмж: 1920×1080px"
+        />
+      </div>
+
+      {/* YouTube autoplay */}
+      <div style={field}>
+        <label style={lbl}>▶ YouTube Autoplay (заавал биш)</label>
+        <input
+          type="text"
+          value={v['advertise_hero_youtube_id'] ?? ''}
+          onChange={(e) => set('advertise_hero_youtube_id', e.target.value)}
+          placeholder="YouTube URL эсвэл Video ID (жнь: dQw4w9WgXcQ)"
+          style={inp}
+        />
+        <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>
+          Desktop-д 2.5 секундын дараа дуугүйгээр autoplay хийнэ. Mobile-д харагдахгүй.
+        </p>
+        {ytId && (
+          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img
+              src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
+              alt="YouTube preview"
+              style={{ width: '180px', height: '101px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #2a2a2a', flexShrink: 0 }}
+            />
+            <p style={{ fontSize: '11px', color: '#00B5AD', margin: 0 }}>✓ YouTube ID: <code style={{ background: '#1a1a1a', padding: '2px 6px', borderRadius: '4px' }}>{ytId}</code></p>
+          </div>
+        )}
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <Field k="advertise_hero_cta"  label="Үндсэн товчны текст"    hint='Жнь: "Санал татаж авах"' />
         <Field k="advertise_hero_cta2" label="Хоёр дахь товчны текст" hint='Жнь: "Асуулга илгээх"' />
       </div>
-      <Field k="advertise_mediakit_url" label="Media Kit PDF URL" hint="PDF URL байвал шууд татаж авна. Хоосон бол contact form руу scroll хийнэ." />
+
+      <div style={field}>
+        <label style={lbl}>Media Kit PDF / Файл</label>
+        <DocumentInput
+          value={v['advertise_mediakit_url'] ?? ''}
+          onChange={(url) => set('advertise_mediakit_url', url)}
+        />
+        <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>
+          PDF URL байвал Hero товч шууд татаж авна. Хоосон бол contact form руу scroll хийнэ.
+        </p>
+      </div>
 
       {/* ══════════════════════════════════════════════════════════
-          2. STATS
+          2. STATS / REACH BANNER
       ══════════════════════════════════════════════════════════ */}
-      <SectionHead label="📊  Статистик тоонууд" />
+      <SectionHead label="📊  Хүрэлцээний баннер" />
       <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '-0.75rem', marginBottom: '1.25rem' }}>
-        Hero-ийн доор харагдах 3 том тоо. Хэзээ ч шинэчлэх боломжтой.
+        Зураг оруулбал hero-ийн доор бүтэн өргөний баннер болж харагдана. Хоосон үлдээвэл 3 тоо харагдана.
+      </p>
+      <div style={field}>
+        <label style={lbl}>Баннер зураг (бүтэн өргөн)</label>
+        <ImageInput
+          value={v['advertise_stats_image'] ?? ''}
+          onChange={(url) => set('advertise_stats_image', url)}
+          folder="advertise"
+          hint="Зөвлөмж: 1600×400px орчим (Statistics / Audience reach infographic)"
+        />
+      </div>
+      <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '1.25rem' }}>
+        Зураг байхгүй үед доорх 3 тоо fallback болж харагдана:
       </p>
       {[1,2,3].map((n) => (
         <div key={n} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.75rem' }}>
@@ -231,10 +359,6 @@ export default function AdminAdvertisePage() {
           </div>
         </div>
       ))}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
-        <Field k="advertise_stats_title" label="Нэмэлт зургийн гарчиг" hint="Тоонуудын доорх зурагт харагдах шошго." />
-        <Field k="advertise_stats_image" label="Нэмэлт зургийн URL"    hint="Хоосон үлдээвэл нуугдана." />
-      </div>
 
       {/* ══════════════════════════════════════════════════════════
           3. WHY ADVERTISE
@@ -252,7 +376,7 @@ export default function AdminAdvertisePage() {
         <Field k="advertise_pillars_section_desc"  label="Хэсгийн дэд текст" />
       </div>
       <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '1.25rem' }}>
-        Зургийн URL байхгүй бол emoji placeholder харагдана.
+        Зураг байхгүй бол emoji placeholder харагдана.
       </p>
       {[1,2,3,4,5,6].map((n) => (
         <div key={n} style={{
@@ -266,13 +390,18 @@ export default function AdminAdvertisePage() {
               <input value={v[`advertise_pillar_${n}_title`] ?? ''} onChange={(e) => set(`advertise_pillar_${n}_title`, e.target.value)} style={inp} />
             </div>
             <div>
-              <label style={lbl}>Зургийн URL</label>
-              <input value={v[`advertise_pillar_${n}_image`] ?? ''} onChange={(e) => set(`advertise_pillar_${n}_image`, e.target.value)} style={inp} placeholder="https://..." />
+              <label style={lbl}>Тайлбар</label>
+              <textarea value={v[`advertise_pillar_${n}_desc`] ?? ''} onChange={(e) => set(`advertise_pillar_${n}_desc`, e.target.value)} style={{ ...ta, minHeight: '52px' }} />
             </div>
           </div>
           <div>
-            <label style={lbl}>Тайлбар</label>
-            <textarea value={v[`advertise_pillar_${n}_desc`] ?? ''} onChange={(e) => set(`advertise_pillar_${n}_desc`, e.target.value)} style={{ ...ta, minHeight: '56px' }} />
+            <label style={lbl}>Зураг</label>
+            <ImageInput
+              value={v[`advertise_pillar_${n}_image`] ?? ''}
+              onChange={(url) => set(`advertise_pillar_${n}_image`, url)}
+              folder="advertise"
+              hint="Зөвлөмж: 1200×675px (16:9)"
+            />
           </div>
         </div>
       ))}
@@ -334,7 +463,7 @@ export default function AdminAdvertisePage() {
         <Field k="advertise_slots_section_desc"  label="Хэсгийн дэд текст" />
       </div>
       <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '1.25rem' }}>
-        Зурган URL оруулбал wireframe-ийн оронд тухайн зураг харагдана.
+        Зураг оруулбал wireframe-ийн оронд тухайн зураг харагдана.
       </p>
       {slots.map((slot) => (
         <div key={slot.id} style={{
@@ -353,13 +482,17 @@ export default function AdminAdvertisePage() {
             </div>
           </div>
           <div style={{ marginBottom: '0.75rem' }}>
-            <label style={lbl}>Зургийн URL</label>
-            <input value={slot.image} onChange={(e) => setSlotField(slot.id, 'image', e.target.value)} placeholder="https://..." style={inp} />
-            <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>Хоосон үлдээвэл CSS wireframe харагдана.</p>
-          </div>
-          <div style={{ marginBottom: '0.75rem' }}>
             <label style={lbl}>Тайлбар</label>
             <textarea value={slot.desc} onChange={(e) => setSlotField(slot.id, 'desc', e.target.value)} style={{ ...ta, minHeight: '52px' }} />
+          </div>
+          <div style={{ marginBottom: '0.75rem' }}>
+            <label style={lbl}>Зураг (wireframe-ийн оронд харагдана)</label>
+            <ImageInput
+              value={slot.image}
+              onChange={(url) => setSlotField(slot.id, 'image', url)}
+              folder="advertise"
+              hint="Хоосон үлдээвэл CSS wireframe харагдана."
+            />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div>
@@ -380,6 +513,15 @@ export default function AdminAdvertisePage() {
       <SectionHead label="📥  Media Kit баннер" />
       <Field k="advertise_mediakit_section_title" label="Гарчиг" />
       <Field k="advertise_mediakit_section_desc"  label="Дэд текст" type="textarea" />
+      <div style={field}>
+        <label style={lbl}>Дэвсгэр зураг (баннерийн арын зураг)</label>
+        <ImageInput
+          value={v['advertise_mediakit_section_bg'] ?? ''}
+          onChange={(url) => set('advertise_mediakit_section_bg', url)}
+          folder="advertise"
+          hint="Зөвлөмж: 1600×400px. Хоосон үлдээвэл teal gradient харагдана."
+        />
+      </div>
 
       {/* ══════════════════════════════════════════════════════════
           8. CONTACT
