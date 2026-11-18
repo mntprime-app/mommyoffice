@@ -57,8 +57,8 @@ export default function AdvertiseContactForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+        <div style={{ flex: '1 1 180px' }}>
           <label style={lbl}>Нэр *</label>
           <input
             type="text" required value={form.name}
@@ -66,7 +66,7 @@ export default function AdvertiseContactForm() {
             placeholder="Таны нэр" style={inp}
           />
         </div>
-        <div>
+        <div style={{ flex: '1 1 180px' }}>
           <label style={lbl}>Утасны дугаар</label>
           <input
             type="tel" value={form.phone}

@@ -147,10 +147,10 @@ export default async function AdvertisePage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
               {stats.map((st, i) => (
                 <div key={st.label} style={{
-                  textAlign: 'center', padding: '2rem 1rem',
+                  textAlign: 'center', padding: 'clamp(1.25rem, 4vw, 2rem) clamp(0.5rem, 2vw, 1rem)',
                   borderRight: i < 2 ? '1px solid #1a1a1a' : 'none',
                 }}>
-                  <div style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                  <div style={{ fontSize: 'clamp(1.4rem, 7vw, 3.25rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
                     {st.value}
                   </div>
                   <div style={{ fontSize: '12px', color: '#4b5563', marginTop: '0.3rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -166,7 +166,7 @@ export default async function AdvertisePage() {
       {/* ═══════════════════════════════════════════════════════════════════════
           3. WHY ADVERTISE
       ══════════════════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: '4rem 1.5rem', borderBottom: '1px solid #111' }}>
+      <section style={{ padding: 'clamp(2.5rem, 7vw, 4rem) 1.5rem', borderBottom: '1px solid #111' }}>
         <div style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{
             fontSize: 'clamp(1.6rem, 3.5vw, 2.25rem)',
@@ -184,7 +184,7 @@ export default async function AdvertisePage() {
       {/* ═══════════════════════════════════════════════════════════════════════
           4. 6 CONTENT PILLARS
       ══════════════════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: '4rem 1.5rem', borderBottom: '1px solid #111' }}>
+      <section style={{ padding: 'clamp(2.5rem, 7vw, 4rem) 1.5rem', borderBottom: '1px solid #111' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ marginBottom: '2.5rem' }}>
             <h2 style={{
@@ -245,7 +245,7 @@ export default async function AdvertisePage() {
       {/* ═══════════════════════════════════════════════════════════════════════
           5. PACKAGES
       ══════════════════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: '4rem 1.5rem', borderBottom: '1px solid #111' }}>
+      <section style={{ padding: 'clamp(2.5rem, 7vw, 4rem) 1.5rem', borderBottom: '1px solid #111' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ marginBottom: '2.5rem' }}>
             <h2 style={{
@@ -319,7 +319,7 @@ export default async function AdvertisePage() {
       {/* ═══════════════════════════════════════════════════════════════════════
           6. INDIVIDUAL SLOT PRICING
       ══════════════════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: '4rem 1.5rem', borderBottom: '1px solid #111' }}>
+      <section style={{ padding: 'clamp(2.5rem, 7vw, 4rem) 1.5rem', borderBottom: '1px solid #111' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ marginBottom: '2rem' }}>
             <h2 style={{

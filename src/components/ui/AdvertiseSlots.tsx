@@ -402,7 +402,7 @@ export default function AdvertiseSlots({
       {/* card grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))',
         gap: '1px',
         border: '1px solid #1a1a1a',
         borderRadius: '16px',
@@ -413,7 +413,7 @@ export default function AdvertiseSlots({
           <div key={slot.id} style={{
             background: '#0d0d0d',
             display: 'grid',
-            gridTemplateColumns: '160px 1fr',
+            gridTemplateColumns: 'min(160px, 44%) 1fr',
           }}>
             {/* preview: custom image OR wireframe fallback */}
             <div style={{
