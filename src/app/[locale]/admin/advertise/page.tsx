@@ -5,225 +5,219 @@ import { getSiteSettings, updateSiteSetting } from '@/app/actions/admin';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
-const labelStyle: React.CSSProperties = {
+// ─── Shared styles ────────────────────────────────────────────────────────────
+const lbl: React.CSSProperties = {
   display: 'block', fontSize: '12px', fontWeight: 700,
   color: '#9ca3af', marginBottom: '6px',
   letterSpacing: '0.8px', textTransform: 'uppercase',
 };
-const inputStyle: React.CSSProperties = {
+const inp: React.CSSProperties = {
   width: '100%', padding: '10px 14px', borderRadius: '8px',
   border: '1px solid #2a2a2a', background: '#0d0d0d',
   color: '#e5e5e5', fontSize: '14px', outline: 'none',
-  boxSizing: 'border-box',
+  boxSizing: 'border-box', fontFamily: 'inherit',
 };
-const textareaStyle: React.CSSProperties = {
-  ...inputStyle,
-  resize: 'vertical',
-  minHeight: '80px',
-  lineHeight: 1.6,
-};
-const fieldStyle: React.CSSProperties = { marginBottom: '1.5rem' };
+const ta: React.CSSProperties = { ...inp, resize: 'vertical', minHeight: '72px', lineHeight: 1.6 };
+const field: React.CSSProperties = { marginBottom: '1.25rem' };
+const sectionHead = (label: string): React.CSSProperties => ({
+  fontSize: '14px', fontWeight: 800, color: '#e5e5e5',
+  margin: '2rem 0 1.25rem', paddingBottom: '8px',
+  borderBottom: '1px solid #1e1e1e',
+});
 
-const FIELDS: { key: string; label: string; placeholder: string; hint?: string; type?: 'email' | 'textarea' }[] = [
-  // ── Hero
-  {
-    key: 'advertise_hero_headline',
-    label: 'Hero гарчиг',
-    placeholder: 'Монголын шийдвэр гаргагч эмэгтэйчүүдийн №1 платформд брэндээ байршуул',
-    type: 'textarea',
-    hint: '/advertise хуудасны том гарчиг.',
-  },
-  {
-    key: 'advertise_hero_subtitle',
-    label: 'Hero тайлбар',
-    placeholder: '25–44 насны өрхийн худалдан авалтыг шийддэг эмэгтэйчүүдэд чиглэсэн эерэг орчинд брэндийн мессежийг хүргэнэ үү.',
-    type: 'textarea',
-    hint: 'Hero гарчигийн доорх дэлгэрэнгүй.',
-  },
-  // ── Package prices
-  {
-    key: 'advertise_gold_price',
-    label: 'GOLD багцын үнэ',
-    placeholder: '₮900,000',
-    hint: 'Жишээ: ₮900,000',
-  },
-  {
-    key: 'advertise_premium_price',
-    label: 'PREMIUM багцын үнэ',
-    placeholder: '₮1,800,000',
-    hint: 'Жишээ: ₮1,800,000',
-  },
-  {
-    key: 'advertise_platinum_price',
-    label: 'PLATINUM багцын үнэ',
-    placeholder: '₮2,800,000',
-    hint: 'Жишээ: ₮2,800,000',
-  },
-  // ── Contact
-  {
-    key: 'advertise_contact_email',
-    label: 'Сурталчилгааны имэйл',
-    placeholder: 'info.mommyoffice@gmail.com',
-    type: 'email',
-    hint: '"Холбогдох" товч болон CTA хэсэгт харагдана.',
-  },
-  {
-    key: 'advertise_contact_phone',
-    label: 'Утасны дугаар',
-    placeholder: '+976 9900 0000',
-    hint: 'Хоосон үлдээвэл харагдахгүй.',
-  },
+// ─── All CMS keys ─────────────────────────────────────────────────────────────
+const ALL_KEYS = [
+  // Hero
+  'advertise_hero_headline', 'advertise_hero_subtitle',
+  'advertise_hero_bg', 'advertise_hero_cta', 'advertise_mediakit_url',
+  // Stats
+  'advertise_stats_image', 'advertise_stats_title',
+  // Why
+  'advertise_why_title', 'advertise_why_text',
+  // Pillars
+  ...([1,2,3,4,5,6].flatMap((n) => [
+    `advertise_pillar_${n}_title`,
+    `advertise_pillar_${n}_desc`,
+    `advertise_pillar_${n}_image`,
+  ])),
+  // Packages
+  'advertise_gold_price', 'advertise_premium_price', 'advertise_platinum_price',
+  // Contact
+  'advertise_contact_email', 'advertise_contact_phone',
 ];
+
+type V = Record<string, string>;
 
 export default function AdminAdvertisePage() {
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? 'mn';
 
-  const [values, setValues]   = useState<Record<string, string>>({});
+  const [v, setV]         = useState<V>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
 
   useEffect(() => {
     getSiteSettings().then((s) => {
-      const init: Record<string, string> = {};
-      FIELDS.forEach(({ key }) => { init[key] = s[key] ?? ''; });
-      setValues(init);
+      const init: V = {};
+      ALL_KEYS.forEach((k) => { init[k] = s[k] ?? ''; });
+      setV(init);
       setLoading(false);
     });
   }, []);
 
   function set(key: string, val: string) {
-    setValues((prev) => ({ ...prev, [key]: val }));
+    setV((prev) => ({ ...prev, [key]: val }));
   }
 
   async function handleSave() {
     setSaving(true);
-    for (const { key } of FIELDS) {
-      await updateSiteSetting(key, values[key] ?? '');
+    for (const key of ALL_KEYS) {
+      await updateSiteSetting(key, v[key] ?? '');
     }
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   }
 
-  if (loading) {
-    return <div style={{ padding: '3rem', color: '#555' }}>Уншиж байна...</div>;
-  }
+  if (loading) return <div style={{ padding: '3rem', color: '#555' }}>Уншиж байна...</div>;
 
-  // Split fields into sections
-  const heroFields    = FIELDS.filter((f) => f.key.startsWith('advertise_hero'));
-  const priceFields   = FIELDS.filter((f) => f.key.includes('_price'));
-  const contactFields = FIELDS.filter((f) => f.key.includes('_email') || f.key.includes('_phone'));
-
-  function renderField({ key, label, placeholder, hint, type }: typeof FIELDS[0]) {
+  function Field({ k, label, hint, type = 'text' }: { k: string; label: string; hint?: string; type?: string }) {
     return (
-      <div key={key} style={fieldStyle}>
-        <label style={labelStyle}>{label}</label>
+      <div style={field}>
+        <label style={lbl}>{label}</label>
         {type === 'textarea' ? (
-          <textarea
-            value={values[key] ?? ''}
-            onChange={(e) => set(key, e.target.value)}
-            placeholder={placeholder}
-            style={textareaStyle}
-          />
+          <textarea value={v[k] ?? ''} onChange={(e) => set(k, e.target.value)} style={ta} />
         ) : (
-          <input
-            type={type ?? 'text'}
-            value={values[key] ?? ''}
-            onChange={(e) => set(key, e.target.value)}
-            placeholder={placeholder}
-            style={inputStyle}
-          />
+          <input type={type} value={v[k] ?? ''} onChange={(e) => set(k, e.target.value)} style={inp} />
         )}
-        {hint && <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '4px' }}>{hint}</p>}
+        {hint && <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>{hint}</p>}
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '680px' }}>
-
-      <Link
-        href={`/${locale}/admin`}
-        style={{ display: 'inline-block', color: '#00B5AD', fontSize: '13px', textDecoration: 'none', marginBottom: '1.5rem' }}
-      >
+    <div style={{ padding: '2rem', maxWidth: '780px' }}>
+      <Link href={`/${locale}/admin`} style={{ color: '#00B5AD', fontSize: '13px', textDecoration: 'none', display: 'inline-block', marginBottom: '1.5rem' }}>
         ← Admin панел руу буцах
       </Link>
 
       <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#e5e5e5', marginBottom: '0.25rem' }}>
         Сурталчлагчид хуудас
       </h1>
-      <p style={{ color: '#555', fontSize: '13px', marginBottom: '2.5rem' }}>
-        <code style={{ color: '#00B5AD', fontSize: '12px' }}>/advertise</code> хуудасны агуулгыг энд засна уу.
+      <p style={{ color: '#555', fontSize: '13px', marginBottom: '0.5rem' }}>
+        <code style={{ color: '#00B5AD', fontSize: '12px' }}>/advertise</code> хуудасны бүх агуулгыг энд засна уу.
       </p>
-
-      {/* Hero section */}
-      <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#e5e5e5', marginBottom: '1.25rem', paddingBottom: '8px', borderBottom: '1px solid #1e1e1e' }}>
-        🎯 Hero хэсэг
-      </h2>
-      {heroFields.map(renderField)}
-
-      {/* Package prices */}
-      <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#e5e5e5', margin: '2rem 0 1.25rem', paddingBottom: '8px', borderBottom: '1px solid #1e1e1e' }}>
-        💰 Багцуудын үнэ
-      </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-        {priceFields.map(({ key, label, placeholder, hint }) => (
-          <div key={key}>
-            <label style={labelStyle}>{label}</label>
-            <input
-              type="text"
-              value={values[key] ?? ''}
-              onChange={(e) => set(key, e.target.value)}
-              placeholder={placeholder}
-              style={inputStyle}
-            />
-            {hint && <p style={{ fontSize: '11px', color: '#4b5563', marginTop: '4px' }}>{hint}</p>}
-          </div>
-        ))}
-      </div>
-
-      {/* Contact */}
-      <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#e5e5e5', margin: '2rem 0 1.25rem', paddingBottom: '8px', borderBottom: '1px solid #1e1e1e' }}>
-        📬 Холбоо барих
-      </h2>
-      {contactFields.map(renderField)}
-
-      {/* Quick links */}
-      <div style={{
-        display: 'flex', gap: '0.75rem', flexWrap: 'wrap',
-        marginBottom: '2rem', padding: '1rem 1.25rem',
-        background: '#111', border: '1px solid #1e1e1e', borderRadius: '10px',
-      }}>
-        <span style={{ fontSize: '12px', color: '#4b5563', alignSelf: 'center' }}>Харах:</span>
-        <a href={`/${locale}/advertise`} target="_blank" rel="noopener noreferrer"
-          style={{ fontSize: '13px', color: '#00B5AD', textDecoration: 'none', fontWeight: 600 }}>
-          /advertise ↗
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+        <a href={`/${locale}/advertise`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#00B5AD', textDecoration: 'none', fontWeight: 600 }}>
+          /advertise харах ↗
         </a>
-        <Link href={`/${locale}/admin/footer`}
-          style={{ fontSize: '13px', color: '#a78bfa', textDecoration: 'none', fontWeight: 600 }}>
+        <Link href={`/${locale}/admin/footer`} style={{ fontSize: '12px', color: '#a78bfa', textDecoration: 'none', fontWeight: 600 }}>
           Footer цэс →
         </Link>
-        <Link href={`/${locale}/admin/ads`}
-          style={{ fontSize: '13px', color: '#f59e0b', textDecoration: 'none', fontWeight: 600 }}>
+        <Link href={`/${locale}/admin/ads`} style={{ fontSize: '12px', color: '#f59e0b', textDecoration: 'none', fontWeight: 600 }}>
           Баннер зарууд →
         </Link>
       </div>
 
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        style={{
-          padding: '12px 32px', borderRadius: '8px', border: 'none',
-          cursor: saving ? 'default' : 'pointer',
-          background: saved ? '#10b981' : '#00B5AD',
-          color: '#fff', fontWeight: 800, fontSize: '14px',
-          opacity: saving ? 0.7 : 1, transition: 'background 0.2s',
-        }}
-      >
-        {saving ? 'Хадгалж байна...' : saved ? '✓ Хадгалагдлаа!' : 'Хадгалах'}
-      </button>
+      {/* ── 1. HERO ──────────────────────────────────────────── */}
+      <h2 style={sectionHead('dummy')}>🎯 Hero хэсэг</h2>
+      <Field k="advertise_hero_headline" label="Гарчиг" type="textarea" hint="Хуудасны том гарчиг." />
+      <Field k="advertise_hero_subtitle" label="Дэд гарчиг" type="textarea" hint="Гарчигийн доорх дэлгэрэнгүй." />
+      <Field k="advertise_hero_bg"       label="Дэвсгэр зургийн URL" hint="Зургийн URL оруулна. Хоосон үлдээвэл teal gradient харагдана." />
+      <Field k="advertise_hero_cta"      label="CTA товчны текст" hint='Жнь: "Сурталчилгааны мэдээллийг татаж авах"' />
+      <Field k="advertise_mediakit_url"  label="Media Kit PDF URL" hint="PDF файлын шууд URL. Хоосон бол товч имэйл нээнэ." />
+
+      {/* ── 2. STATS ─────────────────────────────────────────── */}
+      <h2 style={sectionHead('dummy')}>📊 Статистик хэсэг</h2>
+      <Field k="advertise_stats_title" label="Гарчиг" />
+      <Field k="advertise_stats_image" label="Баннер зургийн URL" hint="88.8% / 31K+ / 50K+ тооны доор харагдах зураг. Хоосон үлдээвэл нуугдана." />
+
+      {/* ── 3. WHY ADVERTISE ─────────────────────────────────── */}
+      <h2 style={sectionHead('dummy')}>💡 Яагаад MommyOffice?</h2>
+      <Field k="advertise_why_title" label="Гарчиг" />
+      <Field k="advertise_why_text"  label="Текст" type="textarea" hint="Товч тайлбар (2–3 өгүүлбэр)." />
+
+      {/* ── 4. 6 PILLARS ─────────────────────────────────────── */}
+      <h2 style={sectionHead('dummy')}>🏆 6 Агуулгын багана</h2>
+      <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '-0.75rem', marginBottom: '1.25rem' }}>
+        Зургийн URL байхгүй бол emoji placeholder харагдана. Admin-с зурган URL оруулна.
+      </p>
+      {[1,2,3,4,5,6].map((n) => (
+        <div key={n} style={{
+          background: '#111', border: '1px solid #1e1e1e', borderRadius: '10px',
+          padding: '1.25rem', marginBottom: '1rem',
+        }}>
+          <p style={{ fontSize: '13px', fontWeight: 800, color: '#e5e5e5', margin: '0 0 1rem' }}>
+            Багана {n}
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div>
+              <label style={lbl}>Гарчиг</label>
+              <input value={v[`advertise_pillar_${n}_title`] ?? ''} onChange={(e) => set(`advertise_pillar_${n}_title`, e.target.value)} style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Зургийн URL</label>
+              <input value={v[`advertise_pillar_${n}_image`] ?? ''} onChange={(e) => set(`advertise_pillar_${n}_image`, e.target.value)} style={inp} placeholder="https://..." />
+            </div>
+          </div>
+          <div>
+            <label style={lbl}>Тайлбар</label>
+            <textarea value={v[`advertise_pillar_${n}_desc`] ?? ''} onChange={(e) => set(`advertise_pillar_${n}_desc`, e.target.value)} style={{ ...ta, minHeight: '56px' }} />
+          </div>
+        </div>
+      ))}
+
+      {/* ── 5. PACKAGES ──────────────────────────────────────── */}
+      <h2 style={sectionHead('dummy')}>💰 Багцын үнэ</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
+        {[
+          { k: 'advertise_gold_price',     label: 'GOLD' },
+          { k: 'advertise_premium_price',  label: 'PREMIUM' },
+          { k: 'advertise_platinum_price', label: 'PLATINUM' },
+        ].map(({ k, label }) => (
+          <div key={k}>
+            <label style={lbl}>{label}</label>
+            <input value={v[k] ?? ''} onChange={(e) => set(k, e.target.value)} placeholder="₮0,000" style={inp} />
+          </div>
+        ))}
+      </div>
+
+      {/* ── 6. CONTACT ───────────────────────────────────────── */}
+      <h2 style={sectionHead('dummy')}>📬 Холбоо барих</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div>
+          <label style={lbl}>Имэйл</label>
+          <input type="email" value={v['advertise_contact_email'] ?? ''} onChange={(e) => set('advertise_contact_email', e.target.value)} style={inp} placeholder="info.mommyoffice@gmail.com" />
+          <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>Асуулга энд очно.</p>
+        </div>
+        <div>
+          <label style={lbl}>Утасны дугаар</label>
+          <input type="tel" value={v['advertise_contact_phone'] ?? ''} onChange={(e) => set('advertise_contact_phone', e.target.value)} style={inp} placeholder="+976 9900 0000" />
+          <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>Хоосон үлдээвэл нуугдана.</p>
+        </div>
+      </div>
+
+      {/* ── SAVE ─────────────────────────────────────────────── */}
+      <div style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #1e1e1e' }}>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          style={{
+            padding: '13px 36px', borderRadius: '8px', border: 'none',
+            cursor: saving ? 'default' : 'pointer',
+            background: saved ? '#10b981' : '#00B5AD',
+            color: '#fff', fontWeight: 800, fontSize: '14px',
+            opacity: saving ? 0.7 : 1, transition: 'background 0.2s',
+            fontFamily: 'inherit',
+          }}
+        >
+          {saving ? 'Хадгалж байна...' : saved ? '✓ Хадгалагдлаа!' : 'Бүгдийг хадгалах'}
+        </button>
+        <p style={{ fontSize: '12px', color: '#374151', marginTop: '0.75rem' }}>
+          Хадгалсны дараа /advertise хуудас шинэчлэгдэнэ.
+        </p>
+      </div>
     </div>
   );
 }
