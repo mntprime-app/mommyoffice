@@ -23,6 +23,17 @@ export async function updateSiteSetting(key: string, value: string): Promise<voi
   await supabase.from('mo_site_settings').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 }
 
+// Batch version — one assertAdmin + one DB round-trip instead of N×N
+export async function batchUpdateSiteSettings(pairs: { key: string; value: string }[]): Promise<void> {
+  if (pairs.length === 0) return;
+  await assertAdmin();
+  const supabase = await createAdminClient();
+  const now = new Date().toISOString();
+  await supabase
+    .from('mo_site_settings')
+    .upsert(pairs.map(({ key, value }) => ({ key, value, updated_at: now })), { onConflict: 'key' });
+}
+
 // ─── HOME PAGE CONFIG ─────────────────────────────────────────────────────────
 // HomeConfig type + HOME_CONFIG_DEFAULTS live in @/lib/homeConfig (not 'use server')
 

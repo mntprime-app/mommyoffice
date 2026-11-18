@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getSiteSettings, updateSiteSetting, uploadImage } from '@/app/actions/admin';
+import { getSiteSettings, batchUpdateSiteSettings, uploadImage } from '@/app/actions/admin';
 import ImageInput from '@/components/admin/ImageInput';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -300,17 +300,17 @@ export default function AdminAdvertisePage() {
   async function handleSave() {
     setSaving(true);
     try {
-      // Run all updates in parallel — was sequential (48 round-trips ~7s), now ~200ms
-      await Promise.all([
-        ...FLAT_KEYS.map((key) => updateSiteSetting(key, v[key] ?? '')),
-        updateSiteSetting('advertise_slots_data', JSON.stringify(slots)),
-        updateSiteSetting('advertise_packages_data', JSON.stringify(
+      // Single batch upsert — was 61 parallel round-trips (pool exhaustion), now 1 DB call
+      await batchUpdateSiteSettings([
+        ...FLAT_KEYS.map((key) => ({ key, value: v[key] ?? '' })),
+        { key: 'advertise_slots_data',    value: JSON.stringify(slots) },
+        { key: 'advertise_packages_data', value: JSON.stringify(
           packages.map(({ id, name, badge, price, savings, itemsText }) => ({
             id, name, badge, price, savings,
             items: itemsText.split('\n').map((x) => x.trim()).filter(Boolean),
           }))
-        )),
-        updateSiteSetting('advertise_specs_data', JSON.stringify(specs)),
+        )},
+        { key: 'advertise_specs_data',    value: JSON.stringify(specs) },
       ]);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
