@@ -10,4 +10,7 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   footer_tiktok_url:    '',
   footer_contact_email: 'info.mommyoffice@gmail.com',
   footer_tagline:       'Монголын эмэгтэйчүүдийн №1 платформ',
+  // Advertise page — editable from /admin/advertise
+  advertise_contact_email: 'info.mommyoffice@gmail.com',
+  advertise_contact_phone: '+976 9900 0000',
 };

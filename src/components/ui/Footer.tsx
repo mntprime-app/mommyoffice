@@ -104,6 +104,7 @@ export default async function Footer() {
               <Link href={lp('/about')}              style={linkStyle}>Бидний тухай</Link>
               <Link href={lp('/contact')}            style={linkStyle}>Холбоо барих</Link>
               <Link href={lp('/become-instructor')}  style={linkStyle}>Багш болох</Link>
+              <Link href={lp('/advertise')}          style={{ ...linkStyle, color: '#00B5AD', fontWeight: 600 }}>Сурталчилгаа байршуулах</Link>
               <Link href={lp('/privacy')}            style={linkStyle}>Нууцлалын бодлого</Link>
               <Link href={lp('/terms')}              style={linkStyle}>Үйлчилгээний нөхцөл</Link>
             </div>

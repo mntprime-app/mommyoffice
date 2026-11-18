@@ -45,6 +45,7 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
     { label: '👩‍🏫 Багш нар', href: `/${locale}/admin/instructors`, bg: '#1a1a2e', color: '#a78bfa' },
     { label: '🎫 Эрх олгох', href: `/${locale}/admin/access`, bg: 'linear-gradient(135deg,#0d2e2e,#00B5AD33)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.35)' },
     { label: '📢 Сурталчилгаа', href: `/${locale}/admin/ads`, bg: '#1a1a2e', color: '#f59e0b' },
+    { label: '📋 Сурталчлагчид', href: `/${locale}/admin/advertise`, bg: 'linear-gradient(135deg,#0d2e1a,#00B5AD22)', color: '#00B5AD', border: '1px solid rgba(0,181,173,0.35)' },
     { label: '⚙️ Тохиргоо', href: `/${locale}/admin/settings`, bg: '#1a1a2e', color: '#a78bfa' },
     { label: '🔗 Footer тохиргоо', href: `/${locale}/admin/footer`, bg: '#1a1a2e', color: '#a78bfa' },
   ];
