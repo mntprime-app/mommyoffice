@@ -50,6 +50,10 @@ export interface UniversalHeroProps {
   cornerBadge?: string;
   /** Background gradient fallback (CSS value) */
   fallbackGradient?: string;
+  /** Override desktop hero height. Default: 'clamp(580px, 68vh, 780px)' */
+  desktopHeight?: string;
+  /** Override mobile card height. Default: '240px' */
+  mobileCardHeight?: string;
 }
 
 const DEFAULT_GRADIENT = 'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)';
@@ -68,6 +72,8 @@ export default function UniversalHero({
   onSecondaryClick,
   cornerBadge,
   fallbackGradient = DEFAULT_GRADIENT,
+  desktopHeight = 'clamp(580px, 68vh, 780px)',
+  mobileCardHeight = '240px',
 }: UniversalHeroProps) {
   const [videoActive, setVideoActive] = useState(false);
   const [muted, setMuted]             = useState(true);
@@ -113,7 +119,7 @@ export default function UniversalHero({
 
         {/* A. PURE POSTER CARD — image only, zero overlay content */}
         <div style={{
-          position: 'relative', width: '100%', height: '240px',
+          position: 'relative', width: '100%', height: mobileCardHeight,
           borderRadius: '14px', overflow: 'hidden', background: '#0a0a0a',
           border: '1px solid rgba(255,255,255,0.06)',
         }}>
@@ -238,7 +244,7 @@ export default function UniversalHero({
           <section style={{
             position: 'relative',
             width: '100%',
-            height: 'clamp(580px, 68vh, 780px)',
+            height: desktopHeight,
             overflow: 'hidden',
             background: '#0a0a0a',
             borderRadius: '24px',
