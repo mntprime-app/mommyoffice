@@ -86,13 +86,13 @@ function extractYouTubeId(input: string): string {
 // ─── Default specs table — 8 real slots with codes and prices ─────────────────
 const DEFAULT_SPECS = [
   { code: 'POP-UP', name: 'Поп-ап зар',           price: '₮350,000',   priceSub: '/ 3 хоногийн блок' },
-  { code: 'H1',     name: 'Hero баннер',            price: '₮120,000-с', priceSub: '/ сар'              },
-  { code: 'A1',     name: 'Нийтлэлийн баннер',      price: '₮250,000',   priceSub: '/ сар'              },
-  { code: 'A2',     name: 'Нийтлэлийн sidebar',     price: '₮200,000',   priceSub: '/ сар'              },
-  { code: 'A3',     name: 'Нийтлэлийн footer',      price: '₮150,000',   priceSub: '/ сар'              },
-  { code: 'AR1',    name: 'Нийтлэлийн sidebar',     price: '₮200,000',   priceSub: '/ сар'              },
-  { code: 'C1',     name: 'Хичээлийн баннер',        price: '₮200,000',   priceSub: '/ сар'              },
-  { code: 'V1',     name: 'Видео баннер',            price: '₮200,000',   priceSub: '/ сар'              },
+  { code: 'H1',     name: 'Hero баннер',            price: '₮700,000',   priceSub: '/ сар'              },
+  { code: 'A1',     name: 'Нийтлэлийн баннер',      price: '₮450,000',   priceSub: '/ сар'              },
+  { code: 'A2',     name: 'Нийтлэлийн sidebar',     price: '₮380,000',   priceSub: '/ сар'              },
+  { code: 'A3',     name: 'Нийтлэлийн footer',      price: '₮350,000',   priceSub: '/ сар'              },
+  { code: 'AR1',    name: 'Нийтлэлийн sidebar',     price: '₮400,000',   priceSub: '/ сар'              },
+  { code: 'C1',     name: 'Хичээлийн баннер',        price: '₮380,000',   priceSub: '/ сар'              },
+  { code: 'V1',     name: 'Видео баннер',            price: '₮380,000',   priceSub: '/ сар'              },
 ];
 type SpecsItem = { code: string; name: string; price: string; priceSub: string };
 
@@ -109,9 +109,9 @@ const DEFAULT_SLOTS = [
 
 // ─── Default package data ─────────────────────────────────────────────────────
 const DEFAULT_PACKAGES = [
-  { id: 'gold',     name: 'GOLD',     badge: 'Эхлэх',               price: '₮900,000',  items: ['🏠 Нүүр хуудасны баннер — 2 долоо хоног', '📄 3 хуудасны баннер', '🎬 1 Reel'] },
-  { id: 'premium',  name: 'PREMIUM',  badge: '⭐ Хамгийн алдартай', price: '₮1,800,000', items: ['💥 Popup зар — 1 долоо хоног', '🏠 Нүүр хуудасны баннер — бүтэн сар', '📄 5 хуудасны баннер', '🎬 2 Reel'] },
-  { id: 'platinum', name: 'PLATINUM', badge: 'Максимум',             price: '₮2,800,000', items: ['💥 Popup зар — 2 долоо хоног', '🏠 Нүүр хуудасны баннер — бүтэн сар', '📄 Бүх 8 байршуулалт', '🎬 4 Reel', '✍️ 1 Брэндийн нийтлэл'] },
+  { id: 'gold',     name: 'GOLD',     badge: 'Эхлэх',               price: '₮950,000',  items: ['🏠 Hero баннер — 2 долоо хоног', '📄 C1 + V1 баннер — бүтэн сар', '🎬 1 Reel ҮНЭГҮЙ (₮500,000 үнэтэй)', '💸 Баннер үнэ ₮1,110,000 → 15% хэмнэлт'] },
+  { id: 'premium',  name: 'PREMIUM',  badge: '⭐ Хамгийн алдартай', price: '₮2,000,000', items: ['🏠 Hero баннер — бүтэн сар', '📄 A1 · A2 · A3 · AR1 · C1 баннер', '💥 POP-UP зар — 1 долоо хоног ҮНЭГҮЙ', '🎬 2 Reel ҮНЭГҮЙ', '💸 Баннер үнэ ₮2,660,000 → 25% хэмнэлт'] },
+  { id: 'platinum', name: 'PLATINUM', badge: 'Максимум',             price: '₮2,800,000', items: ['🏠 Hero баннер — бүтэн сар', '📄 Бүх 8 байршлын баннер (A1–V1)', '💥 POP-UP зар — 2 долоо хоног ҮНЭГҮЙ', '🎬 4 Reel ҮНЭГҮЙ', '✍️ 1 Брэндийн нийтлэл ҮНЭГҮЙ', '💸 Баннер үнэ ₮4,673,000 → 40% хэмнэлт'] },
 ];
 
 // ─── Keys loaded into the flat v{} map ───────────────────────────────────────

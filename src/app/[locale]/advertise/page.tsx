@@ -21,21 +21,21 @@ const PKG_DESIGN: Record<string, { color: string; glow: string; border: string }
 
 // ─── Package defaults ─────────────────────────────────────────────────────────
 const DEFAULT_PACKAGES = [
-  { id: 'gold',     name: 'GOLD',     badge: 'Эхлэх',               price: '₮900,000',   items: ['🏠 Нүүр хуудасны баннер — 2 долоо хоног', '📄 3 хуудасны баннер', '🎬 1 Reel'] },
-  { id: 'premium',  name: 'PREMIUM',  badge: '⭐ Хамгийн алдартай', price: '₮1,800,000',  items: ['💥 Popup зар — 1 долоо хоног', '🏠 Нүүр хуудасны баннер — бүтэн сар', '📄 5 хуудасны баннер', '🎬 2 Reel'] },
-  { id: 'platinum', name: 'PLATINUM', badge: 'Максимум',             price: '₮2,800,000',  items: ['💥 Popup зар — 2 долоо хоног', '🏠 Нүүр хуудасны баннер — бүтэн сар', '📄 Бүх 8 байршуулалт', '🎬 4 Reel', '✍️ 1 Брэндийн нийтлэл'] },
+  { id: 'gold',     name: 'GOLD',     badge: 'Эхлэх',               price: '₮950,000',   items: ['🏠 Hero баннер — 2 долоо хоног', '📄 C1 + V1 баннер — бүтэн сар', '🎬 1 Reel ҮНЭГҮЙ (₮500,000 үнэтэй)', '💸 Баннер үнэ ₮1,110,000 → 15% хэмнэлт'] },
+  { id: 'premium',  name: 'PREMIUM',  badge: '⭐ Хамгийн алдартай', price: '₮2,000,000',  items: ['🏠 Hero баннер — бүтэн сар', '📄 A1 · A2 · A3 · AR1 · C1 баннер', '💥 POP-UP зар — 1 долоо хоног ҮНЭГҮЙ', '🎬 2 Reel ҮНЭГҮЙ', '💸 Баннер үнэ ₮2,660,000 → 25% хэмнэлт'] },
+  { id: 'platinum', name: 'PLATINUM', badge: 'Максимум',             price: '₮2,800,000',  items: ['🏠 Hero баннер — бүтэн сар', '📄 Бүх 8 байршлын баннер (A1–V1)', '💥 POP-UP зар — 2 долоо хоног ҮНЭГҮЙ', '🎬 4 Reel ҮНЭГҮЙ', '✍️ 1 Брэндийн нийтлэл ҮНЭГҮЙ', '💸 Баннер үнэ ₮4,673,000 → 40% хэмнэлт'] },
 ];
 
 // ─── Banner specs — 8 slots with codes and prices ────────────────────────────
 const BANNER_SPECS = [
   { code: 'POP-UP', name: 'Поп-ап зар',           placement: 'Нүүр хуудас — дэлгэцийн дунд',      desktop: '800×400 px',  mobile: '800×400 px',  formats: 'JPG / PNG / GIF / MP4 · 2 MB',  price: '₮350,000',   priceSub: '/ 3 хоногийн блок' },
-  { code: 'H1',     name: 'Hero баннер',            placement: 'Нүүр хуудас — hero хэсгийн доор',  desktop: '1336×120 px', mobile: '390×100 px',  formats: 'JPG / PNG / GIF / MP4 · 2 MB',  price: '₮120,000-с', priceSub: '/ сар'              },
-  { code: 'A1',     name: 'Нийтлэлийн баннер',      placement: 'Нийтлэлүүд — дундах баннер',        desktop: '728×90 px',   mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮250,000',   priceSub: '/ сар'              },
-  { code: 'A2',     name: 'Нийтлэлийн sidebar',     placement: 'Нийтлэлүүд — sidebar (desktop)',   desktop: '300×250 px',  mobile: '—',           formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮200,000',   priceSub: '/ сар'              },
-  { code: 'A3',     name: 'Нийтлэлийн footer',      placement: 'Нийтлэлүүд — footer баннер',        desktop: '970×90 px',   mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮150,000',   priceSub: '/ сар'              },
-  { code: 'AR1',    name: 'Нийтлэлийн sidebar',     placement: 'Нийтлэл — sidebar (desktop+mob)',  desktop: '300×250 px',  mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮200,000',   priceSub: '/ сар'              },
-  { code: 'C1',     name: 'Хичээлийн баннер',        placement: 'Хичээлүүд — хөндлөн баннер',        desktop: '1336×120 px', mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮200,000',   priceSub: '/ сар'              },
-  { code: 'V1',     name: 'Видео баннер',            placement: 'Видеонүүд — хөндлөн баннер',        desktop: '1336×120 px', mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮200,000',   priceSub: '/ сар'              },
+  { code: 'H1',     name: 'Hero баннер',            placement: 'Нүүр хуудас — hero хэсгийн доор',  desktop: '1336×120 px', mobile: '390×100 px',  formats: 'JPG / PNG / GIF / MP4 · 2 MB',  price: '₮700,000',   priceSub: '/ сар'              },
+  { code: 'A1',     name: 'Нийтлэлийн баннер',      placement: 'Нийтлэлүүд — дундах баннер',        desktop: '728×90 px',   mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮450,000',   priceSub: '/ сар'              },
+  { code: 'A2',     name: 'Нийтлэлийн sidebar',     placement: 'Нийтлэлүүд — sidebar (desktop)',   desktop: '300×250 px',  mobile: '—',           formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮380,000',   priceSub: '/ сар'              },
+  { code: 'A3',     name: 'Нийтлэлийн footer',      placement: 'Нийтлэлүүд — footer баннер',        desktop: '970×90 px',   mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮350,000',   priceSub: '/ сар'              },
+  { code: 'AR1',    name: 'Нийтлэлийн sidebar',     placement: 'Нийтлэл — sidebar (desktop+mob)',  desktop: '300×250 px',  mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮400,000',   priceSub: '/ сар'              },
+  { code: 'C1',     name: 'Хичээлийн баннер',        placement: 'Хичээлүүд — хөндлөн баннер',        desktop: '1336×120 px', mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮380,000',   priceSub: '/ сар'              },
+  { code: 'V1',     name: 'Видео баннер',            placement: 'Видеонүүд — хөндлөн баннер',        desktop: '1336×120 px', mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮380,000',   priceSub: '/ сар'              },
 ];
 
 const PILLAR_EMOJI = ['🏆', '🚀', '💚', '🏠', '💞', '🎨'];
