@@ -16,9 +16,10 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   // Hero
   advertise_hero_headline: 'Монголын шийдвэр гаргагч эмэгтэйчүүдийн №1 платформд брэндээ байршуул',
   advertise_hero_subtitle: '25–44 насны өрхийн худалдан авалтыг шийддэг эмэгтэйчүүдэд чиглэсэн эерэг орчинд брэндийн мессежийг хүргэнэ үү.',
-  advertise_hero_bg: '',            // background image URL for hero
-  advertise_hero_cta: 'Сурталчилгааны мэдээллийг татаж авах',
+  advertise_hero_bg: '',            // background image URL for hero (optional)
+  advertise_hero_cta: 'Сурталчилгааны санал татаж авах',
   advertise_mediakit_url: '',       // PDF download link
+  advertise_hero_video_url: '',     // YouTube or direct video URL for hero right panel
   // Stats / reach section
   advertise_stats_image: '',        // banner or image URL for stats section
   advertise_stats_title: 'Манай платформын хүрэлцээ',

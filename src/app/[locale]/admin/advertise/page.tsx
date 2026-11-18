@@ -30,6 +30,7 @@ const ALL_KEYS = [
   // Hero
   'advertise_hero_headline', 'advertise_hero_subtitle',
   'advertise_hero_bg', 'advertise_hero_cta', 'advertise_mediakit_url',
+  'advertise_hero_video_url',
   // Stats
   'advertise_stats_image', 'advertise_stats_title',
   // Why
@@ -124,9 +125,10 @@ export default function AdminAdvertisePage() {
       <h2 style={sectionHead('dummy')}>🎯 Hero хэсэг</h2>
       <Field k="advertise_hero_headline" label="Гарчиг" type="textarea" hint="Хуудасны том гарчиг." />
       <Field k="advertise_hero_subtitle" label="Дэд гарчиг" type="textarea" hint="Гарчигийн доорх дэлгэрэнгүй." />
-      <Field k="advertise_hero_bg"       label="Дэвсгэр зургийн URL" hint="Зургийн URL оруулна. Хоосон үлдээвэл teal gradient харагдана." />
-      <Field k="advertise_hero_cta"      label="CTA товчны текст" hint='Жнь: "Сурталчилгааны мэдээллийг татаж авах"' />
-      <Field k="advertise_mediakit_url"  label="Media Kit PDF URL" hint="PDF файлын шууд URL. Хоосон бол товч имэйл нээнэ." />
+      <Field k="advertise_hero_bg"       label="Дэвсгэр зургийн URL" hint="Hero хэсгийн дэвсгэр зураг. Хоосон үлдээвэл teal gradient." />
+      <Field k="advertise_hero_cta"      label="Татаж авах товчны текст" hint='Жнь: "Сурталчилгааны санал татаж авах"' />
+      <Field k="advertise_mediakit_url"  label="Media Kit PDF URL" hint="PDF URL байвал шууд татаж авна. Хоосон бол contact form руу scroll хийнэ." />
+      <Field k="advertise_hero_video_url" label="Hero баруун талын видео URL" hint="YouTube watch/share URL эсвэл шууд видео URL. Байвал баруун талд iframe харагдана. Хоосон бол статистик карт харагдана." />
 
       {/* ── 2. STATS ─────────────────────────────────────────── */}
       <h2 style={sectionHead('dummy')}>📊 Статистик хэсэг</h2>
