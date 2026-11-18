@@ -21,9 +21,9 @@ const PKG_DESIGN: Record<string, { color: string; glow: string; border: string }
 
 // ─── Package defaults ─────────────────────────────────────────────────────────
 const DEFAULT_PACKAGES = [
-  { id: 'gold',     name: 'GOLD',     badge: 'Эхлэх',               price: '₮950,000',   items: ['🏠 Hero баннер — 2 долоо хоног', '📄 C1 + V1 баннер — бүтэн сар', '🎬 1 Reel ҮНЭГҮЙ (₮500,000 үнэтэй)', '💸 Баннер үнэ ₮1,110,000 → 15% хэмнэлт'] },
-  { id: 'premium',  name: 'PREMIUM',  badge: '⭐ Хамгийн алдартай', price: '₮2,000,000',  items: ['🏠 Hero баннер — бүтэн сар', '📄 A1 · A2 · A3 · AR1 · C1 баннер', '💥 POP-UP зар — 1 долоо хоног ҮНЭГҮЙ', '🎬 2 Reel ҮНЭГҮЙ', '💸 Баннер үнэ ₮2,660,000 → 25% хэмнэлт'] },
-  { id: 'platinum', name: 'PLATINUM', badge: 'Максимум',             price: '₮2,800,000',  items: ['🏠 Hero баннер — бүтэн сар', '📄 Бүх 8 байршлын баннер (A1–V1)', '💥 POP-UP зар — 2 долоо хоног ҮНЭГҮЙ', '🎬 4 Reel ҮНЭГҮЙ', '✍️ 1 Брэндийн нийтлэл ҮНЭГҮЙ', '💸 Баннер үнэ ₮4,673,000 → 40% хэмнэлт'] },
+  { id: 'gold',     name: 'GOLD',     badge: 'Эхлэх',               price: '₮950,000',   savings: '15% хэмнэлт', items: ['🏠 Hero баннер — 2 долоо хоног', '📄 C1 + V1 баннер — бүтэн сар', '🎬 1 Reel ҮНЭГҮЙ (₮500,000 үнэтэй)', '💸 Баннер үнэ ₮1,110,000'] },
+  { id: 'premium',  name: 'PREMIUM',  badge: '⭐ Хамгийн алдартай', price: '₮2,000,000',  savings: '25% хэмнэлт', items: ['🏠 Hero баннер — бүтэн сар', '📄 A1 · A2 · A3 · AR1 · C1 баннер', '💥 POP-UP зар — 1 долоо хоног ҮНЭГҮЙ', '🎬 2 Reel ҮНЭГҮЙ', '💸 Баннер үнэ ₮2,660,000'] },
+  { id: 'platinum', name: 'PLATINUM', badge: 'Максимум',             price: '₮2,800,000',  savings: '40% хэмнэлт', items: ['🏠 Hero баннер — бүтэн сар', '📄 Бүх 8 байршлын баннер (A1–V1)', '💥 POP-UP зар — 2 долоо хоног ҮНЭГҮЙ', '🎬 4 Reel ҮНЭГҮЙ', '✍️ 1 Брэндийн нийтлэл ҮНЭГҮЙ', '💸 Баннер үнэ ₮4,673,000'] },
 ];
 
 // ─── Banner specs — 8 slots with codes and prices ────────────────────────────
@@ -94,7 +94,7 @@ export default async function AdvertisePage() {
   }));
 
   // ── Packages ──────────────────────────────────────────────────────────────
-  type PkgOverride = { id: string; name?: string; badge?: string; price?: string; items?: string[] };
+  type PkgOverride = { id: string; name?: string; badge?: string; price?: string; savings?: string; items?: string[] };
   let pkgOverrides: PkgOverride[] = [];
   try { pkgOverrides = JSON.parse(s(settings, 'advertise_packages_data', '[]')); } catch { pkgOverrides = []; }
   const packages = DEFAULT_PACKAGES.map((def) => {
@@ -313,12 +313,29 @@ export default async function AdvertisePage() {
                 <h3 style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '3px', textTransform: 'uppercase', color: pkg.color, margin: '0 0 0.3rem' }}>
                   {pkg.name}
                 </h3>
-                <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ marginBottom: pkg.savings ? '0.75rem' : '1.5rem' }}>
                   <span style={{ fontSize: 'clamp(1.8rem,4vw,2.4rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
                     {pkg.price}
                   </span>
                   <span style={{ fontSize: '13px', color: '#4b5563', marginLeft: '4px' }}>/сар</span>
                 </div>
+                {pkg.savings && (
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <span style={{
+                      display: 'inline-block',
+                      background: 'rgba(249,115,22,0.15)',
+                      border: '1px solid rgba(249,115,22,0.45)',
+                      color: '#fb923c',
+                      borderRadius: '6px',
+                      padding: '4px 12px',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      letterSpacing: '0.3px',
+                    }}>
+                      🔥 {pkg.savings}
+                    </span>
+                  </div>
+                )}
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem', flex: 1 }}>
                   {pkg.items.map((item) => (
                     <li key={item} style={{

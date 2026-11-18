@@ -109,9 +109,9 @@ const DEFAULT_SLOTS = [
 
 // ─── Default package data ─────────────────────────────────────────────────────
 const DEFAULT_PACKAGES = [
-  { id: 'gold',     name: 'GOLD',     badge: 'Эхлэх',               price: '₮950,000',  items: ['🏠 Hero баннер — 2 долоо хоног', '📄 C1 + V1 баннер — бүтэн сар', '🎬 1 Reel ҮНЭГҮЙ (₮500,000 үнэтэй)', '💸 Баннер үнэ ₮1,110,000 → 15% хэмнэлт'] },
-  { id: 'premium',  name: 'PREMIUM',  badge: '⭐ Хамгийн алдартай', price: '₮2,000,000', items: ['🏠 Hero баннер — бүтэн сар', '📄 A1 · A2 · A3 · AR1 · C1 баннер', '💥 POP-UP зар — 1 долоо хоног ҮНЭГҮЙ', '🎬 2 Reel ҮНЭГҮЙ', '💸 Баннер үнэ ₮2,660,000 → 25% хэмнэлт'] },
-  { id: 'platinum', name: 'PLATINUM', badge: 'Максимум',             price: '₮2,800,000', items: ['🏠 Hero баннер — бүтэн сар', '📄 Бүх 8 байршлын баннер (A1–V1)', '💥 POP-UP зар — 2 долоо хоног ҮНЭГҮЙ', '🎬 4 Reel ҮНЭГҮЙ', '✍️ 1 Брэндийн нийтлэл ҮНЭГҮЙ', '💸 Баннер үнэ ₮4,673,000 → 40% хэмнэлт'] },
+  { id: 'gold',     name: 'GOLD',     badge: 'Эхлэх',               price: '₮950,000',  savings: '15% хэмнэлт', items: ['🏠 Hero баннер — 2 долоо хоног', '📄 C1 + V1 баннер — бүтэн сар', '🎬 1 Reel ҮНЭГҮЙ (₮500,000 үнэтэй)', '💸 Баннер үнэ ₮1,110,000'] },
+  { id: 'premium',  name: 'PREMIUM',  badge: '⭐ Хамгийн алдартай', price: '₮2,000,000', savings: '25% хэмнэлт', items: ['🏠 Hero баннер — бүтэн сар', '📄 A1 · A2 · A3 · AR1 · C1 баннер', '💥 POP-UP зар — 1 долоо хоног ҮНЭГҮЙ', '🎬 2 Reel ҮНЭГҮЙ', '💸 Баннер үнэ ₮2,660,000'] },
+  { id: 'platinum', name: 'PLATINUM', badge: 'Максимум',             price: '₮2,800,000', savings: '40% хэмнэлт', items: ['🏠 Hero баннер — бүтэн сар', '📄 Бүх 8 байршлын баннер (A1–V1)', '💥 POP-UP зар — 2 долоо хоног ҮНЭГҮЙ', '🎬 4 Reel ҮНЭГҮЙ', '✍️ 1 Брэндийн нийтлэл ҮНЭГҮЙ', '💸 Баннер үнэ ₮4,673,000'] },
 ];
 
 // ─── Keys loaded into the flat v{} map ───────────────────────────────────────
@@ -161,7 +161,7 @@ interface SlotItem {
 }
 
 interface PackageItem {
-  id: string; name: string; badge: string; price: string;
+  id: string; name: string; badge: string; price: string; savings: string;
   itemsText: string; // newline-separated feature bullets
 }
 
@@ -305,8 +305,8 @@ export default function AdminAdvertisePage() {
         ...FLAT_KEYS.map((key) => updateSiteSetting(key, v[key] ?? '')),
         updateSiteSetting('advertise_slots_data', JSON.stringify(slots)),
         updateSiteSetting('advertise_packages_data', JSON.stringify(
-          packages.map(({ id, name, badge, price, itemsText }) => ({
-            id, name, badge, price,
+          packages.map(({ id, name, badge, price, savings, itemsText }) => ({
+            id, name, badge, price, savings,
             items: itemsText.split('\n').map((x) => x.trim()).filter(Boolean),
           }))
         )),
@@ -503,7 +503,7 @@ export default function AdminAdvertisePage() {
           <p style={{ fontSize: '13px', fontWeight: 800, color: '#e5e5e5', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
             {pkg.id}
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <div>
               <label style={lbl}>Нэр</label>
               <input value={pkg.name}  onChange={(e) => setPkgField(pkg.id, 'name', e.target.value)} style={inp} />
@@ -515,6 +515,10 @@ export default function AdminAdvertisePage() {
             <div>
               <label style={lbl}>Үнэ</label>
               <input value={pkg.price} onChange={(e) => setPkgField(pkg.id, 'price', e.target.value)} placeholder="₮0,000" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Хэмнэлт %</label>
+              <input value={pkg.savings} onChange={(e) => setPkgField(pkg.id, 'savings', e.target.value)} placeholder="15% хэмнэлт" style={inp} />
             </div>
           </div>
           <div>
