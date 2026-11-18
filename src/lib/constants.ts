@@ -25,6 +25,26 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   advertise_stats_title: 'Манай платформын хүрэлцээ',
   // Slot card overrides — JSON array of { id, name, placement, desc, price, priceSub, image }
   advertise_slots_data: '[]',
+  // Stats numbers — editable so they can grow with the platform
+  advertise_stat_1_value: '88.8%',
+  advertise_stat_1_label: 'Эмэгтэй үзэгч',
+  advertise_stat_2_value: '31K+',
+  advertise_stat_2_label: 'Нийт дагагч',
+  advertise_stat_3_value: '50K+',
+  advertise_stat_3_label: 'Сарын хүрэлцээ',
+  // Hero secondary button
+  advertise_hero_cta2: 'Асуулга илгээх',
+  // Section headings
+  advertise_pillars_section_title: 'Агуулгын үндсэн баганууд',
+  advertise_pillars_section_desc: 'Брэндийнхаа зорилтот хэрэглэгчидтэй холбогдох 6 платформын тулгуур контент.',
+  advertise_packages_section_title: 'Багцаар илүү хэмнэнэ',
+  advertise_packages_section_desc: 'Reel байршуулалт зөвхөн багцад — тусдаа худалдаалагдахгүй',
+  advertise_slots_section_title: 'Байршуулалтын сонголтууд',
+  advertise_slots_section_desc: 'Захиалах товч дарж яг тохирох байршуулалтаа сонгоорой',
+  advertise_mediakit_section_title: 'Дэлгэрэнгүй мэдээллийг татаж авна уу',
+  advertise_mediakit_section_desc: 'Аудиторийн тайлан, байршуулалтын жагсаалт болон үнийн санал бүхий бүрэн медиа кит.',
+  // Package overrides — JSON array of { id, name, badge, price, items: string[] }
+  advertise_packages_data: '[]',
   // Why advertise section
   advertise_why_title: 'Яагаад MommyOffice-д сурталчлах вэ?',
   advertise_why_text: 'Монголын өрхийн худалдан авалтын шийдвэрийг гаргадаг 25–44 насны эмэгтэйчүүд бидний гол үзэгчид. Брэндийнхаа мессежийг зорилтот орчинд хүргэн, итгэлийн маркетингийн давуу талыг ашиглаарай.',

@@ -11,26 +11,18 @@ export const metadata: Metadata = {
     'MommyOffice платформд сурталчилгаа байршуулж, Монголын шийдвэр гаргагч эмэгтэйчүүдэд хүрнэ үү.',
 };
 
-// ─── Package config (prices come from CMS) ────────────────────────────────────
-const PACKAGES = [
-  {
-    id: 'gold', name: 'GOLD', priceKey: 'advertise_gold_price', defaultPrice: '₮900,000',
-    color: '#d4a017', glow: 'rgba(212,160,23,0.12)', border: 'rgba(212,160,23,0.3)',
-    badge: 'Эхлэх',
-    items: ['🏠 Нүүр хуудасны баннер — 2 долоо хоног', '📄 3 хуудасны баннер', '🎬 1 Reel'],
-  },
-  {
-    id: 'premium', name: 'PREMIUM', priceKey: 'advertise_premium_price', defaultPrice: '₮1,800,000',
-    color: '#00B5AD', glow: 'rgba(0,181,173,0.12)', border: 'rgba(0,181,173,0.4)',
-    badge: '⭐ Хамгийн алдартай',
-    items: ['💥 Popup зар — 1 долоо хоног', '🏠 Нүүр хуудасны баннер — бүтэн сар', '📄 5 хуудасны баннер', '🎬 2 Reel'],
-  },
-  {
-    id: 'platinum', name: 'PLATINUM', priceKey: 'advertise_platinum_price', defaultPrice: '₮2,800,000',
-    color: '#a78bfa', glow: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.3)',
-    badge: 'Максимум',
-    items: ['💥 Popup зар — 2 долоо хоног', '🏠 Нүүр хуудасны баннер — бүтэн сар', '📄 Бүх 8 байршуулалт', '🎬 4 Reel', '✍️ 1 Брэндийн нийтлэл'],
-  },
+// ─── Package design tokens (non-editable visual properties) ──────────────────
+const PKG_DESIGN: Record<string, { color: string; glow: string; border: string }> = {
+  gold:     { color: '#d4a017', glow: 'rgba(212,160,23,0.12)',  border: 'rgba(212,160,23,0.3)' },
+  premium:  { color: '#00B5AD', glow: 'rgba(0,181,173,0.12)',   border: 'rgba(0,181,173,0.4)' },
+  platinum: { color: '#a78bfa', glow: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.3)' },
+};
+
+// ─── Package defaults (all text overrideable via advertise_packages_data) ────
+const DEFAULT_PACKAGES = [
+  { id: 'gold',     name: 'GOLD',     badge: 'Эхлэх',               price: '₮900,000',   items: ['🏠 Нүүр хуудасны баннер — 2 долоо хоног', '📄 3 хуудасны баннер', '🎬 1 Reel'] },
+  { id: 'premium',  name: 'PREMIUM',  badge: '⭐ Хамгийн алдартай', price: '₮1,800,000',  items: ['💥 Popup зар — 1 долоо хоног', '🏠 Нүүр хуудасны баннер — бүтэн сар', '📄 5 хуудасны баннер', '🎬 2 Reel'] },
+  { id: 'platinum', name: 'PLATINUM', badge: 'Максимум',             price: '₮2,800,000',  items: ['💥 Popup зар — 2 долоо хоног', '🏠 Нүүр хуудасны баннер — бүтэн сар', '📄 Бүх 8 байршуулалт', '🎬 4 Reel', '✍️ 1 Брэндийн нийтлэл'] },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -46,18 +38,40 @@ export default async function AdvertisePage() {
 
   void locale;
 
+  // ── Hero ──────────────────────────────────────────────────────────────────
   const email       = s(settings, 'advertise_contact_email', 'info.mommyoffice@gmail.com');
   const phone       = s(settings, 'advertise_contact_phone');
   const headline    = s(settings, 'advertise_hero_headline', 'Монголын шийдвэр гаргагч эмэгтэйчүүдийн №1 платформд брэндээ байршуул');
   const subtitle    = s(settings, 'advertise_hero_subtitle', '25–44 насны өрхийн худалдан авалтыг шийддэг эмэгтэйчүүдэд чиглэсэн эерэг орчинд брэндийн мессежийг хүргэнэ үү.');
   const heroBg      = s(settings, 'advertise_hero_bg');
-  const ctaText     = s(settings, 'advertise_hero_cta', 'Сурталчилгааны санал татаж авах');
+  const ctaText     = s(settings, 'advertise_hero_cta',  'Сурталчилгааны санал татаж авах');
+  const ctaText2    = s(settings, 'advertise_hero_cta2', 'Асуулга илгээх');
   const mediakitUrl = s(settings, 'advertise_mediakit_url');
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
   const statsImg    = s(settings, 'advertise_stats_image');
   const statsTitle  = s(settings, 'advertise_stats_title', 'Манай платформын хүрэлцээ');
+  const stats = [
+    { value: s(settings, 'advertise_stat_1_value', '88.8%'), label: s(settings, 'advertise_stat_1_label', 'Эмэгтэй үзэгч') },
+    { value: s(settings, 'advertise_stat_2_value', '31K+'),  label: s(settings, 'advertise_stat_2_label', 'Нийт дагагч') },
+    { value: s(settings, 'advertise_stat_3_value', '50K+'),  label: s(settings, 'advertise_stat_3_label', 'Сарын хүрэлцээ') },
+  ];
+
+  // ── Why ───────────────────────────────────────────────────────────────────
   const whyTitle    = s(settings, 'advertise_why_title', 'Яагаад MommyOffice-д сурталчлах вэ?');
   const whyText     = s(settings, 'advertise_why_text', 'Монголын өрхийн худалдан авалтын шийдвэрийг гаргадаг 25–44 насны эмэгтэйчүүд бидний гол үзэгчид. Брэндийнхаа мессежийг зорилтот орчинд хүргэн, итгэлийн маркетингийн давуу талыг ашиглаарай.');
 
+  // ── Section headings ──────────────────────────────────────────────────────
+  const pillarsSectionTitle    = s(settings, 'advertise_pillars_section_title',   'Агуулгын үндсэн баганууд');
+  const pillarsSectionDesc     = s(settings, 'advertise_pillars_section_desc',    'Брэндийнхаа зорилтот хэрэглэгчидтэй холбогдох 6 платформын тулгуур контент.');
+  const packagesSectionTitle   = s(settings, 'advertise_packages_section_title',  'Багцаар илүү хэмнэнэ');
+  const packagesSectionDesc    = s(settings, 'advertise_packages_section_desc',   'Reel байршуулалт зөвхөн багцад — тусдаа худалдаалагдахгүй');
+  const slotsSectionTitle      = s(settings, 'advertise_slots_section_title',     'Байршуулалтын сонголтууд');
+  const slotsSectionDesc       = s(settings, 'advertise_slots_section_desc',      'Захиалах товч дарж яг тохирох байршуулалтаа сонгоорой');
+  const mediakitSectionTitle   = s(settings, 'advertise_mediakit_section_title',  'Дэлгэрэнгүй мэдээллийг татаж авна уу');
+  const mediakitSectionDesc    = s(settings, 'advertise_mediakit_section_desc',   'Аудиторийн тайлан, байршуулалтын жагсаалт болон үнийн санал бүхий бүрэн медиа кит.');
+
+  // ── Pillars ───────────────────────────────────────────────────────────────
   const pillars = [1, 2, 3, 4, 5, 6].map((n) => ({
     n,
     title: s(settings, `advertise_pillar_${n}_title`, `Багана ${n}`),
@@ -66,7 +80,16 @@ export default async function AdvertisePage() {
     emoji: PILLAR_EMOJI[n - 1],
   }));
 
-  // Parse slot overrides from CMS
+  // ── Packages — merge CMS overrides over defaults ───────────────────────
+  type PkgOverride = { id: string; name?: string; badge?: string; price?: string; items?: string[] };
+  let pkgOverrides: PkgOverride[] = [];
+  try { pkgOverrides = JSON.parse(s(settings, 'advertise_packages_data', '[]')); } catch { pkgOverrides = []; }
+  const packages = DEFAULT_PACKAGES.map((def) => {
+    const ov = pkgOverrides.find((x) => x.id === def.id) ?? {};
+    return { ...def, ...ov, ...PKG_DESIGN[def.id] };
+  });
+
+  // ── Slot overrides ────────────────────────────────────────────────────────
   let slotOverrides: SlotOverride[] = [];
   try { slotOverrides = JSON.parse(s(settings, 'advertise_slots_data', '[]')); } catch { slotOverrides = []; }
 
@@ -165,7 +188,7 @@ export default async function AdvertisePage() {
                   border: '1px solid rgba(255,255,255,0.15)',
                 }}
               >
-                ⓘ Асуулга илгээх
+                ⓘ {ctaText2}
               </a>
             </div>
           </div>
@@ -180,11 +203,7 @@ export default async function AdvertisePage() {
 
           {/* 3 numbers */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
-            {[
-              { value: '88.8%', label: 'Эмэгтэй үзэгч' },
-              { value: '31K+',  label: 'Нийт дагагч' },
-              { value: '50K+',  label: 'Сарын хүрэлцээ' },
-            ].map((st, i) => (
+            {stats.map((st, i) => (
               <div key={st.label} style={{
                 textAlign: 'center', padding: '2rem 1rem',
                 borderRight: i < 2 ? '1px solid #1a1a1a' : 'none',
@@ -237,20 +256,14 @@ export default async function AdvertisePage() {
       <section style={{ padding: '4rem 1.5rem', borderBottom: '1px solid #111' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ marginBottom: '2.5rem' }}>
-            <span style={{
-              fontSize: '11px', fontWeight: 800, letterSpacing: '2px',
-              textTransform: 'uppercase', color: '#4b5563',
-            }}>
-              Signature Experiences
-            </span>
             <h2 style={{
               fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 900,
-              color: '#fff', margin: '0.5rem 0 0.5rem', letterSpacing: '-0.02em',
+              color: '#fff', margin: '0 0 0.5rem', letterSpacing: '-0.02em',
             }}>
-              Агуулгын үндсэн баганууд
+              {pillarsSectionTitle}
             </h2>
             <p style={{ fontSize: '14px', color: '#4b5563', margin: 0 }}>
-              Брэндийнхаа зорилтот хэрэглэгчидтэй холбогдох 6 платформын тулгуур контент.
+              {pillarsSectionDesc}
             </p>
           </div>
 
@@ -309,16 +322,15 @@ export default async function AdvertisePage() {
               fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 900,
               color: '#fff', margin: '0 0 0.5rem', letterSpacing: '-0.02em',
             }}>
-              Багцаар илүү хэмнэнэ
+              {packagesSectionTitle}
             </h2>
             <p style={{ fontSize: '14px', color: '#4b5563', margin: 0 }}>
-              Reel байршуулалт зөвхөн багцад — тусдаа худалдаалагдахгүй
+              {packagesSectionDesc}
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
-            {PACKAGES.map((pkg) => {
-              const price = settings[pkg.priceKey] || pkg.defaultPrice;
+            {packages.map((pkg) => {
               return (
                 <div key={pkg.id} style={{
                   position: 'relative', background: '#0f0f0f',
@@ -344,7 +356,7 @@ export default async function AdvertisePage() {
                   </h3>
                   <div style={{ marginBottom: '1.5rem' }}>
                     <span style={{ fontSize: 'clamp(1.8rem,4vw,2.4rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
-                      {price}
+                      {pkg.price}
                     </span>
                     <span style={{ fontSize: '13px', color: '#4b5563', marginLeft: '4px' }}>/сар</span>
                   </div>
@@ -386,10 +398,10 @@ export default async function AdvertisePage() {
               fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 900,
               color: '#fff', margin: '0 0 0.5rem', letterSpacing: '-0.02em',
             }}>
-              Байршуулалтын сонголтууд
+              {slotsSectionTitle}
             </h2>
             <p style={{ fontSize: '14px', color: '#4b5563', margin: 0 }}>
-              Захиалах товч дарж яг тохирох байршуулалтаа сонгоорой
+              {slotsSectionDesc}
             </p>
           </div>
           <AdvertiseSlots email={email} overrides={slotOverrides} />
@@ -417,10 +429,10 @@ export default async function AdvertisePage() {
             fontSize: 'clamp(1.6rem, 3.5vw, 2.25rem)', fontWeight: 900,
             color: '#fff', margin: '0 0 1rem', letterSpacing: '-0.02em',
           }}>
-            Дэлгэрэнгүй мэдээллийг татаж авна уу
+            {mediakitSectionTitle}
           </h2>
           <p style={{ fontSize: '15px', color: '#6b7280', marginBottom: '2rem', lineHeight: 1.7 }}>
-            Аудиторийн тайлан, байршуулалтын жагсаалт болон үнийн санал бүхий бүрэн медиа кит.
+            {mediakitSectionDesc}
           </p>
           {mediakitUrl ? (
             <a
