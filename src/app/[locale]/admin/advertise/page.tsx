@@ -283,7 +283,7 @@ export default function AdminAdvertisePage() {
           value={v['advertise_hero_bg'] ?? ''}
           onChange={(url) => set('advertise_hero_bg', url)}
           folder="advertise"
-          hint="Hero хэсгийн дэвсгэр зураг. Хоосон үлдээвэл teal gradient харагдана. Зөвлөмж: 1920×1080px"
+          hint="💡 Hero дэвсгэр зураг — заавал ӨРГӨН LANDSCAPE хэлбэртэй байх: 1600×480px (3.3:1 харьцаа). Portrait эсвэл square зураг objectFit:cover-ээр таслагдана. Макс 5MB."
         />
       </div>
 
