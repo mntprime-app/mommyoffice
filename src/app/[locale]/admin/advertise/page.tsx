@@ -108,6 +108,80 @@ interface PackageItem {
   itemsText: string; // newline-separated feature bullets
 }
 
+// ─── DocumentInput — MODULE LEVEL (never define inside a component render!) ──
+// Defining a component inside another component causes React to see a NEW
+// component type on every re-render, forcing unmount+remount on every keystroke.
+function DocumentInput({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [status, setStatus] = useState('');
+  const [isError, setIsError] = useState(false);
+  const filename = value ? (value.split('/').pop()?.split('?')[0] ?? 'файл') : '';
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.files?.[0];
+    if (!raw) return;
+    setUploading(true); setIsError(false); setStatus('Файл upload хийж байна...');
+    try {
+      const fd = new FormData();
+      fd.append('file', raw);
+      // uploadImage accepts any file type; 'advertise' folder is now supported
+      const { error, url } = await uploadImage(fd, 'advertise' as 'articles');
+      if (error || !url) {
+        setIsError(true); setStatus(`Алдаа: ${error ?? 'URL хоосон'}`);
+      } else {
+        onChange(url);
+        setStatus('✓ Амжилттай upload хийлээ');
+        setTimeout(() => setStatus(''), 3000);
+      }
+    } catch {
+      setIsError(true); setStatus('Upload хийхэд алдаа гарлаа.');
+    }
+    setUploading(false);
+  }
+
+  return (
+    <div>
+      {value && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', padding: '8px 12px', background: 'rgba(0,181,173,0.08)', border: '1px solid rgba(0,181,173,0.2)', borderRadius: '8px' }}>
+          <span style={{ fontSize: '18px' }}>📄</span>
+          <span style={{ fontSize: '12px', color: '#00B5AD', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filename}</span>
+          <button onClick={() => onChange('')} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }}>✕</button>
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#2a2a2a', border: '1px solid #333', color: '#e5e5e5', padding: '9px 16px', borderRadius: '8px', cursor: uploading ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', opacity: uploading ? 0.6 : 1 }}>
+          {uploading ? '⏳ Uploading...' : '📁 Файл upload (.pdf .docx .pptx)'}
+          <input type="file" accept=".pdf,.docx,.pptx,.doc" disabled={uploading} onChange={handleFile} style={{ display: 'none' }} />
+        </label>
+        <input type="url" value={value} onChange={(e) => { onChange(e.target.value); setStatus(''); }} placeholder="https://...pdf (URL-аар оруулах)" style={{ ...inp, flex: 1, minWidth: '180px' }} />
+      </div>
+      {status && (
+        <p style={{ fontSize: '12px', marginTop: '6px', padding: '6px 12px', borderRadius: '6px', background: isError ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', border: `1px solid ${isError ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`, color: isError ? '#fca5a5' : '#6ee7b7', margin: '6px 0 0' }}>
+          {status}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Field — MODULE LEVEL (same reason: stable reference = no remount on type) ─
+function Field({ label, hint, type = 'text', value, onChange }: {
+  label: string; hint?: string; type?: string;
+  value: string; onChange: (val: string) => void;
+}) {
+  return (
+    <div style={field}>
+      <label style={lbl}>{label}</label>
+      {type === 'textarea' ? (
+        <textarea value={value} onChange={(e) => onChange(e.target.value)} style={ta} />
+      ) : (
+        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} style={inp} />
+      )}
+      {hint && <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>{hint}</p>}
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 export default function AdminAdvertisePage() {
   const params = useParams<{ locale: string }>();
@@ -174,75 +248,6 @@ export default function AdminAdvertisePage() {
 
   if (loading) return <div style={{ padding: '3rem', color: '#555' }}>Уншиж байна...</div>;
 
-  // ── DocumentInput — file upload for PDFs/docx/pptx ────────────────────────
-  function DocumentInput({ value, onChange }: { value: string; onChange: (url: string) => void }) {
-    const [uploading, setUploading] = useState(false);
-    const [status, setStatus] = useState('');
-    const [isError, setIsError] = useState(false);
-    const filename = value ? (value.split('/').pop()?.split('?')[0] ?? 'файл') : '';
-
-    async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-      const raw = e.target.files?.[0];
-      if (!raw) return;
-      setUploading(true); setIsError(false); setStatus('Файл upload хийж байна...');
-      try {
-        const fd = new FormData();
-        fd.append('file', raw);
-        // uploadImage accepts any file type; 'advertise' folder is now supported
-        const { error, url } = await uploadImage(fd, 'advertise' as 'articles');
-        if (error || !url) {
-          setIsError(true); setStatus(`Алдаа: ${error ?? 'URL хоосон'}`);
-        } else {
-          onChange(url);
-          setStatus('✓ Амжилттай upload хийлээ');
-          setTimeout(() => setStatus(''), 3000);
-        }
-      } catch {
-        setIsError(true); setStatus('Upload хийхэд алдаа гарлаа.');
-      }
-      setUploading(false);
-    }
-
-    return (
-      <div>
-        {value && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', padding: '8px 12px', background: 'rgba(0,181,173,0.08)', border: '1px solid rgba(0,181,173,0.2)', borderRadius: '8px' }}>
-            <span style={{ fontSize: '18px' }}>📄</span>
-            <span style={{ fontSize: '12px', color: '#00B5AD', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filename}</span>
-            <button onClick={() => onChange('')} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }}>✕</button>
-          </div>
-        )}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#2a2a2a', border: '1px solid #333', color: '#e5e5e5', padding: '9px 16px', borderRadius: '8px', cursor: uploading ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', opacity: uploading ? 0.6 : 1 }}>
-            {uploading ? '⏳ Uploading...' : '📁 Файл upload (.pdf .docx .pptx)'}
-            <input type="file" accept=".pdf,.docx,.pptx,.doc" disabled={uploading} onChange={handleFile} style={{ display: 'none' }} />
-          </label>
-          <input type="url" value={value} onChange={(e) => { onChange(e.target.value); setStatus(''); }} placeholder="https://...pdf (URL-аар оруулах)" style={{ ...inp, flex: 1, minWidth: '180px' }} />
-        </div>
-        {status && (
-          <p style={{ fontSize: '12px', marginTop: '6px', padding: '6px 12px', borderRadius: '6px', background: isError ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', border: `1px solid ${isError ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`, color: isError ? '#fca5a5' : '#6ee7b7', margin: '6px 0 0' }}>
-            {status}
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  // ── Shared field helper ───────────────────────────────────────────────────
-  function Field({ k, label, hint, type = 'text' }: { k: string; label: string; hint?: string; type?: string }) {
-    return (
-      <div style={field}>
-        <label style={lbl}>{label}</label>
-        {type === 'textarea' ? (
-          <textarea value={v[k] ?? ''} onChange={(e) => set(k, e.target.value)} style={ta} />
-        ) : (
-          <input type={type} value={v[k] ?? ''} onChange={(e) => set(k, e.target.value)} style={inp} />
-        )}
-        {hint && <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>{hint}</p>}
-      </div>
-    );
-  }
-
   // ── YouTube ID ──────────────────────────────────────────────────────────
   const ytId = extractYouTubeId(v['advertise_hero_youtube_id'] ?? '');
 
@@ -274,8 +279,8 @@ export default function AdminAdvertisePage() {
           1. HERO
       ══════════════════════════════════════════════════════════ */}
       <SectionHead label="🎯  Hero хэсэг" />
-      <Field k="advertise_hero_headline" label="Гарчиг (H1)" type="textarea" hint="Хуудасны том гарчиг." />
-      <Field k="advertise_hero_subtitle" label="Дэд гарчиг" type="textarea" />
+      <Field label="Гарчиг (H1)" type="textarea" hint="Хуудасны том гарчиг." value={v['advertise_hero_headline'] ?? ''} onChange={(val) => set('advertise_hero_headline', val)} />
+      <Field label="Дэд гарчиг" type="textarea" value={v['advertise_hero_subtitle'] ?? ''} onChange={(val) => set('advertise_hero_subtitle', val)} />
 
       <div style={field}>
         <label style={lbl}>Дэвсгэр зураг (Hero background)</label>
@@ -313,8 +318,8 @@ export default function AdminAdvertisePage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-        <Field k="advertise_hero_cta"  label="Үндсэн товчны текст"    hint='Жнь: "Санал татаж авах"' />
-        <Field k="advertise_hero_cta2" label="Хоёр дахь товчны текст" hint='Жнь: "Асуулга илгээх"' />
+        <Field label="Үндсэн товчны текст"    hint='Жнь: "Санал татаж авах"' value={v['advertise_hero_cta'] ?? ''}  onChange={(val) => set('advertise_hero_cta', val)} />
+        <Field label="Хоёр дахь товчны текст" hint='Жнь: "Асуулга илгээх"'  value={v['advertise_hero_cta2'] ?? ''} onChange={(val) => set('advertise_hero_cta2', val)} />
       </div>
 
       <div style={field}>
@@ -364,16 +369,16 @@ export default function AdminAdvertisePage() {
           3. WHY ADVERTISE
       ══════════════════════════════════════════════════════════ */}
       <SectionHead label="💡  Яагаад MommyOffice?" />
-      <Field k="advertise_why_title" label="Гарчиг" />
-      <Field k="advertise_why_text"  label="Текст" type="textarea" hint="Товч тайлбар (2–3 өгүүлбэр)." />
+      <Field label="Гарчиг" value={v['advertise_why_title'] ?? ''} onChange={(val) => set('advertise_why_title', val)} />
+      <Field label="Текст" type="textarea" hint="Товч тайлбар (2–3 өгүүлбэр)." value={v['advertise_why_text'] ?? ''} onChange={(val) => set('advertise_why_text', val)} />
 
       {/* ══════════════════════════════════════════════════════════
           4. 6 CONTENT PILLARS
       ══════════════════════════════════════════════════════════ */}
       <SectionHead label="🏆  Агуулгын 6 багана" />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
-        <Field k="advertise_pillars_section_title" label="Хэсгийн гарчиг" />
-        <Field k="advertise_pillars_section_desc"  label="Хэсгийн дэд текст" />
+        <Field label="Хэсгийн гарчиг"    value={v['advertise_pillars_section_title'] ?? ''} onChange={(val) => set('advertise_pillars_section_title', val)} />
+        <Field label="Хэсгийн дэд текст" value={v['advertise_pillars_section_desc'] ?? ''}  onChange={(val) => set('advertise_pillars_section_desc', val)} />
       </div>
       <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '1.25rem' }}>
         Зураг байхгүй бол emoji placeholder харагдана.
@@ -411,8 +416,8 @@ export default function AdminAdvertisePage() {
       ══════════════════════════════════════════════════════════ */}
       <SectionHead label="💰  Багцууд (Gold / Premium / Platinum)" />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
-        <Field k="advertise_packages_section_title" label="Хэсгийн гарчиг" />
-        <Field k="advertise_packages_section_desc"  label="Хэсгийн дэд текст" />
+        <Field label="Хэсгийн гарчиг"    value={v['advertise_packages_section_title'] ?? ''} onChange={(val) => set('advertise_packages_section_title', val)} />
+        <Field label="Хэсгийн дэд текст" value={v['advertise_packages_section_desc'] ?? ''}  onChange={(val) => set('advertise_packages_section_desc', val)} />
       </div>
       <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '1.25rem' }}>
         Онцлог жагсаалтыг мөр мөрөөр оруулна уу. Нэг мөр = нэг онцлог.
@@ -436,7 +441,7 @@ export default function AdminAdvertisePage() {
             </div>
             <div>
               <label style={lbl}>Үнэ</label>
-              <input value={pkg.price} onChange={(e) => setPkgField(pkg.id, 'price', e.target.value)} style={inp} placeholder="₮0,000" />
+              <input value={pkg.price} onChange={(e) => setPkgField(pkg.id, 'price', e.target.value)} placeholder="₮0,000" style={inp} />
             </div>
           </div>
           <div>
@@ -459,8 +464,8 @@ export default function AdminAdvertisePage() {
       ══════════════════════════════════════════════════════════ */}
       <SectionHead label="🗂  Байршуулалтын карт (7 слот)" />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
-        <Field k="advertise_slots_section_title" label="Хэсгийн гарчиг" />
-        <Field k="advertise_slots_section_desc"  label="Хэсгийн дэд текст" />
+        <Field label="Хэсгийн гарчиг"    value={v['advertise_slots_section_title'] ?? ''} onChange={(val) => set('advertise_slots_section_title', val)} />
+        <Field label="Хэсгийн дэд текст" value={v['advertise_slots_section_desc'] ?? ''}  onChange={(val) => set('advertise_slots_section_desc', val)} />
       </div>
       <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '1.25rem' }}>
         Зураг оруулбал wireframe-ийн оронд тухайн зураг харагдана.
@@ -511,8 +516,8 @@ export default function AdminAdvertisePage() {
           7. MEDIA KIT BANNER
       ══════════════════════════════════════════════════════════ */}
       <SectionHead label="📥  Media Kit баннер" />
-      <Field k="advertise_mediakit_section_title" label="Гарчиг" />
-      <Field k="advertise_mediakit_section_desc"  label="Дэд текст" type="textarea" />
+      <Field label="Гарчиг"    value={v['advertise_mediakit_section_title'] ?? ''} onChange={(val) => set('advertise_mediakit_section_title', val)} />
+      <Field label="Дэд текст" type="textarea" value={v['advertise_mediakit_section_desc'] ?? ''} onChange={(val) => set('advertise_mediakit_section_desc', val)} />
       <div style={field}>
         <label style={lbl}>Дэвсгэр зураг (баннерийн арын зураг)</label>
         <ImageInput
