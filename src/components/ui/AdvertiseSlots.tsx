@@ -359,10 +359,43 @@ function Modal({
   );
 }
 
+// ─── CMS override type ────────────────────────────────────────────────────────
+
+export interface SlotOverride {
+  id: string;
+  name?: string;
+  placement?: string;
+  desc?: string;
+  price?: string;
+  priceSub?: string;
+  image?: string;   // custom image URL — replaces wireframe when set
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function AdvertiseSlots({ email }: { email: string }) {
+export default function AdvertiseSlots({
+  email,
+  overrides = [],
+}: {
+  email: string;
+  overrides?: SlotOverride[];
+}) {
   const [active, setActive] = useState<Slot | null>(null);
+
+  // Merge CMS overrides into base SLOTS (wireframe always from SLOTS)
+  const slots = SLOTS.map((base) => {
+    const ov = overrides.find((o) => o.id === base.id);
+    if (!ov) return { ...base, image: '' };
+    return {
+      ...base,
+      name:      ov.name      || base.name,
+      placement: ov.placement || base.placement,
+      desc:      ov.desc      || base.desc,
+      price:     ov.price     || base.price,
+      priceSub:  ov.priceSub  !== undefined ? ov.priceSub : base.priceSub,
+      image:     ov.image     || '',
+    };
+  });
 
   return (
     <>
@@ -376,13 +409,13 @@ export default function AdvertiseSlots({ email }: { email: string }) {
         overflow: 'hidden',
         background: '#1a1a1a',
       }}>
-        {SLOTS.map((slot) => (
+        {slots.map((slot) => (
           <div key={slot.id} style={{
             background: '#0d0d0d',
             display: 'grid',
             gridTemplateColumns: '160px 1fr',
           }}>
-            {/* wireframe */}
+            {/* preview: custom image OR wireframe fallback */}
             <div style={{
               height: '110px',
               borderRight: '1px solid #1a1a1a',
@@ -390,7 +423,15 @@ export default function AdvertiseSlots({ email }: { email: string }) {
               overflow: 'hidden',
               flexShrink: 0,
             }}>
-              <Wireframe type={slot.wireframe} />
+              {slot.image ? (
+                <img
+                  src={slot.image}
+                  alt={slot.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              ) : (
+                <Wireframe type={slot.wireframe} />
+              )}
             </div>
 
             {/* text */}

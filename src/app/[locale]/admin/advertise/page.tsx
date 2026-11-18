@@ -25,12 +25,22 @@ const sectionHead = (label: string): React.CSSProperties => ({
   borderBottom: '1px solid #1e1e1e',
 });
 
+// ─── Default slot data (mirrors AdvertiseSlots SLOTS) ────────────────────────
+const DEFAULT_SLOTS = [
+  { id: 'C1',  name: 'C1 — Контент лидерборд',   placement: 'Нийтлэлийн эхэнд',          desc: 'Нийтлэлийн эхэнд том хэмжээний баннер',     price: '₮400,000', priceSub: '/сар' },
+  { id: 'C2',  name: 'C2 — Контент лидерборд',   placement: 'Нийтлэлийн дунд',           desc: 'Нийтлэлийн дунд байрлах баннер',            price: '₮350,000', priceSub: '/сар' },
+  { id: 'V1',  name: 'V1 — Видео лидерборд',     placement: 'Видео хуудасны эхэнд',      desc: 'Видео контентын дэргэдэх баннер',           price: '₮380,000', priceSub: '/сар' },
+  { id: 'H1',  name: 'H1 — Нүүр хуудасны баннер', placement: 'Нүүр хуудасны эхэнд',     desc: 'Нүүр хуудасны хамгийн дээд байр',          price: '₮500,000', priceSub: '/сар' },
+  { id: 'POP', name: 'POP — Попап зар',           placement: 'Сайтын бүх хуудас',         desc: 'Нэг удаагийн попап зар бүх хуудаст',       price: '₮600,000', priceSub: '/сар' },
+  { id: 'AR1', name: 'AR1 — Нийтлэлийн хажуу',   placement: 'Нийтлэлийн хажуугийн баар', desc: 'Sticky sidebar баннер',                    price: '₮300,000', priceSub: '/сар' },
+  { id: 'SH1', name: 'SH1 — Дэлгүүрийн баннер',  placement: 'Дэлгүүрийн хуудас',         desc: 'Дэлгүүрийн хуудасны дээд баннер',          price: '₮320,000', priceSub: '/сар' },
+];
+
 // ─── All CMS keys ─────────────────────────────────────────────────────────────
 const ALL_KEYS = [
   // Hero
   'advertise_hero_headline', 'advertise_hero_subtitle',
   'advertise_hero_bg', 'advertise_hero_cta', 'advertise_mediakit_url',
-  'advertise_hero_video_url',
   // Stats
   'advertise_stats_image', 'advertise_stats_title',
   // Why
@@ -43,17 +53,30 @@ const ALL_KEYS = [
   ])),
   // Packages
   'advertise_gold_price', 'advertise_premium_price', 'advertise_platinum_price',
+  // Slot cards JSON
+  'advertise_slots_data',
   // Contact
   'advertise_contact_email', 'advertise_contact_phone',
 ];
 
 type V = Record<string, string>;
 
+interface SlotItem {
+  id: string;
+  name: string;
+  placement: string;
+  desc: string;
+  price: string;
+  priceSub: string;
+  image: string;
+}
+
 export default function AdminAdvertisePage() {
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? 'mn';
 
   const [v, setV]         = useState<V>({});
+  const [slots, setSlots] = useState<SlotItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
@@ -63,6 +86,14 @@ export default function AdminAdvertisePage() {
       const init: V = {};
       ALL_KEYS.forEach((k) => { init[k] = s[k] ?? ''; });
       setV(init);
+      // Init slot state: merge saved JSON over defaults
+      let saved: Partial<SlotItem>[] = [];
+      try { saved = JSON.parse(s['advertise_slots_data'] ?? '[]'); } catch { saved = []; }
+      const merged: SlotItem[] = DEFAULT_SLOTS.map((def) => {
+        const ov = saved.find((x) => x.id === def.id) ?? {};
+        return { ...def, ...ov } as SlotItem;
+      });
+      setSlots(merged);
       setLoading(false);
     });
   }, []);
@@ -71,11 +102,18 @@ export default function AdminAdvertisePage() {
     setV((prev) => ({ ...prev, [key]: val }));
   }
 
+  function setSlotField(id: string, field: keyof SlotItem, val: string) {
+    setSlots((prev) => prev.map((s) => s.id === id ? { ...s, [field]: val } : s));
+  }
+
   async function handleSave() {
     setSaving(true);
-    for (const key of ALL_KEYS) {
+    // Save all regular keys
+    for (const key of ALL_KEYS.filter((k) => k !== 'advertise_slots_data')) {
       await updateSiteSetting(key, v[key] ?? '');
     }
+    // Save slot overrides as JSON
+    await updateSiteSetting('advertise_slots_data', JSON.stringify(slots));
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -128,7 +166,6 @@ export default function AdminAdvertisePage() {
       <Field k="advertise_hero_bg"       label="Дэвсгэр зургийн URL" hint="Hero хэсгийн дэвсгэр зураг. Хоосон үлдээвэл teal gradient." />
       <Field k="advertise_hero_cta"      label="Татаж авах товчны текст" hint='Жнь: "Сурталчилгааны санал татаж авах"' />
       <Field k="advertise_mediakit_url"  label="Media Kit PDF URL" hint="PDF URL байвал шууд татаж авна. Хоосон бол contact form руу scroll хийнэ." />
-      <Field k="advertise_hero_video_url" label="Hero баруун талын видео URL" hint="YouTube watch/share URL эсвэл шууд видео URL. Байвал баруун талд iframe харагдана. Хоосон бол статистик карт харагдана." />
 
       {/* ── 2. STATS ─────────────────────────────────────────── */}
       <h2 style={sectionHead('dummy')}>📊 Статистик хэсэг</h2>
@@ -184,6 +221,51 @@ export default function AdminAdvertisePage() {
           </div>
         ))}
       </div>
+
+      {/* ── 5b. SLOT CARDS ───────────────────────────────────── */}
+      <h2 style={sectionHead('dummy')}>🗂 Байршуулалтын карт (7 слот)</h2>
+      <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '-0.75rem', marginBottom: '1.25rem' }}>
+        Зурган URL оруулбал wireframe-ийн оронд тухайн зураг харагдана. Бүх текст эндээс засна.
+      </p>
+      {slots.map((slot) => (
+        <div key={slot.id} style={{
+          background: '#111', border: '1px solid #1e1e1e', borderRadius: '10px',
+          padding: '1.25rem', marginBottom: '1rem',
+        }}>
+          <p style={{ fontSize: '13px', fontWeight: 800, color: '#00B5AD', margin: '0 0 1rem', letterSpacing: '1px' }}>
+            {slot.id}
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div>
+              <label style={lbl}>Нэр</label>
+              <input value={slot.name} onChange={(e) => setSlotField(slot.id, 'name', e.target.value)} style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Байршуулалт</label>
+              <input value={slot.placement} onChange={(e) => setSlotField(slot.id, 'placement', e.target.value)} style={inp} />
+            </div>
+          </div>
+          <div style={{ marginBottom: '0.75rem' }}>
+            <label style={lbl}>Зургийн URL</label>
+            <input value={slot.image} onChange={(e) => setSlotField(slot.id, 'image', e.target.value)} placeholder="https://..." style={inp} />
+            <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>Хоосон үлдээвэл CSS wireframe харагдана.</p>
+          </div>
+          <div style={{ marginBottom: '0.75rem' }}>
+            <label style={lbl}>Тайлбар</label>
+            <textarea value={slot.desc} onChange={(e) => setSlotField(slot.id, 'desc', e.target.value)} style={{ ...ta, minHeight: '52px' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div>
+              <label style={lbl}>Үнэ</label>
+              <input value={slot.price} onChange={(e) => setSlotField(slot.id, 'price', e.target.value)} placeholder="₮0,000" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Үнийн давтамж</label>
+              <input value={slot.priceSub} onChange={(e) => setSlotField(slot.id, 'priceSub', e.target.value)} placeholder="/сар" style={inp} />
+            </div>
+          </div>
+        </div>
+      ))}
 
       {/* ── 6. CONTACT ───────────────────────────────────────── */}
       <h2 style={sectionHead('dummy')}>📬 Холбоо барих</h2>

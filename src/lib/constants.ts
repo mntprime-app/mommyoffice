@@ -23,6 +23,8 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   // Stats / reach section
   advertise_stats_image: '',        // banner or image URL for stats section
   advertise_stats_title: 'Манай платформын хүрэлцээ',
+  // Slot card overrides — JSON array of { id, name, placement, desc, price, priceSub, image }
+  advertise_slots_data: '[]',
   // Why advertise section
   advertise_why_title: 'Яагаад MommyOffice-д сурталчлах вэ?',
   advertise_why_text: 'Монголын өрхийн худалдан авалтын шийдвэрийг гаргадаг 25–44 насны эмэгтэйчүүд бидний гол үзэгчид. Брэндийнхаа мессежийг зорилтот орчинд хүргэн, итгэлийн маркетингийн давуу талыг ашиглаарай.',
