@@ -54,6 +54,8 @@ export interface UniversalHeroProps {
   desktopHeight?: string;
   /** Override mobile card height. Default: '240px' */
   mobileCardHeight?: string;
+  /** Override desktop title font size. Default: 'clamp(1.6rem, 3vw, 2.6rem)' */
+  titleFontSize?: string;
 }
 
 const DEFAULT_GRADIENT = 'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)';
@@ -74,6 +76,7 @@ export default function UniversalHero({
   fallbackGradient = DEFAULT_GRADIENT,
   desktopHeight = 'clamp(580px, 68vh, 780px)',
   mobileCardHeight = '240px',
+  titleFontSize = 'clamp(1.6rem, 3vw, 2.6rem)',
 }: UniversalHeroProps) {
   const [videoActive, setVideoActive] = useState(false);
   const [muted, setMuted]             = useState(true);
@@ -346,10 +349,12 @@ export default function UniversalHero({
               maxWidth: '560px', zIndex: 2,
             }}>
               <h1 style={{
-                fontSize: 'clamp(1.6rem, 3vw, 2.6rem)', fontWeight: 800,
+                fontSize: titleFontSize, fontWeight: 800,
                 lineHeight: 1.15, color: '#fff',
                 marginBottom: '0.5rem', letterSpacing: '-0.5px',
                 textShadow: '0 4px 12px rgba(0,0,0,0.85), 0 2px 4px rgba(0,0,0,0.7)',
+                display: '-webkit-box', WebkitLineClamp: 4,
+                WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}>
                 {title}
               </h1>
