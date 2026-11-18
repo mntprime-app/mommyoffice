@@ -126,9 +126,9 @@ export default async function AdvertisePage() {
         secondaryActionText={ctaText2}
         secondaryHref="#contact"
         fallbackGradient="linear-gradient(135deg, #0a1a19 0%, #061412 50%, #0d0d0d 100%)"
-        desktopHeight="clamp(360px, 46vh, 480px)"
-        mobileCardHeight="180px"
-        titleFontSize="clamp(1.1rem, 2vw, 1.75rem)"
+        desktopHeight="clamp(480px, 60vh, 640px)"
+        mobileCardHeight="220px"
+        titleFontSize="clamp(1.4rem, 2.6vw, 2.2rem)"
       />
 
       {/* ═══════════════════════════════════════════════════════════════════════
