@@ -83,6 +83,19 @@ function extractYouTubeId(input: string): string {
   return '';
 }
 
+// ─── Default specs table — 8 real slots with codes and prices ─────────────────
+const DEFAULT_SPECS = [
+  { code: 'POP-UP', name: 'Поп-ап зар',           price: '₮350,000',   priceSub: '/ 3 хоногийн блок' },
+  { code: 'H1',     name: 'Hero баннер',            price: '₮120,000-с', priceSub: '/ сар'              },
+  { code: 'A1',     name: 'Нийтлэлийн баннер',      price: '₮250,000',   priceSub: '/ сар'              },
+  { code: 'A2',     name: 'Нийтлэлийн sidebar',     price: '₮200,000',   priceSub: '/ сар'              },
+  { code: 'A3',     name: 'Нийтлэлийн footer',      price: '₮150,000',   priceSub: '/ сар'              },
+  { code: 'AR1',    name: 'Нийтлэлийн sidebar',     price: '₮200,000',   priceSub: '/ сар'              },
+  { code: 'C1',     name: 'Хичээлийн баннер',        price: '₮200,000',   priceSub: '/ сар'              },
+  { code: 'V1',     name: 'Видео баннер',            price: '₮200,000',   priceSub: '/ сар'              },
+];
+type SpecsItem = { code: string; name: string; price: string; priceSub: string };
+
 // ─── Default slot data — IDs must match AdvertiseSlots SLOTS ─────────────────
 const DEFAULT_SLOTS = [
   { id: 'popup',    name: 'Popup зар',               placement: 'Нүүр хуудас — дэлгэцийн дунд',    desc: 'Хуудас ачаалахад дэлгэцийн дунд гарна. Хамгийн өндөр харагдах чадвар.',               price: '₮350,000',         priceSub: '/ 3 хоногийн блок' },
@@ -135,7 +148,8 @@ const FLAT_KEYS = [
   // Section visibility toggles (default ON — missing key = shown)
   'advertise_show_hero', 'advertise_show_stats', 'advertise_show_why',
   'advertise_show_pillars', 'advertise_show_packages', 'advertise_show_slots',
-  'advertise_show_specs', 'advertise_show_mediakit', 'advertise_show_contact',
+  'advertise_show_specs', 'advertise_specs_title', 'advertise_specs_desc',
+  'advertise_show_mediakit', 'advertise_show_contact',
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -233,6 +247,7 @@ export default function AdminAdvertisePage() {
   const [v,        setV]        = useState<V>({});
   const [slots,    setSlots]    = useState<SlotItem[]>([]);
   const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [specs,    setSpecs]    = useState<SpecsItem[]>(DEFAULT_SPECS);
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
   const [saved,    setSaved]    = useState(false);
@@ -258,6 +273,13 @@ export default function AdminAdvertisePage() {
         return { ...merged, itemsText: (merged.items ?? def.items).join('\n') } as PackageItem;
       }));
 
+      let savedSpecs: Partial<SpecsItem>[] = [];
+      try { savedSpecs = JSON.parse(s['advertise_specs_data'] ?? '[]'); } catch { savedSpecs = []; }
+      setSpecs(DEFAULT_SPECS.map((def) => {
+        const ov = savedSpecs.find((x) => x.code === def.code) ?? {};
+        return { ...def, ...ov } as SpecsItem;
+      }));
+
       setLoading(false);
     });
   }, []);
@@ -271,23 +293,30 @@ export default function AdminAdvertisePage() {
   function setPkgField(id: string, f: keyof PackageItem, val: string) {
     setPackages((prev) => prev.map((p) => p.id === id ? { ...p, [f]: val } : p));
   }
+  function setSpecsField(code: string, f: keyof SpecsItem, val: string) {
+    setSpecs((prev) => prev.map((r) => r.code === code ? { ...r, [f]: val } : r));
+  }
 
   async function handleSave() {
     setSaving(true);
-    // Run all updates in parallel — was sequential (48 round-trips ~7s), now ~200ms
-    await Promise.all([
-      ...FLAT_KEYS.map((key) => updateSiteSetting(key, v[key] ?? '')),
-      updateSiteSetting('advertise_slots_data', JSON.stringify(slots)),
-      updateSiteSetting('advertise_packages_data', JSON.stringify(
-        packages.map(({ id, name, badge, price, itemsText }) => ({
-          id, name, badge, price,
-          items: itemsText.split('\n').map((x) => x.trim()).filter(Boolean),
-        }))
-      )),
-    ]);
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      // Run all updates in parallel — was sequential (48 round-trips ~7s), now ~200ms
+      await Promise.all([
+        ...FLAT_KEYS.map((key) => updateSiteSetting(key, v[key] ?? '')),
+        updateSiteSetting('advertise_slots_data', JSON.stringify(slots)),
+        updateSiteSetting('advertise_packages_data', JSON.stringify(
+          packages.map(({ id, name, badge, price, itemsText }) => ({
+            id, name, badge, price,
+            items: itemsText.split('\n').map((x) => x.trim()).filter(Boolean),
+          }))
+        )),
+        updateSiteSetting('advertise_specs_data', JSON.stringify(specs)),
+      ]);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (loading) return <div style={{ padding: '3rem', color: '#555' }}>Уншиж байна...</div>;
@@ -560,9 +589,38 @@ export default function AdminAdvertisePage() {
           7. MEDIA KIT BANNER
       ══════════════════════════════════════════════════════════ */}
       <SectionHead label="📋  Баннерийн техникийн шаардлага (хүснэгт)" toggleValue={v['advertise_show_specs'] ?? '1'} onToggle={(val) => set('advertise_show_specs', val)} />
-      <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '-0.75rem', marginBottom: '1.25rem' }}>
-        Статик хүснэгт — агуулга засах боломжгүй, зөвхөн харуулах/нуулах.
-      </p>
+      <Field label="Гарчиг" value={v['advertise_specs_title'] ?? ''} onChange={(val) => set('advertise_specs_title', val)} />
+      <Field label="Дэд текст" type="textarea" value={v['advertise_specs_desc'] ?? ''} onChange={(val) => set('advertise_specs_desc', val)} />
+
+      {/* Slot prices */}
+      <div style={{ marginBottom: '1.25rem' }}>
+        <label style={lbl}>Слотын үнэ</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+          {specs.map((row) => (
+            <div key={row.code} style={{ display: 'grid', gridTemplateColumns: '64px 1fr 1fr', gap: '8px', alignItems: 'center' }}>
+              <span style={{
+                display: 'inline-block', background: 'rgba(0,181,173,0.08)',
+                border: '1px solid rgba(0,181,173,0.2)', borderRadius: '5px',
+                padding: '6px 8px', fontFamily: 'monospace', fontSize: '12px',
+                fontWeight: 700, color: '#00B5AD', textAlign: 'center',
+              }}>{row.code}</span>
+              <input
+                value={row.price}
+                onChange={(e) => setSpecsField(row.code, 'price', e.target.value)}
+                placeholder="₮200,000"
+                style={inp}
+              />
+              <input
+                value={row.priceSub}
+                onChange={(e) => setSpecsField(row.code, 'priceSub', e.target.value)}
+                placeholder="/ сар"
+                style={inp}
+              />
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: '11px', color: '#374151', marginTop: '6px' }}>Зүүн: Үнийн дүн · Баруун: Давтамж (/ сар, / 3 хоног гэх мэт)</p>
+      </div>
 
       <SectionHead label="📥  Media Kit баннер" toggleValue={v['advertise_show_mediakit'] ?? '1'} onToggle={(val) => set('advertise_show_mediakit', val)} />
       <Field label="Гарчиг"    value={v['advertise_mediakit_section_title'] ?? ''} onChange={(val) => set('advertise_mediakit_section_title', val)} />

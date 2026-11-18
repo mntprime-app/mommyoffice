@@ -1937,3 +1937,88 @@ cf-key.txt
 **Proper fix (OPEN — post-launch):** Implement QPay callback URL. QPay's `/v2/invoice/create` accepts a `callback_url` field. When a payment is made, QPay POSTs to this URL server-side, independent of the customer's browser. This eliminates the race condition entirely.
 
 **Files:** `src/components/ui/OrdersTable.tsx` (workaround — added recheck button)
+
+---
+
+## SESSION CLOSE LOG
+
+---
+
+### Session 49 Close — 2026-11-13
+
+**Type:** Data insertion + strategy session. No code commits.
+
+#### Standards confirmed this session
+
+**Supabase SQL Editor — no PL/pgSQL dollar-quoting:**
+Supabase SQL Editor (web dashboard) does NOT support `DO $$ ... $$` blocks — returns error `42601: unterminated dollar-quoted string`. Use plain SQL with `SELECT ... FROM (VALUES ...) AS t(col1, col2, ...)` subquery pattern for multi-row inserts with derived values.
+
+**Admin review insertion pattern (fake emails for seeded reviews):**
+Use `.local` TLD for admin-inserted review emails (e.g. `zulaa_45@mo_admin_insert.local`) to avoid conflict with real user accounts. These are never sent mail. Set `is_approved = true` for immediate display. Always run a follow-up `UPDATE mo_courses SET rating=..., rating_count=...` after any bulk review insert.
+
+**Sandbox outbound network:** Claude sandbox has NO outbound internet access. Node.js scripts, curl, and fetch all fail with EAI_AGAIN (DNS). For any task requiring Supabase API calls: generate SQL → have Amaraa run in Supabase SQL Editor. For any task requiring external API calls: document the curl/fetch command for Amaraa to run locally.
+
+#### Ad slot status as of S49
+
+| Slot ID | Status |
+|---------|--------|
+| `home_below_hero` | Active |
+| `articles_leaderboard` | Active |
+| `articles_sidebar` | Active |
+| `articles_footer` | ХООСОН — not wired to page (carry-forward) |
+| `article_body_mobile` | ХООСОН — not wired to page (carry-forward) |
+| `article_sidebar` | Active |
+| `courses_sidebar` | Active |
+| `videos_sidebar` | Active |
+
+#### Ad pricing strategy locked (S49)
+
+MommyOffice cross-platform ad packages:
+- **Premium:** ₮2,500,000/month (all reels + home hero + 2 sidebar + article mention)
+- **Gold:** ₮1,400,000/month (2 reels + home hero + 1 sidebar)
+- **Video only:** ₮400,000/reel
+- **Web only:** ₮150,000–300,000/slot/month
+- **Volume discount:** 3-month=10%, 6-month=15%
+
+Rate card PDF: `docs/competitors advertisement fees/MommyOffice_AdRateCard_2026.pdf`
+Competitor notes: `docs/competitors advertisement fees/COMPETITOR_AD_RATES_MASTER_NOTES.md`
+
+---
+
+### Session 50 Close — 2026-11-14
+
+**Type:** Code session. Commit `17d6258` pushed to production. Vercel deployed successfully (51s build).
+
+#### Corrections to S49 registry entry
+S49 listed `articles_footer` and `article_body_mobile` as ХООСОН. **Correction:** both are actually wired to their pages:
+- `articles/page.tsx` line 451: `<LiveAdBanner slot="articles_footer" type="footer" />`
+- `articles/[slug]/page.tsx` line 404: `<LiveAdBanner slot="article_body_mobile" type="mobile" />`
+
+#### Updated ad slot status as of S50
+
+| Slot ID | Page wired | Type prop | Status |
+|---------|-----------|-----------|--------|
+| `home_below_hero` | ✅ homepage (new S50) | popup+banner | ✅ LIVE |
+| `articles_leaderboard` | ✅ articles list | leaderboard | ✅ LIVE |
+| `articles_sidebar` | ✅ articles list | sidebar | ✅ LIVE |
+| `articles_footer` | ✅ articles list | footer | ✅ LIVE |
+| `article_body_mobile` | ✅ article detail | mobile | ✅ LIVE |
+| `article_sidebar` | ✅ article detail | sidebar | ✅ LIVE |
+| `courses_sidebar` | ✅ courses list | sidebar (fixed S50) | ✅ LIVE |
+| `videos_sidebar` | ✅ videos list | leaderboard | ✅ LIVE |
+
+**All 8 slots are now fully wired to their pages.**
+
+#### HomeHeroAdBanner — architecture standard
+
+`src/components/ui/HomeHeroAdBanner.tsx` — client component for homepage ad.
+
+- **Popup:** `position: fixed`, `z-index: 9999`, 8-second auto-dismiss, ✕ manual close. sessionStorage key: `mo_homePopupSeen`. Shows once per browser session.
+- **Inline banner:** Rendered in JSX position (between courses + articles). sessionStorage key: `mo_homeBannerHidden`. ✕ dismiss collapses for session.
+- Both powered by single `home_below_hero` slot in `mo_ads` table.
+- Component returns `null` if no active ad — zero visual impact.
+- Mobile: video ads use `mobile_image_url` as static image. No fallback → skips entirely.
+
+#### Bug fixed: courses_sidebar type prop
+`src/app/[locale]/courses/page.tsx` — was `type="footer"` (minHeight 80px), fixed to `type="sidebar"` (minHeight 250px). Correct for 300×250 slot.
+

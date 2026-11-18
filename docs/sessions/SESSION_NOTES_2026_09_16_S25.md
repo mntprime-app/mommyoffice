@@ -365,3 +365,123 @@ Remove-Item ".git\index.lock" -Force
 - [ ] Populate 5 articles at `/mn/admin/articles`
 - [ ] Mobile audit — KNOWN-003
 - [ ] Vercel Pro ($20/mo) + Supabase Pro ($25/mo)
+
+---
+
+# Session 28 — 2026-09-16 (same day, evening)
+
+**Session type:** Security hardening + pre-launch comprehensive audit
+**Commits:** `762ea69`, `a1bd90c` — both pushed to main ✅
+**Status at close:** Fully code-ready for domain cutover. Amaraa executing DNS steps.
+
+---
+
+## What Happened This Session
+
+Two-phase session resumed from compaction (S27 end):
+
+**Phase 1 — Security hardening** (commit `762ea69`)
+Critical security gap discovered: `proxy.ts` matcher was `/((?!api|...)*)` which explicitly excluded ALL `api/` paths. This left `/api/admin/delete-stream`, `/api/admin/approve-video`, `/api/admin/cf-video-meta`, `/api/admin/staging-preview`, `/api/video/request-upload`, `/api/course-staging/presign` with zero authentication — any caller with the URL could invoke them unauthenticated.
+
+Additionally, the existing admin page guard only checked `if (!user)` — no email/role verification. Any logged-in Supabase user could access the admin panel.
+
+**Phase 2 — Pre-launch expert audit** (commit `a1bd90c`)
+Comprehensive SEO, security, and performance review across 9 files before connecting `mommyoffice.com`.
+
+---
+
+## Security Fixes
+
+### Admin Email Whitelist — Two-Layer Defence
+
+**Layer 1 — `src/proxy.ts` (edge middleware):**
+- Added shared `verifyAdmin()` function: `createServerClient` → `getUser()` → checks `ADMIN_EMAILS` env var (fallback: `info.mommyoffice@gmail.com`)
+- Gate 1: page routes `/(mn|en)/admin/*` → redirect to login if not verified
+- Gate 2: new `privilegedApiPattern` covering `/api/admin/*`, `/api/video/request-upload`, `/api/course-staging/presign` → returns 401 JSON if not verified
+- Matcher extended to include all privileged API paths
+
+**Layer 2 — `src/lib/adminGuard.ts` (NEW):**
+```typescript
+export async function assertAdmin(): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+  const rawList = process.env.ADMIN_EMAILS || 'info.mommyoffice@gmail.com';
+  const allowed = rawList.split(',').map((e) => e.trim().toLowerCase());
+  if (!allowed.includes((user.email ?? '').toLowerCase())) throw new Error('Forbidden');
+}
+```
+
+**`src/app/actions/admin.ts` + ads/articles/courses actions:**
+- `await assertAdmin()` added as first line of every privileged server action (15+ functions)
+- `createInstructorApplication()` intentionally excluded (public-facing)
+
+**Vercel env var `ADMIN_EMAILS`:** Set to `info.mommyoffice@gmail.com` as Secret, Production. Added before launch.
+
+---
+
+## SEO Fixes (commit `a1bd90c`)
+
+| File | Change |
+|---|---|
+| `src/app/layout.tsx` | `metadataBase: 'https://mommyoffice.com'`, full OG/Twitter tags, Mongolian keywords, favicon, theme-color `#0d1117`, title template |
+| `src/app/[locale]/layout.tsx` | Mongolian title/desc, full OG/Twitter, hreflang with `x-default → /mn`, MN keywords |
+| `src/app/[locale]/courses/page.tsx` | Added `generateMetadata` (was entirely missing) — title, description, OG, canonical alternates |
+| `src/app/[locale]/courses/[slug]/page.tsx` | Full OG + Twitter + canonical + hreflang alternates; new `CourseJsonLd` component (JSON-LD Course schema with MNT price, rating, provider, `inLanguage: 'mn'`) |
+| `src/app/sitemap.ts` | Added `/videos`, `/about`, `/contact` static paths; `hreflang` alternates per entry; `/courses` priority 0.8→0.9 |
+| `src/app/robots.ts` | Expanded disallow: `/api/`, `/checkout/`, `/my-courses/`, `/user/`, `/access/`, `/welcome/`; added `host:` |
+| `src/app/manifest.ts` | NEW — PWA manifest with Mongolian brand, `theme_color: #00B5AD`, education/lifestyle categories |
+
+---
+
+## Performance Fixes (commit `a1bd90c`)
+
+| File | Change |
+|---|---|
+| `next.config.ts` | `compress: true`; Cache-Control headers for `_next/static` (1yr immutable), public images (7d + SWR), sitemap/robots (24h + SWR) |
+
+---
+
+## Commits This Session
+
+| Commit | Description |
+|--------|-------------|
+| `762ea69` | security: add admin email whitelist to proxy.ts and all server actions (6 files, 62 insertions) |
+| `a1bd90c` | audit: SEO + security + performance fixes before domain cutover (9 files, 317 insertions, 104 deletions) |
+
+Both pushed to main (`762ea69..a1bd90c main → main`). Vercel auto-deployed.
+
+---
+
+## Pre-Launch Checklist (Post S28 — Domain Cutover In Progress)
+
+- [x] **ADMIN_EMAILS env var** set in Vercel Production ✅
+- [x] **Admin API auth gap** fixed (`/api/admin/*` now 401 for non-admins) ✅
+- [x] **Admin email whitelist** (two-layer: proxy + assertAdmin) ✅
+- [x] **SEO infrastructure** (metadataBase, OG, hreflang, JSON-LD, sitemap, robots, manifest) ✅
+- [x] **Performance headers** (compress, Cache-Control) ✅
+- [ ] **CF Stream allowed origins** — add `mommyoffice.com` and `www.mommyoffice.com` ⚠️ CRITICAL
+- [ ] **Vercel: add domain** `mommyoffice.com` and `www.mommyoffice.com` in project Settings → Domains
+- [ ] **Vercel env var** — `NEXT_PUBLIC_SITE_URL=https://mommyoffice.com` + redeploy
+- [ ] **GoDaddy DNS** — `A @ 76.76.21.21`, `CNAME www → cname.vercel-dns.com`
+- [ ] **Supabase Auth** — add `https://mommyoffice.com` to allowed redirect URLs
+- [ ] **Brevo SPF/DKIM** for `noreply@mommyoffice.com` (BUG-008)
+- [ ] Create `/public/og-image.png` (1200×630) — referenced in metadata but file doesn't exist yet
+- [ ] Fix missing Хичээл 2 in Module 1
+- [ ] Add instructor records at `/mn/admin/instructors`
+- [ ] Delete `.ps1` scripts before public launch
+- [ ] Populate 5 articles at `/mn/admin/articles`
+- [ ] Mobile audit — KNOWN-003
+- [ ] Vercel Pro ($20/mo) + Supabase Pro ($25/mo)
+
+---
+
+## Security Constraints (Always Active)
+
+- Student count: NEVER shown anywhere on MO
+- MC_ENCRYPTION_KEY: NEVER regenerate once QPay credentials saved to mo_business_settings
+- `.env.local`: NEVER commit to git
+- CF Stream IDs: NEVER leave `/admin` — not in creator portal, not in API responses to students
+- Enrollment gate: ALWAYS enforced in `/api/stream/token`
+- Never create `src/middleware.ts` — all edge middleware lives in `src/proxy.ts`
+- GLink boost budget: $3 USD daily MAXIMUM

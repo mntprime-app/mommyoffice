@@ -28,7 +28,7 @@ const SLOTS: Slot[] = [
     desc: 'Хуудас ачаалахад дэлгэцийн дунд гарна. Хамгийн өндөр харагдах чадвар.',
     price: '₮350,000',
     priceSub: '/ 3 хоногийн блок',
-    size: '800×600 (desktop) · 390×600 (mobile)',
+    size: '800×400 (desktop) · 800×400 (mobile)',
     fileTypes: 'JPG, PNG, GIF, MP4, WebP',
     maxSize: '2 MB',
     notes: '1 хэрэглэгч 24 цаг тутамд 1 удаа харна. Popup 8 секундэд автоматаар хаагдана.',

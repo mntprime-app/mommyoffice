@@ -26,15 +26,16 @@ const DEFAULT_PACKAGES = [
   { id: 'platinum', name: 'PLATINUM', badge: 'Максимум',             price: '₮2,800,000',  items: ['💥 Popup зар — 2 долоо хоног', '🏠 Нүүр хуудасны баннер — бүтэн сар', '📄 Бүх 8 байршуулалт', '🎬 4 Reel', '✍️ 1 Брэндийн нийтлэл'] },
 ];
 
-// ─── Banner specs (matches AdvertiseSlots SLOTS data) ────────────────────────
+// ─── Banner specs — 8 slots with codes and prices ────────────────────────────
 const BANNER_SPECS = [
-  { id: 'popup',    name: 'Popup зар',               placement: 'Нүүр хуудас — дэлгэцийн дунд',    desktop: '800×600 px',   mobile: '390×600 px',  formats: 'JPG / PNG / GIF / MP4 · 2 MB' },
-  { id: 'hero',     name: 'Нүүр хуудасны баннер',    placement: 'Нүүр хуудас — hero хэсгийн доор', desktop: '1600×420 px',  mobile: '390×200 px',  formats: 'JPG / PNG / GIF / MP4 · 2 MB' },
-  { id: 'articles', name: 'Нийтлэлийн баннер',       placement: 'Нийтлэл — дээд хэсэг',            desktop: '1336×120 px',  mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB' },
-  { id: 'inline',   name: 'Нийтлэлийн дотор баннер', placement: 'Нийтлэлийн эхэнд — дотор',        desktop: '728×90 px',    mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB' },
-  { id: 'courses',  name: 'Хичээлийн баннер',         placement: 'Хичээлүүд — доод хэсэг',          desktop: '1336×120 px',  mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB' },
-  { id: 'videos',   name: 'Видео хуудасны баннер',    placement: 'Видео & Кино — доод хэсэг',       desktop: '1336×120 px',  mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB' },
-  { id: 'reel',     name: 'Facebook / IG Reel',       placement: 'Нийгмийн сүлжээ',                 desktop: '1080×1920 px', mobile: '—',           formats: 'MP4 · 15–60 сек · 100 MB' },
+  { code: 'POP-UP', name: 'Поп-ап зар',           placement: 'Нүүр хуудас — дэлгэцийн дунд',      desktop: '800×400 px',  mobile: '800×400 px',  formats: 'JPG / PNG / GIF / MP4 · 2 MB',  price: '₮350,000',   priceSub: '/ 3 хоногийн блок' },
+  { code: 'H1',     name: 'Hero баннер',            placement: 'Нүүр хуудас — hero хэсгийн доор',  desktop: '1336×120 px', mobile: '390×100 px',  formats: 'JPG / PNG / GIF / MP4 · 2 MB',  price: '₮120,000-с', priceSub: '/ сар'              },
+  { code: 'A1',     name: 'Нийтлэлийн баннер',      placement: 'Нийтлэлүүд — дундах баннер',        desktop: '728×90 px',   mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮250,000',   priceSub: '/ сар'              },
+  { code: 'A2',     name: 'Нийтлэлийн sidebar',     placement: 'Нийтлэлүүд — sidebar (desktop)',   desktop: '300×250 px',  mobile: '—',           formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮200,000',   priceSub: '/ сар'              },
+  { code: 'A3',     name: 'Нийтлэлийн footer',      placement: 'Нийтлэлүүд — footer баннер',        desktop: '970×90 px',   mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮150,000',   priceSub: '/ сар'              },
+  { code: 'AR1',    name: 'Нийтлэлийн sidebar',     placement: 'Нийтлэл — sidebar (desktop+mob)',  desktop: '300×250 px',  mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮200,000',   priceSub: '/ сар'              },
+  { code: 'C1',     name: 'Хичээлийн баннер',        placement: 'Хичээлүүд — хөндлөн баннер',        desktop: '1336×120 px', mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮200,000',   priceSub: '/ сар'              },
+  { code: 'V1',     name: 'Видео баннер',            placement: 'Видеонүүд — хөндлөн баннер',        desktop: '1336×120 px', mobile: '390×100 px',  formats: 'JPG / PNG / GIF / WebP · 1 MB', price: '₮200,000',   priceSub: '/ сар'              },
 ];
 
 const PILLAR_EMOJI = ['🏆', '🚀', '💚', '🏠', '💞', '🎨'];
@@ -104,6 +105,15 @@ export default async function AdvertisePage() {
   // ── Slot overrides ────────────────────────────────────────────────────────
   let slotOverrides: SlotOverride[] = [];
   try { slotOverrides = JSON.parse(s(settings, 'advertise_slots_data', '[]')); } catch { slotOverrides = []; }
+
+  // ── Specs price overrides ─────────────────────────────────────────────────
+  type SpecsOverride = { code: string; price?: string; priceSub?: string };
+  let specsOverrides: SpecsOverride[] = [];
+  try { specsOverrides = JSON.parse(s(settings, 'advertise_specs_data', '[]')); } catch { specsOverrides = []; }
+  const specsRows = BANNER_SPECS.map((def) => {
+    const ov = specsOverrides.find((x) => x.code === def.code) ?? {};
+    return { ...def, ...ov };
+  });
 
   // ── Section visibility (default ON — missing key = shown) ─────────────────
   const show = (key: string) => (settings[key] ?? '1') !== '0';
@@ -365,39 +375,51 @@ export default async function AdvertisePage() {
       {showSpecs && (
       <section style={{ padding: '3rem 1.5rem', borderBottom: '1px solid #111' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: '1.75rem' }}>
             <h2 style={{
               fontSize: 'clamp(1.3rem, 2.5vw, 1.75rem)', fontWeight: 900,
               color: '#fff', margin: '0 0 0.4rem', letterSpacing: '-0.02em',
             }}>
-              Баннерийн техникийн шаардлага
+              {s(settings, 'advertise_specs_title', 'Баннерийн техникийн шаардлага')}
             </h2>
             <p style={{ fontSize: '13px', color: '#4b5563', margin: 0 }}>
-              Зар материалаа доорх хэмжээнд тааруулж бэлтгэнэ үү. Файлыг яг тохирох пикселийн харьцаатай оруулна уу.
+              {s(settings, 'advertise_specs_desc', 'Зар материалаа доорх хэмжээнд тааруулж бэлтгэнэ үү. Файлыг яг тохирох пикселийн харьцаатай оруулна уу.')}
             </p>
           </div>
-          <div style={{ overflow: 'auto', borderRadius: '12px', border: '1px solid #1a1a1a' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0d0d0d', fontSize: '13px', minWidth: '600px' }}>
+          <div style={{ overflow: 'auto', borderRadius: '14px', border: '1px solid #1e1e1e', boxShadow: '0 2px 16px rgba(0,0,0,0.4)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0d0d0d', fontSize: '13px', minWidth: '700px' }}>
               <thead>
-                <tr style={{ background: '#141414' }}>
-                  <th style={thS}>Код</th>
+                <tr style={{ background: '#111' }}>
+                  <th style={{ ...thS, width: '80px' }}>Код</th>
                   <th style={thS}>Нэр / Байршил</th>
-                  <th style={thS}>Desktop</th>
-                  <th style={thS}>Mobile</th>
+                  <th style={{ ...thS, width: '110px' }}>Desktop</th>
+                  <th style={{ ...thS, width: '110px' }}>Mobile</th>
                   <th style={thS}>Формат · Хэмжээ</th>
+                  <th style={{ ...thS, width: '130px', textAlign: 'right' as const }}>Үнэ</th>
                 </tr>
               </thead>
               <tbody>
-                {BANNER_SPECS.map((row, i) => (
-                  <tr key={row.id} style={{ background: i % 2 === 0 ? '#0d0d0d' : '#0a0a0a' }}>
-                    <td style={{ ...tdS, fontWeight: 700, color: '#00B5AD', fontFamily: 'monospace' }}>{row.id}</td>
-                    <td style={tdS}>
-                      <span style={{ display: 'block', color: '#e5e5e5', fontWeight: 600 }}>{row.name}</span>
-                      <span style={{ fontSize: '12px', color: '#4b5563' }}>{row.placement}</span>
+                {specsRows.map((row, i) => (
+                  <tr key={row.code} style={{ background: i % 2 === 0 ? '#0d0d0d' : '#0a0a0a', transition: 'background 0.15s' }}>
+                    <td style={{ ...tdS, padding: '11px 16px' }}>
+                      <span style={{
+                        display: 'inline-block', background: 'rgba(0,181,173,0.08)',
+                        border: '1px solid rgba(0,181,173,0.2)', borderRadius: '5px',
+                        padding: '2px 8px', fontFamily: 'monospace', fontSize: '12px',
+                        fontWeight: 700, color: '#00B5AD', whiteSpace: 'nowrap' as const,
+                      }}>{row.code}</span>
                     </td>
-                    <td style={{ ...tdS, fontFamily: 'monospace', color: '#e5e5e5' }}>{row.desktop}</td>
-                    <td style={{ ...tdS, fontFamily: 'monospace', color: row.mobile === '—' ? '#374151' : '#e5e5e5' }}>{row.mobile}</td>
-                    <td style={{ ...tdS, fontSize: '12px', color: '#6b7280' }}>{row.formats}</td>
+                    <td style={{ ...tdS, padding: '11px 16px' }}>
+                      <span style={{ display: 'block', color: '#e5e5e5', fontWeight: 600 }}>{row.name}</span>
+                      <span style={{ fontSize: '11px', color: '#4b5563' }}>{row.placement}</span>
+                    </td>
+                    <td style={{ ...tdS, padding: '11px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#9ca3af' }}>{row.desktop}</td>
+                    <td style={{ ...tdS, padding: '11px 16px', fontFamily: 'monospace', fontSize: '12px', color: row.mobile === '—' ? '#374151' : '#9ca3af' }}>{row.mobile}</td>
+                    <td style={{ ...tdS, padding: '11px 16px', fontSize: '12px', color: '#6b7280' }}>{row.formats}</td>
+                    <td style={{ ...tdS, padding: '11px 16px', textAlign: 'right' as const }}>
+                      <span style={{ display: 'block', color: '#00B5AD', fontWeight: 700, fontSize: '13px' }}>{row.price}</span>
+                      <span style={{ fontSize: '11px', color: '#4b5563' }}>{row.priceSub}</span>
+                    </td>
                   </tr>
                 ))}
               </tbody>

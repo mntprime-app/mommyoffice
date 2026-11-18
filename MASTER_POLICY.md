@@ -1,7 +1,26 @@
 # MommyOffice — Master Policy
 **Director of Software Development: Alex (AI)**
 **Owner: Amaraa**
-**Last updated: 2026-09-20**
+**Last updated: 2026-10-12**
+
+---
+
+## ⚠️ PRODUCTION ALERT — SITE IS LIVE WITH REAL PAYING CUSTOMERS
+
+**mommyoffice.com is live. Real customers have purchased courses. This changes everything.**
+
+### Non-negotiable rules for every session from this point forward:
+
+| Rule | Detail |
+|------|--------|
+| **No breaking changes** | Zero tolerance for any code change that could disrupt enrolled students' access to their courses, login, or payment history. |
+| **Test before deploy** | Every code change must be reviewed for impact on: enrollment flow, QPay callback, Brevo email delivery, Supabase `mo_enrollments` table, and customer-facing pages. |
+| **Customer data backup** | All orders (name, email, phone, course, amount, date) must be exported to a Google Sheet backup after every session that touches the DB or orders system. Google Sheet: GLink Strategic Projects → MommyOffice → `Customer_Orders_Backup`. |
+| **No DB migrations without review** | Any Supabase migration that touches `mo_enrollments`, `mo_orders`, `mo_users`, or `mo_business_settings` must be reviewed line-by-line before running on production. |
+| **QPay webhook sacred** | The QPay callback endpoint (`/api/qpay/callback`) must never be renamed, moved, or broken. It is the payment confirmation lifeline. |
+| **Enrolled customers = untouchable** | Any customer with status `Төлөгдсөн` (paid) in `mo_orders` has enrolled access. Nothing may revoke, alter, or expire their enrollment without explicit written instruction from Amaraa. |
+
+> **Origin:** As of 2026-10-13 (Session 47), mommyoffice.com has real paying customers. This rule exists to protect them permanently.
 
 ---
 
@@ -109,9 +128,11 @@ GLink Strategic Projects/
 docs/
 ├── sessions/           ← ALL session notes (SESSION_NOTES_YYYY_MM_DD_S[N].md)
 ├── sql/                ← SQL migration files
-├── MommyOffice_Gemini_Video_Prompt_v2.docx
-└── for elevenlab.docx
+└── [legacy prompt files — superseded by Google Drive Master Prompt v3]
 ```
+
+**Content pipeline prompt:** Lives in Google Drive → MommyOffice → `MommyOffice_Gemini_Master_Prompt_v3`
+(see Section 12 for full content pipeline workflow)
 
 **Note:** `docs/Session_Log.md` and `docs/Bug_Registry.md` were deleted 2026-09-20. They must never be recreated.
 
@@ -329,3 +350,131 @@ Dashes in filenames: **only for Aria's documents** (per standing instruction —
 - `docs/Session_Log.md` — deleted 2026-09-20, superseded by `PROJECT_LOG.md`
 - `docs/Bug_Registry.md` — deleted 2026-09-20, superseded by `registry.md`
 - Any variant: `session-log.md`, `dev_log.md`, `bug-log.md`, `changelog.md`
+
+---
+
+## 12. CONTENT PIPELINE — Articles & Videos (Established S46, Refined S47 — 2026-10-13)
+
+This is the semi-automatic workflow for populating MommyOffice with articles and videos.
+Alex handles research, prompts, and formatting. Gemini handles all Mongolian writing.
+Amaraa bridges the two — two separate Gemini pastes per piece (Article + ElevenLabs).
+
+### Trigger command
+> **`Alex, new content — [SECTION NAME]`**
+
+Valid section names: `АМЖИЛТЫН ЭЗЭД` | `STARTUP WOMEN` | `MONEY TALK` | `MOM HACKS` | `ЭЭЖҮҮДИЙН ХОББИ` | `ШИНЭХЭН ЭЭЖҮҮД` | `ДОТНО ХАРИЛЦАА`
+
+The section name is **required** in the trigger — it sets shortlist type, tone, and content focus.
+
+---
+
+### The 6-Step Pipeline
+
+| Step | Who | What |
+|------|-----|-------|
+| 1 | **Amaraa** | Say: `Alex, new content — [SECTION NAME]` |
+| 2 | **Alex** | Check mommyoffice.com for already-published content → web research → build shortlist of 10 Asian-first trending women with confirmed HD video sources → present to Amaraa |
+| 3 | **Amaraa** | Say: "Choosing #X" |
+| 4a | **Alex** | Build **Article Prompt** (English, ready to copy) → Amaraa pastes into Gemini → Gemini returns Mongolian HTML article → Amaraa shares output with Alex |
+| 4b | **Alex** | Build **ElevenLabs Prompt** (English, separate prompt) → Amaraa pastes into Gemini → Gemini returns Mongolian voice script → Amaraa shares output with Alex |
+| 5 | **Alex** | Format article HTML + admin fields. Present as admin-ready output. |
+| 6 | **Amaraa** | Copy article HTML into MommyOffice admin → fill fields → Publish. Paste ElevenLabs script into ElevenLabs → generate audio. |
+
+**WHY TWO SEPARATE PROMPTS:** When both article and ElevenLabs are in one prompt, Gemini only outputs one (usually the script). Splitting guarantees both outputs.
+
+---
+
+### Absolute content rules (enforced by Alex at Steps 2 and 4)
+
+| Rule | Detail |
+|------|--------|
+| **Women only** | Every person featured MUST be a woman. No exceptions. If co-founded with a man, cover only the woman's story. |
+| **Asian women preferred** | Prioritize: (1) East Asian (Chinese, Korean, Japanese, Taiwanese), (2) Southeast Asian (Vietnamese, Filipino, Thai, Indonesian, Malaysian), (3) South/Central Asian (Indian, Pakistani, Kazakh). Western women are secondary fill only. |
+| **Last 2 years only** | Only suggest people/topics with confirmed media coverage or viral moment in the last 2 years. |
+| **HD video required** | Only include people with confirmed HD on-camera footage from Bloomberg, CNBC, Forbes, BBC, CNN, TED, or similar. No video = not on shortlist. |
+| **No generic clichés** | BANNED: "тэрбум долларын эзэнт гүрэн", vague round numbers. USE: specific real figures, real company names, real turning points. |
+| **No invented content** | No fabricated quotes or fictional people. Every claim must trace to a real published source. |
+| **Already published** | Before each shortlist, check mommyoffice.com and exclude already-covered people/topics. |
+| **Gemini prompt in English** | ALL prompts to Gemini must be written in English. Gemini's OUTPUT must be in Mongolian only — no English anywhere in the output. |
+
+---
+
+### PROMPT 1 — ARTICLE (send to Gemini first)
+
+**Target:** 1800–2000 Mongolian words — equivalent to a **9-minute read** (matches existing published MommyOffice article standard, e.g. the Jing Gao article).
+
+**HTML tags allowed:** `<h2>`, `<p>`, `<strong>`, `<em>` only. No `<div>`, `<br>`, `<ul>`, `<li>`, `<html>`, `<head>`, `<body>`.
+
+**Section structure (6 sections + opening hook + closing):**
+1. Opening hook — 3 paragraphs, no heading. Build tension, name subject at the end.
+2. `<h2>` Who is she? — 3–4 paragraphs: background, nationality, university, early career
+3. `<h2>` The company she built — 3–4 paragraphs: what it does, clients, valuation, growth
+4. `<h2>` The turning point — 3–4 paragraphs: the pivotal moment (fired, risk taken, breakthrough), specific real details
+5. `<h2>` What she built next — 3–4 paragraphs: follow-on ventures, what she does now
+6. `<h2>` What this means for Mongolian women — 2–3 paragraphs: direct message to Mongolian mothers
+7. Closing — 2 paragraphs, no heading, ends with engagement question to reader
+
+**Style rules:**
+- `<strong>` for: key numbers, company names (first mention), pivotal moments
+- `<em>` for: direct quotes and single emphasis words
+- Narrative journalism tone — like a Mongolian elder sister telling a true story
+- Each paragraph adds NEW information — no repetition
+- Numbers: standard written form for article — `$26 тэрбум`, `22 насандаа`, `5%`, `2016 он`
+
+**Admin fields output (outside HTML, labeled):**
+```
+title_mn:       (max 70 characters)
+description_mn: (150–160 characters)
+category:       [section name]
+slug:           [person-name-company-name]
+```
+
+---
+
+### PROMPT 2 — ELEVENLABS VIDEO SCRIPT (send to Gemini second, separately)
+
+**Target:** 200–250 Mongolian words. Read aloud by AI voice. Natural speech rhythm.
+
+**⚠️ CRITICAL NUMBER RULE — ALL numbers must be spelled out in Mongolian words:**
+- $26 billion → `хорин зургаан тэрбум доллар`
+- 22 years old → `хорин хоёр насандаа`
+- 5% → `таван хувийн`
+- 2016 → `хоёр мянга арван зургадугаар онд`
+- Every year, percentage, dollar amount → spell it out fully. NO digits anywhere.
+
+**STRUCTURE (9 steps, with blank lines between each section):**
+
+1. **Hook** (1–2 sentences) — dramatic scroll-stopping fact. No brand name yet. Numbers spelled out.
+2. `Mommyoffice үзүүлж байна.`
+3. **Who is she?** (2–3 sentences) — name, what she built, spelled-out numbers.
+4. **What made her special?** (1–2 sentences) — the key turning point.
+5. **Why this matters to you** (1 sentence) — direct emotional connection to Mongolian viewer/mother.
+6. `Түүний түүхээс бид юу сурч болох вэ?`
+7. **5 lessons** — use this exact format for EACH lesson, with a blank line between every lesson:
+   ```
+   Нэгт, [short headline sentence — 8 words or less].
+   [2 sentences explaining this lesson with a specific detail from the person's real story.]
+
+   Хоёрт, [short headline sentence — 8 words or less].
+   [2 sentences explaining with a specific real detail.]
+   ... (same for Гуравт, Дөрөвт, Тавт)
+   ```
+   **Each lesson = headline + explanation. NOT a one-liner list.**
+8. **Engagement question** (1–2 sentences) — UNIQUE per video, tied to THIS story's emotional theme. Easy YES/NO or one-phrase answer. Encourages Facebook comments. Do NOT promise to reply. Address viewer as `Та` or `Чи`. Numbers spelled out.
+9. `Мэдээллийг Моммиоффис хүргэлээ.`
+
+**Word split:** ~80–90 words intro (steps 1–5) · ~110–130 words lessons (steps 6–7) · ~15–20 words engagement · ~10 words outro
+
+---
+
+### Gemini account note
+- Gemini free plan has a daily message limit. If limit is hit:
+  - Use the MommyOffice Gemini account (`gemini.google.com/u/1`) for the article prompt
+  - Use personal account for ElevenLabs prompt (or wait until reset)
+  - Limit resets daily — article is longer, so run it on the account with more quota
+
+---
+
+### Master prompt location
+Google Drive → GLink Strategic Projects → MommyOffice → `MommyOffice_Gemini_Master_Prompt_v3`
+This is the reference template. Individual session prompts are built fresh per person chosen.
