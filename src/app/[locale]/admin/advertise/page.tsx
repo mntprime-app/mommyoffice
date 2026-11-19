@@ -222,17 +222,17 @@ function DocumentInput({ value, onChange }: { value: string; onChange: (url: str
 }
 
 // ─── Field — MODULE LEVEL (same reason: stable reference = no remount on type) ─
-function Field({ label, hint, type = 'text', value, onChange }: {
-  label: string; hint?: string; type?: string;
+function Field({ label, hint, type = 'text', value, onChange, placeholder }: {
+  label: string; hint?: string; type?: string; placeholder?: string;
   value: string; onChange: (val: string) => void;
 }) {
   return (
     <div style={field}>
       <label style={lbl}>{label}</label>
       {type === 'textarea' ? (
-        <textarea value={value} onChange={(e) => onChange(e.target.value)} style={ta} />
+        <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={ta} />
       ) : (
-        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} style={inp} />
+        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={inp} />
       )}
       {hint && <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>{hint}</p>}
     </div>
@@ -593,8 +593,8 @@ export default function AdminAdvertisePage() {
           7. MEDIA KIT BANNER
       ══════════════════════════════════════════════════════════ */}
       <SectionHead label="📋  Баннерийн техникийн шаардлага (хүснэгт)" toggleValue={v['advertise_show_specs'] ?? '1'} onToggle={(val) => set('advertise_show_specs', val)} />
-      <Field label="Гарчиг" value={v['advertise_specs_title'] ?? ''} onChange={(val) => set('advertise_specs_title', val)} />
-      <Field label="Дэд текст" type="textarea" value={v['advertise_specs_desc'] ?? ''} onChange={(val) => set('advertise_specs_desc', val)} />
+      <Field label="Гарчиг" value={v['advertise_specs_title'] ?? ''} onChange={(val) => set('advertise_specs_title', val)} placeholder="Баннерийн техникийн шаардлага" />
+      <Field label="Дэд текст" type="textarea" value={v['advertise_specs_desc'] ?? ''} onChange={(val) => set('advertise_specs_desc', val)} placeholder="Зар материалаа доорх хэмжээнд тааруулж бэлтгэнэ үү. Файлыг яг тохирох пикселийн харьцаатай оруулна уу." />
 
       {/* Slot prices */}
       <div style={{ marginBottom: '1.25rem' }}>
