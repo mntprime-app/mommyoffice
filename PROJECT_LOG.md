@@ -11,6 +11,16 @@
 
 ## Session Log
 
+### Session 60 — 2026-11-19 — /advertise Visual Redesign + Footer Icons
+
+**Commits:** `da8d5df` · `acde655` · `04e87a8` · `2625d07` · `3b55ba9` (all pushed, deployed)
+
+**Focus:** Five workstreams. (1) Replaced `<AdvertiseSlots>` with new `<AdvertiseSlotGrid>` client component — 8 banner cards with unique SVG wireframe mockups, responsive 4→3→2 grid, card hover glow. All slot IDs aligned to BANNER_SPECS codes. (2) Click-to-expand lightbox on slot cards — 860px modal, 16:9 SVG preview, Escape key, backdrop close, fade+scale animation. (3) Fixed invisible phone number on advertise page (color `#374151` → `#e5e5e5` on dark background). (4) Strategic contact info architecture — footer admin designated as single source of truth for `footer_contact_email` and `footer_contact_phone`; advertise page now reads from global footer keys; advertise admin shows info panel directing editors to footer admin. (5) Inline SVG brand icons added to footer Social column — Facebook (blue), Instagram (pink), YouTube (red), TikTok (gray), phone (white), email (teal). All 16×16, zero bundle impact, icon+text pattern per UX benchmark (Coursera, Skillshare, The Everymom).
+
+**Session note:** `docs/sessions/SESSION_NOTES_2026_11_19_S60.md`
+
+---
+
 ### Session 57 — 2026-11-17 — Package Savings Finalized (29/40/48%) + Competitive Analysis + Strategic Master Plan 22pp
 
 **Commits:** None (strategy/documentation session)
