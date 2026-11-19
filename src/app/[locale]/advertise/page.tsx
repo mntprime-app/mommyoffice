@@ -149,6 +149,7 @@ export default async function AdvertisePage() {
           primaryHref={mediakitUrl || undefined}
           secondaryActionText={ctaText2}
           secondaryHref="#contact"
+          contentVAlign="center"
           fallbackGradient="linear-gradient(135deg, #0a1a19 0%, #061412 50%, #0d0d0d 100%)"
           desktopHeight="clamp(480px, 60vh, 640px)"
           mobileCardHeight="220px"

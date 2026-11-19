@@ -56,6 +56,8 @@ export interface UniversalHeroProps {
   mobileCardHeight?: string;
   /** Override desktop title font size. Default: 'clamp(1.6rem, 3vw, 2.6rem)' */
   titleFontSize?: string;
+  /** Vertical alignment of content block on desktop. Default: 'bottom' */
+  contentVAlign?: 'bottom' | 'center';
 }
 
 const DEFAULT_GRADIENT = 'linear-gradient(135deg, #060d1f 0%, #0d1b3e 40%, #0a2744 70%, #061428 100%)';
@@ -77,6 +79,7 @@ export default function UniversalHero({
   desktopHeight = 'clamp(580px, 68vh, 780px)',
   mobileCardHeight = '240px',
   titleFontSize = 'clamp(1.6rem, 3vw, 2.6rem)',
+  contentVAlign = 'bottom',
 }: UniversalHeroProps) {
   const [videoActive, setVideoActive] = useState(false);
   const [muted, setMuted]             = useState(true);
@@ -343,9 +346,13 @@ export default function UniversalHero({
               </button>
             )}
 
-            {/* BOTTOM-LEFT: title + description + CTAs */}
+            {/* BOTTOM-LEFT (or CENTER-LEFT): title + description + CTAs */}
             <div style={{
-              position: 'absolute', bottom: '32px', left: '32px',
+              position: 'absolute',
+              ...(contentVAlign === 'center'
+                ? { top: '50%', transform: 'translateY(-50%)' }
+                : { bottom: '32px' }),
+              left: '32px',
               maxWidth: '560px', zIndex: 2,
             }}>
               <h1 style={{
