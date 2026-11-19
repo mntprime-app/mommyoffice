@@ -257,7 +257,7 @@ export default async function AdvertisePage() {
                 </div>
                 <div style={{ padding: '1.25rem' }}>
                   <div style={{ marginBottom: '0.5rem' }}>
-                    <CategoryBadge text={p.title} />
+                    <CategoryBadge text={p.title} size="md" />
                   </div>
                   {p.desc && (
                     <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0, lineHeight: 1.5, textWrap: 'balance' as never }}>

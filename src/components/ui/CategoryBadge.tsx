@@ -4,10 +4,8 @@
  * Matches the Article section baseline: rounded-md (6px), teal, semi-transparent bg + border.
  */
 
-const BADGE_STYLE: React.CSSProperties = {
+const BADGE_BASE: React.CSSProperties = {
   display: 'inline-block',
-  padding: '2px 8px',
-  fontSize: '10px',
   fontWeight: 800,
   letterSpacing: '0.8px',
   textTransform: 'uppercase',
@@ -19,8 +17,13 @@ const BADGE_STYLE: React.CSSProperties = {
   lineHeight: 1.5,
 };
 
-export function CategoryBadge({ text }: { text: string }) {
-  return <span style={BADGE_STYLE}>{text}</span>;
+const BADGE_SIZES = {
+  sm: { padding: '2px 8px',  fontSize: '10px' },
+  md: { padding: '4px 11px', fontSize: '12px' },
+};
+
+export function CategoryBadge({ text, size = 'sm' }: { text: string; size?: 'sm' | 'md' }) {
+  return <span style={{ ...BADGE_BASE, ...BADGE_SIZES[size] }}>{text}</span>;
 }
 
 /** Free / paid status pill — same shape as CategoryBadge, green or amber variant. */
