@@ -145,8 +145,8 @@ export default async function AdvertisePage() {
           description={subtitle}
           coverImage={heroBg || undefined}
           youtubeId={heroYtId || undefined}
-          primaryActionText={ctaText}
-          primaryHref={mediakitUrl || '#contact'}
+          primaryActionText={mediakitUrl ? ctaText : undefined}
+          primaryHref={mediakitUrl || undefined}
           secondaryActionText={ctaText2}
           secondaryHref="#contact"
           fallbackGradient="linear-gradient(135deg, #0a1a19 0%, #061412 50%, #0d0d0d 100%)"
