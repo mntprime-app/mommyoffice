@@ -350,7 +350,7 @@ export default function UniversalHero({
             <div style={{
               position: 'absolute',
               ...(contentVAlign === 'center'
-                ? { top: '58%', transform: 'translateY(-50%)' }
+                ? { top: '65%', transform: 'translateY(-50%)' }
                 : { bottom: '32px' }),
               left: '32px',
               maxWidth: '560px', zIndex: 2,
