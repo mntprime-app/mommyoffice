@@ -34,7 +34,7 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   advertise_stat_3_value: '50K+',
   advertise_stat_3_label: 'Сарын хүрэлцээ',
   // Hero secondary button
-  advertise_hero_cta2: 'Мессэж илгээх',
+  advertise_hero_cta2: 'Захиалга өгөх',
   // Section headings
   advertise_pillars_section_title: 'Агуулгын үндсэн баганууд',
   advertise_pillars_section_desc: 'Брэндийнхаа зорилтот хэрэглэгчидтэй холбогдох 6 платформын тулгуур контент.',

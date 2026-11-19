@@ -392,7 +392,7 @@ export default function AdminAdvertisePage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <Field label="Үндсэн товчны текст"    hint='Жнь: "Санал татаж авах"' value={v['advertise_hero_cta'] ?? ''}  onChange={(val) => set('advertise_hero_cta', val)} />
-        <Field label="Хоёр дахь товчны текст" hint='Жнь: "Мессэж илгээх"'  value={v['advertise_hero_cta2'] ?? ''} onChange={(val) => set('advertise_hero_cta2', val)} />
+        <Field label="Хоёр дахь товчны текст" hint='Жнь: "Захиалга өгөх"'  value={v['advertise_hero_cta2'] ?? ''} onChange={(val) => set('advertise_hero_cta2', val)} />
       </div>
 
       <div style={field}>

@@ -57,7 +57,7 @@ export default async function AdvertisePage() {
   const heroBg      = s(settings, 'advertise_hero_bg');
   const heroYtId    = s(settings, 'advertise_hero_youtube_id');
   const ctaText     = s(settings, 'advertise_hero_cta',  'Сурталчилгааны санал татаж авах');
-  const ctaText2    = s(settings, 'advertise_hero_cta2', 'Мессэж илгээх');
+  const ctaText2    = s(settings, 'advertise_hero_cta2', 'Захиалга өгөх');
   const mediakitUrl = s(settings, 'advertise_mediakit_url');
 
   // ── Stats ─────────────────────────────────────────────────────────────────
@@ -355,7 +355,7 @@ export default async function AdvertisePage() {
                     textDecoration: 'none', background: `${pkg.color}0a`,
                   }}
                 >
-                  Мессэж илгээх
+                  Захиалга өгөх
                 </a>
               </div>
             ))}

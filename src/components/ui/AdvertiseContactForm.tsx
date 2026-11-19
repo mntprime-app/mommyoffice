@@ -119,7 +119,7 @@ export default function AdvertiseContactForm() {
           fontFamily: 'inherit', transition: 'background 0.2s',
         }}
       >
-        {status === 'sending' ? 'Илгээж байна...' : 'Мессэж илгээх →'}
+        {status === 'sending' ? 'Илгээж байна...' : 'Захиалга өгөх →'}
       </button>
     </form>
   );
