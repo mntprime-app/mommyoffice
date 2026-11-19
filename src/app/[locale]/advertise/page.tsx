@@ -128,8 +128,8 @@ export default async function AdvertisePage() {
   const showContact  = show('advertise_show_contact');
 
   // ── Table cell styles (plain objects — no React.CSSProperties needed) ─────
-  const thS = { padding: '12px 20px', textAlign: 'left' as const, fontSize: '11px', fontWeight: 700, color: '#6b7280' as const, letterSpacing: '0.8px', textTransform: 'uppercase' as const, borderBottom: '1px solid #1e1e1e' as const, whiteSpace: 'nowrap' as const };
-  const tdS = { padding: '15px 20px', fontSize: '14px', color: '#9ca3af' as const, borderBottom: '1px solid #161616' as const };
+  const thS = { padding: '12px 20px', textAlign: 'left' as const, fontSize: '11px', fontWeight: 700, color: '#9ca3af' as const, letterSpacing: '0.8px', textTransform: 'uppercase' as const, borderBottom: '1px solid #1e1e1e' as const, whiteSpace: 'nowrap' as const };
+  const tdS = { padding: '15px 20px', fontSize: '14px', color: '#c0c8d2' as const, borderBottom: '1px solid #161616' as const };
 
   return (
     <main style={{ background: '#070707', color: '#e5e5e5', overflowX: 'hidden' }}>
@@ -178,7 +178,7 @@ export default async function AdvertisePage() {
                   <div style={{ fontSize: 'clamp(1.4rem, 7vw, 3.25rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
                     {st.value}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#4b5563', marginTop: '0.3rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '0.3rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     {st.label}
                   </div>
                 </div>
@@ -201,7 +201,7 @@ export default async function AdvertisePage() {
             }}>
               {whyTitle}
             </h2>
-            <p style={{ fontSize: 'clamp(14px, 1.6vw, 16px)', color: '#6b7280', lineHeight: 1.8, margin: 0 }}>
+            <p style={{ fontSize: 'clamp(14px, 1.6vw, 16px)', color: '#9ca3af', lineHeight: 1.8, margin: 0 }}>
               {whyText}
             </p>
           </div>
@@ -221,7 +221,7 @@ export default async function AdvertisePage() {
             }}>
               {pillarsSectionTitle}
             </h2>
-            <p style={{ fontSize: '14px', color: '#4b5563', margin: 0 }}>
+            <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
               {pillarsSectionDesc}
             </p>
           </div>
@@ -259,7 +259,7 @@ export default async function AdvertisePage() {
                     {p.title}
                   </h3>
                   {p.desc && (
-                    <p style={{ fontSize: '13px', color: '#6b7280', margin: 0, lineHeight: 1.6 }}>
+                    <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
                       {p.desc}
                     </p>
                   )}
@@ -284,7 +284,7 @@ export default async function AdvertisePage() {
             }}>
               {packagesSectionTitle}
             </h2>
-            <p style={{ fontSize: '14px', color: '#4b5563', margin: 0 }}>
+            <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
               {packagesSectionDesc}
             </p>
           </div>
@@ -317,7 +317,7 @@ export default async function AdvertisePage() {
                   <span style={{ fontSize: 'clamp(1.8rem,4vw,2.4rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
                     {pkg.price}
                   </span>
-                  <span style={{ fontSize: '13px', color: '#4b5563', marginLeft: '4px' }}>/сар</span>
+                  <span style={{ fontSize: '13px', color: '#6b7280', marginLeft: '4px' }}>/сар</span>
                 </div>
                 {pkg.savings && (
                   <div style={{ marginBottom: '1.25rem' }}>
@@ -339,7 +339,7 @@ export default async function AdvertisePage() {
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem', flex: 1 }}>
                   {pkg.items.map((item) => (
                     <li key={item} style={{
-                      fontSize: '13px', color: '#9ca3af', padding: '0.5rem 0',
+                      fontSize: '13px', color: '#c4cdd6', padding: '0.5rem 0',
                       borderBottom: '1px solid #161616',
                     }}>
                       {item}
@@ -377,7 +377,7 @@ export default async function AdvertisePage() {
             }}>
               {slotsSectionTitle}
             </h2>
-            <p style={{ fontSize: '14px', color: '#4b5563', margin: 0 }}>
+            <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
               {slotsSectionDesc}
             </p>
           </div>
@@ -414,7 +414,7 @@ export default async function AdvertisePage() {
             }}>
               {s(settings, 'advertise_specs_title', 'Баннерийн техникийн шаардлага')}
             </h2>
-            <p style={{ fontSize: '13px', color: '#4b5563', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0 }}>
               {s(settings, 'advertise_specs_desc', 'Зар материалаа доорх хэмжээнд тааруулж бэлтгэнэ үү. Файлыг яг тохирох пикселийн харьцаатай оруулна уу.')}
             </p>
           </div>
@@ -451,11 +451,11 @@ export default async function AdvertisePage() {
                       </td>
                       <td style={tdS}>
                         <span style={{ display: 'block', color: '#e5e5e5', fontWeight: 600, fontSize: '14px' }}>{row.name}</span>
-                        <span style={{ fontSize: '12px', color: '#4b5563', marginTop: '2px', display: 'block' }}>{row.placement}</span>
+                        <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px', display: 'block' }}>{row.placement}</span>
                       </td>
                       <td className="specs-col-hide-mobile" style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: '#c0c8d2' }}>{row.desktop}</td>
                       <td className="specs-col-hide-mobile" style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: row.mobile === '—' ? '#374151' : '#c0c8d2' }}>{row.mobile}</td>
-                      <td className="specs-col-hide-mobile" style={{ ...tdS, fontSize: '13px', color: '#6b7280' }}>{row.formats}</td>
+                      <td className="specs-col-hide-mobile" style={{ ...tdS, fontSize: '13px', color: '#9ca3af' }}>{row.formats}</td>
                       <td style={{ ...tdS, textAlign: 'right' as const }}>
                         <span style={{
                           display: 'block',
@@ -464,7 +464,7 @@ export default async function AdvertisePage() {
                           fontSize: isPremium ? '16px' : '15px',
                           letterSpacing: '-0.01em',
                         }}>{row.price}</span>
-                        <span style={{ fontSize: '12px', color: '#4b5563', marginTop: '2px', display: 'block' }}>{row.priceSub}</span>
+                        <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px', display: 'block' }}>{row.priceSub}</span>
                       </td>
                     </tr>
                   );
@@ -502,7 +502,7 @@ export default async function AdvertisePage() {
           }}>
             {mediakitSectionTitle}
           </h2>
-          <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '1.25rem', lineHeight: 1.6 }}>
             {mediakitSectionDesc}
           </p>
           {mediakitUrl ? (
@@ -535,7 +535,7 @@ export default async function AdvertisePage() {
           {phone && (
             <p style={{ marginTop: '1rem', fontSize: '13px', color: '#374151' }}>
               Утсаар:{' '}
-              <a href={`tel:${phone.replace(/\s/g, '')}`} style={{ color: '#6b7280', textDecoration: 'none' }}>
+              <a href={`tel:${phone.replace(/\s/g, '')}`} style={{ color: '#9ca3af', textDecoration: 'none' }}>
                 {phone}
               </a>
             </p>
@@ -564,7 +564,7 @@ export default async function AdvertisePage() {
             }}>
               Сурталчилгааны захиалга өгөх
             </h2>
-            <p style={{ fontSize: '14px', color: '#4b5563', margin: 0, lineHeight: 1.8 }}>
+            <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0, lineHeight: 1.8 }}>
               Таны мессэжид бид ажлын өдрүүдэд 24 цагийн дотор хариу өгөх болно.{' '}
               Та мөн манай{' '}
               <a
