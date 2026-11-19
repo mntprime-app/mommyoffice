@@ -254,12 +254,12 @@ export default async function AdvertisePage() {
                     <span style={{ fontSize: '3rem', opacity: 0.3 }}>{p.emoji}</span>
                   )}
                 </div>
-                <div style={{ padding: '1.5rem' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff', margin: '0 0 0.65rem', letterSpacing: '-0.01em' }}>
+                <div style={{ padding: '1.25rem' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff', margin: '0 0 0.5rem', letterSpacing: '-0.01em' }}>
                     {p.title}
                   </h3>
                   {p.desc && (
-                    <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0, lineHeight: 1.75 }}>
+                    <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0, lineHeight: 1 }}>
                       {p.desc}
                     </p>
                   )}
