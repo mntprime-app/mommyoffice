@@ -3,6 +3,7 @@ import { getSiteSettings }         from '@/app/actions/admin';
 import AdvertiseSlots              from '@/components/ui/AdvertiseSlots';
 import type { SlotOverride }       from '@/components/ui/AdvertiseSlots';
 import AdvertiseContactForm        from '@/components/ui/AdvertiseContactForm';
+import { CategoryBadge }           from '@/components/ui/CategoryBadge';
 import UniversalHero               from '@/components/shared/UniversalHero';
 import type { Metadata }           from 'next';
 
@@ -255,9 +256,9 @@ export default async function AdvertisePage() {
                   )}
                 </div>
                 <div style={{ padding: '1.25rem' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff', margin: '0 0 0.5rem', letterSpacing: '-0.01em' }}>
-                    {p.title}
-                  </h3>
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <CategoryBadge text={p.title} />
+                  </div>
                   {p.desc && (
                     <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0, lineHeight: 1.5, textWrap: 'balance' as never }}>
                       {p.desc}
