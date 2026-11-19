@@ -401,9 +401,6 @@ export default async function AdvertisePage() {
             padding-left: 18px;
           }
           @media (max-width: 640px) {
-            /* On mobile: show only КОД · НЭР / БАЙРШИЛ · ҮНЭ — price is the conversion metric */
-            .specs-col-hide-mobile { display: none; }
-            .specs-table { min-width: 0 !important; }
             .specs-table th, .specs-table td { padding: 13px 14px !important; }
           }
         `}</style>
@@ -425,9 +422,9 @@ export default async function AdvertisePage() {
                 <tr style={{ background: '#111' }}>
                   <th style={{ ...thS, width: '90px' }}>Код</th>
                   <th style={thS}>Нэр / Байршил</th>
-                  <th className="specs-col-hide-mobile" style={{ ...thS, width: '120px' }}>Desktop</th>
-                  <th className="specs-col-hide-mobile" style={{ ...thS, width: '120px' }}>Mobile</th>
-                  <th className="specs-col-hide-mobile" style={thS}>Формат · Хэмжээ</th>
+                  <th style={{ ...thS, width: '120px' }}>Desktop</th>
+                  <th style={{ ...thS, width: '120px' }}>Mobile</th>
+                  <th style={thS}>Формат · Хэмжээ</th>
                   <th style={{ ...thS, width: '145px', textAlign: 'right' as const }}>Үнэ</th>
                 </tr>
               </thead>
@@ -454,9 +451,9 @@ export default async function AdvertisePage() {
                         <span style={{ display: 'block', color: '#e5e5e5', fontWeight: 600, fontSize: '14px' }}>{row.name}</span>
                         <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px', display: 'block' }}>{row.placement}</span>
                       </td>
-                      <td className="specs-col-hide-mobile" style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: '#c0c8d2' }}>{row.desktop}</td>
-                      <td className="specs-col-hide-mobile" style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: row.mobile === '—' ? '#374151' : '#c0c8d2' }}>{row.mobile}</td>
-                      <td className="specs-col-hide-mobile" style={{ ...tdS, fontSize: '13px', color: '#9ca3af' }}>{row.formats}</td>
+                      <td style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: '#c0c8d2' }}>{row.desktop}</td>
+                      <td style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: row.mobile === '—' ? '#374151' : '#c0c8d2' }}>{row.mobile}</td>
+                      <td style={{ ...tdS, fontSize: '13px', color: '#9ca3af' }}>{row.formats}</td>
                       <td style={{ ...tdS, textAlign: 'right' as const }}>
                         <span style={{
                           display: 'block',
