@@ -564,9 +564,23 @@ export default async function AdvertisePage() {
             }}>
               Сурталчилгааны захиалга өгөх
             </h2>
-            <p style={{ fontSize: '14px', color: '#4b5563', margin: 0, lineHeight: 1.7 }}>
-              Таны асуулгыг <strong style={{ color: '#6b7280' }}>{email}</strong>-д шууд хүргэнэ.
-              Ойрын ажлын өдрүүдэд хариу өгнө.
+            <p style={{ fontSize: '14px', color: '#4b5563', margin: 0, lineHeight: 1.8 }}>
+              Таны мессэжид бид ажлын өдрүүдэд 24 цагийн дотор хариу өгөх болно.{' '}
+              Та мөн манай{' '}
+              <a
+                href="tel:+97685388383"
+                style={{
+                  color: '#00B5AD',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                  borderBottom: '1px solid rgba(0,181,173,0.35)',
+                  paddingBottom: '1px',
+                }}
+              >
+                📞 8538-8383
+              </a>
+              {' '}дугаарт холбогдож мэдээлэл авах боломжтой.
             </p>
           </div>
           <AdvertiseContactForm />
