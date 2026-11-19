@@ -145,9 +145,8 @@ const FLAT_KEYS = [
   // Media Kit section
   'advertise_mediakit_section_title', 'advertise_mediakit_section_desc',
   'advertise_mediakit_section_bg',
-  // Contact
-  'advertise_contact_email', 'advertise_contact_phone',
   // Section visibility toggles (default ON — missing key = shown)
+  // Note: contact email+phone are global — managed in /admin/footer (footer_contact_email, footer_contact_phone)
   'advertise_show_hero', 'advertise_show_stats', 'advertise_show_why',
   'advertise_show_pillars', 'advertise_show_packages', 'advertise_show_slots',
   'advertise_show_specs', 'advertise_specs_title', 'advertise_specs_desc',
@@ -642,17 +641,14 @@ export default function AdminAdvertisePage() {
           8. CONTACT
       ══════════════════════════════════════════════════════════ */}
       <SectionHead label="📬  Холбоо барих" toggleValue={v['advertise_show_contact'] ?? '1'} onToggle={(val) => set('advertise_show_contact', val)} />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-        <div>
-          <label style={lbl}>Имэйл</label>
-          <input type="email" value={v['advertise_contact_email'] ?? ''} onChange={(e) => set('advertise_contact_email', e.target.value)} style={inp} placeholder="info.mommyoffice@gmail.com" />
-          <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>Асуулга энд очно.</p>
-        </div>
-        <div>
-          <label style={lbl}>Утасны дугаар</label>
-          <input type="tel" value={v['advertise_contact_phone'] ?? ''} onChange={(e) => set('advertise_contact_phone', e.target.value)} style={inp} placeholder="+976 9900 0000" />
-          <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>Хоосон үлдээвэл нуугдана.</p>
-        </div>
+      <div style={{ padding: '12px 16px', background: 'rgba(0,181,173,0.06)', border: '1px solid rgba(0,181,173,0.2)', borderRadius: '8px', marginBottom: '1.25rem' }}>
+        <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
+          📌 Имэйл болон утасны дугаарыг{' '}
+          <a href={`/${(typeof window !== 'undefined' ? window.location.pathname.split('/')[1] : 'mn')}/admin/footer`} style={{ color: '#00B5AD', textDecoration: 'none', fontWeight: 700 }}>
+            Footer admin
+          </a>
+          {' '}— д засна. Тэндээс засвал энэ хуудас болон footer-д нэгэн зэрэг тусна.
+        </p>
       </div>
 
       {/* ══════════════════════════════════════════════════════════

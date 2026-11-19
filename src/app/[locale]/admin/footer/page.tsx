@@ -116,6 +116,7 @@ function LinkColumnEditor({
 const SOCIAL_FIELDS = [
   { key: 'footer_tagline',       label: 'Брэндийн тайлбар (Tagline)',  placeholder: 'Монголын эмэгтэйчүүдийн №1 платформ', hint: 'Логоны доор харагдана.' },
   { key: 'footer_contact_email', label: 'Холбоо барих имэйл',          placeholder: 'info.mommyoffice@gmail.com', hint: 'Footer болон Contact хуудасны имэйл.' },
+  { key: 'footer_contact_phone', label: 'Утасны дугаар',               placeholder: '+976 8538-8383',             hint: 'Имэйлийн дээр харагдана. Хоосон үлдээвэл нуугдана.' },
   { key: 'footer_facebook_url',  label: 'Facebook URL',                placeholder: 'https://www.facebook.com/MommyofficeMN' },
   { key: 'footer_instagram_url', label: 'Instagram URL',               placeholder: 'https://www.instagram.com/mommyoffice_mo/' },
   { key: 'footer_youtube_url',   label: 'YouTube URL',                 placeholder: 'https://www.youtube.com/@mommyoffice', hint: 'Хоосон үлдээвэл харагдахгүй.' },
@@ -158,6 +159,7 @@ export default function FooterSettingsPage() {
       setSocial({
         footer_tagline:       s.footer_tagline       ?? '',
         footer_contact_email: s.footer_contact_email ?? '',
+        footer_contact_phone: s.footer_contact_phone ?? '',
         footer_facebook_url:  s.footer_facebook_url  ?? '',
         footer_instagram_url: s.footer_instagram_url ?? '',
         footer_youtube_url:   s.footer_youtube_url   ?? '',
@@ -263,6 +265,9 @@ export default function FooterSettingsPage() {
           </div>
           <div>
             <p style={{ fontSize: '11px', color: '#3a3a3a', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Нийгмийн сүлжээ</p>
+            {social.footer_contact_phone && (
+              <p style={{ fontSize: '12px', color: '#e5e5e5', margin: '2px 0', fontWeight: 600 }}>{social.footer_contact_phone}</p>
+            )}
             {social.footer_contact_email && (
               <p style={{ fontSize: '12px', color: '#00B5AD', margin: '2px 0' }}>{social.footer_contact_email}</p>
             )}

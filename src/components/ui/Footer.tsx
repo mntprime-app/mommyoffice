@@ -73,6 +73,7 @@ export default async function Footer() {
   const yt    = settings.footer_youtube_url   || '';
   const tt    = settings.footer_tiktok_url    || '';
   const email = settings.footer_contact_email || 'info.mommyoffice@gmail.com';
+  const phone = settings.footer_contact_phone || '';
   const tag   = settings.footer_tagline       || 'Монголын эмэгтэйчүүдийн №1 платформ';
 
   const platformLinks = parseLinks(settings.footer_links_platform, DEFAULT_PLATFORM);
@@ -166,7 +167,12 @@ export default async function Footer() {
                   TikTok
                 </a>
               )}
-              <a href={`mailto:${email}`} style={{ ...linkStyle, marginTop: '0.5rem', color: '#00B5AD' }}>
+              {phone && (
+                <a href={`tel:${phone.replace(/\s/g, '')}`} style={{ ...linkStyle, marginTop: '0.5rem', color: '#e5e5e5', fontWeight: 600 }}>
+                  {phone}
+                </a>
+              )}
+              <a href={`mailto:${email}`} style={{ ...linkStyle, marginTop: phone ? '0.25rem' : '0.5rem', color: '#00B5AD' }}>
                 {email}
               </a>
             </div>

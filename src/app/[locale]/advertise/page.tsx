@@ -50,8 +50,9 @@ export default async function AdvertisePage() {
   void locale;
 
   // ── Hero ──────────────────────────────────────────────────────────────────
-  const email       = s(settings, 'advertise_contact_email', 'info.mommyoffice@gmail.com');
-  const phone       = s(settings, 'advertise_contact_phone');
+  // Global contact info — single source of truth in footer admin
+  const email       = s(settings, 'footer_contact_email', 'info.mommyoffice@gmail.com');
+  const phone       = s(settings, 'footer_contact_phone');
   const headline    = s(settings, 'advertise_hero_headline', 'Монголын шийдвэр гаргагч эмэгтэйчүүдийн №1 платформд брэндээ байршуул');
   const subtitle    = s(settings, 'advertise_hero_subtitle', '25–44 насны өрхийн худалдан авалтыг шийддэг эмэгтэйчүүдэд чиглэсэн эерэг орчинд брэндийн мессэжийг хүргэнэ үү.');
   const heroBg      = s(settings, 'advertise_hero_bg');
