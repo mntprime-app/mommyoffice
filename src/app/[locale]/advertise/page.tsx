@@ -259,7 +259,7 @@ export default async function AdvertisePage() {
                     {p.title}
                   </h3>
                   {p.desc && (
-                    <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0, lineHeight: 1 }}>
+                    <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0, lineHeight: 1.5, textWrap: 'balance' as never }}>
                       {p.desc}
                     </p>
                   )}
