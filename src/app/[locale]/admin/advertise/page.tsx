@@ -96,15 +96,17 @@ const DEFAULT_SPECS = [
 ];
 type SpecsItem = { code: string; name: string; price: string; priceSub: string };
 
-// ─── Default slot data — IDs must match AdvertiseSlots SLOTS ─────────────────
-const DEFAULT_SLOTS = [
-  { id: 'popup',    name: 'Popup зар',               placement: 'Нүүр хуудас — дэлгэцийн дунд',    desc: 'Хуудас ачаалахад дэлгэцийн дунд гарна. Хамгийн өндөр харагдах чадвар.',               price: '₮350,000',         priceSub: '/ 3 хоногийн блок' },
-  { id: 'hero',     name: 'Нүүр хуудасны баннер',    placement: 'Нүүр хуудас — hero хэсгийн доор', desc: 'Сайтад орсон бүх хэрэглэгч харна. Хамгийн өндөр хүрэх чадвар бүхий байнгын байршуулалт.', price: '₮200,000–₮650,000', priceSub: '/ 1–4 долоо хоног' },
-  { id: 'articles', name: 'Нийтлэлийн баннер',       placement: 'Нийтлэл хуудас — дээд хэсэг',     desc: 'Нийтлэлийн жагсаалт болон дэлгэрэнгүй хуудсуудад харагдана.',                          price: '₮100,000-с',       priceSub: '/ сар' },
-  { id: 'inline',   name: 'Нийтлэлийн дотор баннер', placement: 'Нийтлэлийн эхэнд — агуулгын дотор', desc: 'Нийтлэлийг унших үед хуудсыг гүйлгэх явцад харагдана.',                             price: '₮100,000-с',       priceSub: '/ сар' },
-  { id: 'courses',  name: 'Хичээлийн баннер',         placement: 'Хичээлүүд хуудас — доод хэсэг',   desc: 'Хичээл үзэж буй болон сурахыг хүсэж буй хэрэглэгчид харна.',                          price: '₮100,000-с',       priceSub: '/ сар' },
-  { id: 'videos',   name: 'Видео хуудасны баннер',    placement: 'Видео & Кино хуудас — доод хэсэг', desc: 'Видео контент үзэж буй хэрэглэгчид харна.',                                           price: '₮100,000-с',       priceSub: '/ сар' },
-  { id: 'reel',     name: 'Facebook / Instagram Reel', placement: 'Нийгмийн сүлжээ',               desc: 'MommyOffice-ийн Facebook болон Instagram хуудаст Reel байршуулалт.',                   price: '₮500,000',         priceSub: '/ 1 Reel (зөвхөн багцад)' },
+// ─── Default slot data — IDs align with BANNER_SPECS codes on /advertise ─────
+// price / priceSub are managed separately via the specs table; not stored here
+const DEFAULT_SLOTS: SlotItem[] = [
+  { id: 'POP-UP', name: 'Поп-ап зар',           placement: 'Нүүр хуудас — дэлгэцийн дунд',      desc: 'Хуудас ачаалахад дэлгэцийн дунд гарна. Хамгийн өндөр харагдах чадвар.',                    image: '' },
+  { id: 'H1',     name: 'Hero баннер',            placement: 'Нүүр хуудас — hero хэсгийн доор',   desc: 'Сайтад орсон бүх хэрэглэгч харна. Хамгийн өндөр хүрэх чадвар бүхий байнгын байршуулалт.', image: '' },
+  { id: 'A1',     name: 'Нийтлэлийн баннер',      placement: 'Нийтлэлүүд — дундах баннер',         desc: 'Нийтлэлийн жагсаалт болон дэлгэрэнгүй хуудсуудад харагдана.',                              image: '' },
+  { id: 'A2',     name: 'Нийтлэлийн sidebar',     placement: 'Нийтлэлүүд — sidebar (desktop)',    desc: 'Desktop-ийн хажуугийн баганад байрлана. Mobile-д харагдахгүй.',                            image: '' },
+  { id: 'A3',     name: 'Нийтлэлийн footer',      placement: 'Нийтлэлүүд — footer баннер',         desc: 'Нийтлэлийн хуудасны доод хэсэгт байрлах өргөн баннер.',                                   image: '' },
+  { id: 'AR1',    name: 'Нийтлэлийн sidebar',     placement: 'Нийтлэл — sidebar (desktop+mob)',   desc: 'Desktop болон Mobile аль аль дээр харагдах sidebar баннер.',                              image: '' },
+  { id: 'C1',     name: 'Хичээлийн баннер',        placement: 'Хичээлүүд — хөндлөн баннер',         desc: 'Хичээлүүд хуудасны дээд хэсэгт хөндлөн баннер.',                                          image: '' },
+  { id: 'V1',     name: 'Видео баннер',            placement: 'Видеонүүд — хөндлөн баннер',         desc: 'Видеонүүд хуудасны дээд хэсэгт хөндлөн баннер.',                                          image: '' },
 ];
 
 // ─── Default package data ─────────────────────────────────────────────────────
@@ -157,7 +159,7 @@ type V = Record<string, string>;
 
 interface SlotItem {
   id: string; name: string; placement: string;
-  desc: string; price: string; priceSub: string; image: string;
+  desc: string; image: string;
 }
 
 interface PackageItem {
@@ -262,7 +264,14 @@ export default function AdminAdvertisePage() {
       try { savedSlots = JSON.parse(s['advertise_slots_data'] ?? '[]'); } catch { savedSlots = []; }
       setSlots(DEFAULT_SLOTS.map((def) => {
         const ov = savedSlots.find((x) => x.id === def.id) ?? {};
-        return { ...def, ...ov, image: (ov as SlotItem).image ?? '' } as SlotItem;
+        // Only merge known fields — price/priceSub intentionally excluded
+        return {
+          ...def,
+          name:      (ov.name      || def.name),
+          placement: (ov.placement || def.placement),
+          desc:      (ov.desc      || def.desc),
+          image:     (ov.image     ?? ''),
+        } as SlotItem;
       }));
 
       let savedPkgs: Partial<{ id: string; name: string; badge: string; price: string; items: string[] }>[] = [];
@@ -539,13 +548,13 @@ export default function AdminAdvertisePage() {
       {/* ══════════════════════════════════════════════════════════
           6. SLOT CARDS
       ══════════════════════════════════════════════════════════ */}
-      <SectionHead label="🗂  Байршуулалтын карт (7 слот)" toggleValue={v['advertise_show_slots'] ?? '1'} onToggle={(val) => set('advertise_show_slots', val)} />
+      <SectionHead label="🗂  Байршуулалтын showcase (8 байршуулалт)" toggleValue={v['advertise_show_slots'] ?? '1'} onToggle={(val) => set('advertise_show_slots', val)} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
         <Field label="Хэсгийн гарчиг"    value={v['advertise_slots_section_title'] ?? ''} onChange={(val) => set('advertise_slots_section_title', val)} />
         <Field label="Хэсгийн дэд текст" value={v['advertise_slots_section_desc'] ?? ''}  onChange={(val) => set('advertise_slots_section_desc', val)} />
       </div>
       <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '1.25rem' }}>
-        Зураг оруулбал wireframe-ийн оронд тухайн зураг харагдана.
+        Зураг оруулбал SVG wireframe-ийн оронд тухайн зураг харагдана. Үнэ нь доорх "Баннерийн техникийн шаардлага" хүснэгтэд тусдаа удирддаг.
       </p>
       {slots.map((slot) => (
         <div key={slot.id} style={{
@@ -567,24 +576,14 @@ export default function AdminAdvertisePage() {
             <label style={lbl}>Тайлбар</label>
             <textarea value={slot.desc} onChange={(e) => setSlotField(slot.id, 'desc', e.target.value)} style={{ ...ta, minHeight: '52px' }} />
           </div>
-          <div style={{ marginBottom: '0.75rem' }}>
+          <div>
             <label style={lbl}>Зураг (wireframe-ийн оронд харагдана)</label>
             <ImageInput
               value={slot.image}
               onChange={(url) => setSlotField(slot.id, 'image', url)}
               folder="advertise"
-              hint="Хоосон үлдээвэл CSS wireframe харагдана."
+              hint="Хоосон үлдээвэл SVG wireframe харагдана. Зөвлөмж: 1600×900px."
             />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-            <div>
-              <label style={lbl}>Үнэ</label>
-              <input value={slot.price}    onChange={(e) => setSlotField(slot.id, 'price', e.target.value)} placeholder="₮0,000" style={inp} />
-            </div>
-            <div>
-              <label style={lbl}>Үнийн давтамж</label>
-              <input value={slot.priceSub} onChange={(e) => setSlotField(slot.id, 'priceSub', e.target.value)} placeholder="/сар" style={inp} />
-            </div>
           </div>
         </div>
       ))}
