@@ -128,8 +128,8 @@ export default async function AdvertisePage() {
   const showContact  = show('advertise_show_contact');
 
   // ── Table cell styles (plain objects — no React.CSSProperties needed) ─────
-  const thS = { padding: '10px 16px', textAlign: 'left' as const, fontSize: '11px', fontWeight: 700, color: '#6b7280' as const, letterSpacing: '0.8px', textTransform: 'uppercase' as const, borderBottom: '1px solid #1e1e1e' as const, whiteSpace: 'nowrap' as const };
-  const tdS = { padding: '10px 16px', fontSize: '13px', color: '#9ca3af' as const, borderBottom: '1px solid #111' as const };
+  const thS = { padding: '12px 20px', textAlign: 'left' as const, fontSize: '11px', fontWeight: 700, color: '#6b7280' as const, letterSpacing: '0.8px', textTransform: 'uppercase' as const, borderBottom: '1px solid #1e1e1e' as const, whiteSpace: 'nowrap' as const };
+  const tdS = { padding: '15px 20px', fontSize: '14px', color: '#9ca3af' as const, borderBottom: '1px solid #161616' as const };
 
   return (
     <main style={{ background: '#070707', color: '#e5e5e5', overflowX: 'hidden' }}>
@@ -391,6 +391,15 @@ export default async function AdvertisePage() {
       ══════════════════════════════════════════════════════════════════════════ */}
       {showSpecs && (
       <section style={{ padding: '3rem 1.5rem', borderBottom: '1px solid #111' }}>
+        {/* Hover & premium-row accent — cannot be done with inline styles on a server component */}
+        <style>{`
+          .specs-table tbody tr { transition: background 0.12s; }
+          .specs-table tbody tr:hover { background: #131313 !important; }
+          .specs-table tbody tr.specs-premium td:first-child {
+            border-left: 2px solid rgba(0,181,173,0.45);
+            padding-left: 18px;
+          }
+        `}</style>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ marginBottom: '1.75rem' }}>
             <h2 style={{
@@ -403,42 +412,57 @@ export default async function AdvertisePage() {
               {s(settings, 'advertise_specs_desc', 'Зар материалаа доорх хэмжээнд тааруулж бэлтгэнэ үү. Файлыг яг тохирох пикселийн харьцаатай оруулна уу.')}
             </p>
           </div>
-          <div style={{ overflow: 'auto', borderRadius: '14px', border: '1px solid #1e1e1e', boxShadow: '0 2px 16px rgba(0,0,0,0.4)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0d0d0d', fontSize: '13px', minWidth: '700px' }}>
+          <div style={{ overflow: 'auto', borderRadius: '14px', border: '1px solid #1e1e1e', boxShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
+            <table className="specs-table" style={{ width: '100%', borderCollapse: 'collapse', background: '#0d0d0d', minWidth: '700px' }}>
               <thead>
                 <tr style={{ background: '#111' }}>
-                  <th style={{ ...thS, width: '80px' }}>Код</th>
+                  <th style={{ ...thS, width: '90px' }}>Код</th>
                   <th style={thS}>Нэр / Байршил</th>
-                  <th style={{ ...thS, width: '110px' }}>Desktop</th>
-                  <th style={{ ...thS, width: '110px' }}>Mobile</th>
+                  <th style={{ ...thS, width: '120px' }}>Desktop</th>
+                  <th style={{ ...thS, width: '120px' }}>Mobile</th>
                   <th style={thS}>Формат · Хэмжээ</th>
-                  <th style={{ ...thS, width: '130px', textAlign: 'right' as const }}>Үнэ</th>
+                  <th style={{ ...thS, width: '145px', textAlign: 'right' as const }}>Үнэ</th>
                 </tr>
               </thead>
               <tbody>
-                {specsRows.map((row, i) => (
-                  <tr key={row.code} style={{ background: i % 2 === 0 ? '#0d0d0d' : '#0a0a0a', transition: 'background 0.15s' }}>
-                    <td style={{ ...tdS, padding: '11px 16px' }}>
-                      <span style={{
-                        display: 'inline-block', background: 'rgba(0,181,173,0.08)',
-                        border: '1px solid rgba(0,181,173,0.2)', borderRadius: '5px',
-                        padding: '2px 8px', fontFamily: 'monospace', fontSize: '12px',
-                        fontWeight: 700, color: '#00B5AD', whiteSpace: 'nowrap' as const,
-                      }}>{row.code}</span>
-                    </td>
-                    <td style={{ ...tdS, padding: '11px 16px' }}>
-                      <span style={{ display: 'block', color: '#e5e5e5', fontWeight: 600 }}>{row.name}</span>
-                      <span style={{ fontSize: '11px', color: '#4b5563' }}>{row.placement}</span>
-                    </td>
-                    <td style={{ ...tdS, padding: '11px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#9ca3af' }}>{row.desktop}</td>
-                    <td style={{ ...tdS, padding: '11px 16px', fontFamily: 'monospace', fontSize: '12px', color: row.mobile === '—' ? '#374151' : '#9ca3af' }}>{row.mobile}</td>
-                    <td style={{ ...tdS, padding: '11px 16px', fontSize: '12px', color: '#6b7280' }}>{row.formats}</td>
-                    <td style={{ ...tdS, padding: '11px 16px', textAlign: 'right' as const }}>
-                      <span style={{ display: 'block', color: '#00B5AD', fontWeight: 700, fontSize: '13px' }}>{row.price}</span>
-                      <span style={{ fontSize: '11px', color: '#4b5563' }}>{row.priceSub}</span>
-                    </td>
-                  </tr>
-                ))}
+                {specsRows.map((row, i) => {
+                  const isPremium = row.code === 'POP-UP' || row.code === 'H1';
+                  return (
+                    <tr
+                      key={row.code}
+                      className={isPremium ? 'specs-premium' : undefined}
+                      style={{ background: i % 2 === 0 ? '#0d0d0d' : '#0a0a0a' }}
+                    >
+                      <td style={tdS}>
+                        <span style={{
+                          display: 'inline-block',
+                          background: isPremium ? 'rgba(0,181,173,0.13)' : 'rgba(0,181,173,0.07)',
+                          border: `1px solid ${isPremium ? 'rgba(0,181,173,0.4)' : 'rgba(0,181,173,0.18)'}`,
+                          borderRadius: '5px',
+                          padding: '3px 9px', fontFamily: 'monospace', fontSize: '13px',
+                          fontWeight: 700, color: '#00B5AD', whiteSpace: 'nowrap' as const,
+                        }}>{row.code}</span>
+                      </td>
+                      <td style={tdS}>
+                        <span style={{ display: 'block', color: '#e5e5e5', fontWeight: 600, fontSize: '14px' }}>{row.name}</span>
+                        <span style={{ fontSize: '12px', color: '#4b5563', marginTop: '2px', display: 'block' }}>{row.placement}</span>
+                      </td>
+                      <td style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: '#c0c8d2' }}>{row.desktop}</td>
+                      <td style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: row.mobile === '—' ? '#374151' : '#c0c8d2' }}>{row.mobile}</td>
+                      <td style={{ ...tdS, fontSize: '13px', color: '#6b7280' }}>{row.formats}</td>
+                      <td style={{ ...tdS, textAlign: 'right' as const }}>
+                        <span style={{
+                          display: 'block',
+                          color: isPremium ? '#2dd4bf' : '#00B5AD',
+                          fontWeight: 800,
+                          fontSize: isPremium ? '16px' : '15px',
+                          letterSpacing: '-0.01em',
+                        }}>{row.price}</span>
+                        <span style={{ fontSize: '12px', color: '#4b5563', marginTop: '2px', display: 'block' }}>{row.priceSub}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
