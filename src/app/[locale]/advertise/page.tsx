@@ -542,9 +542,9 @@ export default async function AdvertisePage() {
             </a>
           )}
           {phone && (
-            <p style={{ marginTop: '1rem', fontSize: '13px', color: '#374151' }}>
+            <p style={{ marginTop: '1rem', fontSize: '13px', color: '#6b7280' }}>
               Утсаар:{' '}
-              <a href={`tel:${phone.replace(/\s/g, '')}`} style={{ color: '#9ca3af', textDecoration: 'none' }}>
+              <a href={`tel:${phone.replace(/\s/g, '')}`} style={{ color: '#e5e5e5', textDecoration: 'none', fontWeight: 600 }}>
                 {phone}
               </a>
             </p>
