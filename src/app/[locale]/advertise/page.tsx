@@ -562,7 +562,7 @@ export default async function AdvertisePage() {
               fontSize: 'clamp(1.6rem, 3.5vw, 2.25rem)', fontWeight: 900,
               color: '#fff', margin: '0 0 0.75rem', letterSpacing: '-0.02em',
             }}>
-              Сурталчилгааны асуулга илгээх
+              Сурталчилгааны захиалга өгөх
             </h2>
             <p style={{ fontSize: '14px', color: '#4b5563', margin: 0, lineHeight: 1.7 }}>
               Таны асуулгыг <strong style={{ color: '#6b7280' }}>{email}</strong>-д шууд хүргэнэ.
