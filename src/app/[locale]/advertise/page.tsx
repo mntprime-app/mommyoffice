@@ -53,11 +53,11 @@ export default async function AdvertisePage() {
   const email       = s(settings, 'advertise_contact_email', 'info.mommyoffice@gmail.com');
   const phone       = s(settings, 'advertise_contact_phone');
   const headline    = s(settings, 'advertise_hero_headline', 'Монголын шийдвэр гаргагч эмэгтэйчүүдийн №1 платформд брэндээ байршуул');
-  const subtitle    = s(settings, 'advertise_hero_subtitle', '25–44 насны өрхийн худалдан авалтыг шийддэг эмэгтэйчүүдэд чиглэсэн эерэг орчинд брэндийн мессежийг хүргэнэ үү.');
+  const subtitle    = s(settings, 'advertise_hero_subtitle', '25–44 насны өрхийн худалдан авалтыг шийддэг эмэгтэйчүүдэд чиглэсэн эерэг орчинд брэндийн мессэжийг хүргэнэ үү.');
   const heroBg      = s(settings, 'advertise_hero_bg');
   const heroYtId    = s(settings, 'advertise_hero_youtube_id');
   const ctaText     = s(settings, 'advertise_hero_cta',  'Сурталчилгааны санал татаж авах');
-  const ctaText2    = s(settings, 'advertise_hero_cta2', 'Асуулга илгээх');
+  const ctaText2    = s(settings, 'advertise_hero_cta2', 'Мессэж илгээх');
   const mediakitUrl = s(settings, 'advertise_mediakit_url');
 
   // ── Stats ─────────────────────────────────────────────────────────────────
@@ -71,7 +71,7 @@ export default async function AdvertisePage() {
 
   // ── Why ───────────────────────────────────────────────────────────────────
   const whyTitle = s(settings, 'advertise_why_title', 'Яагаад MommyOffice-д сурталчлах вэ?');
-  const whyText  = s(settings, 'advertise_why_text', 'Монголын өрхийн худалдан авалтын шийдвэрийг гаргадаг 25–44 насны эмэгтэйчүүд бидний гол үзэгчид. Брэндийнхаа мессежийг зорилтот орчинд хүргэн, итгэлийн маркетингийн давуу талыг ашиглаарай.');
+  const whyText  = s(settings, 'advertise_why_text', 'Монголын өрхийн худалдан авалтын шийдвэрийг гаргадаг 25–44 насны эмэгтэйчүүд бидний гол үзэгчид. Брэндийнхаа мессэжийг зорилтот орчинд хүргэн, итгэлийн маркетингийн давуу талыг ашиглаарай.');
 
   // ── Section headings ──────────────────────────────────────────────────────
   const pillarsSectionTitle  = s(settings, 'advertise_pillars_section_title',  'Агуулгын үндсэн баганууд');
@@ -355,7 +355,7 @@ export default async function AdvertisePage() {
                     textDecoration: 'none', background: `${pkg.color}0a`,
                   }}
                 >
-                  Асуулга илгээх
+                  Мессэж илгээх
                 </a>
               </div>
             ))}

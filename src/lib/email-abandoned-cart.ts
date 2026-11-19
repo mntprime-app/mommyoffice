@@ -149,7 +149,7 @@ function build24h(ctx: ReminderContext): { subject: string; html: string } {
     ${ctaButton('Захиалгыг үргэлжлүүлэх', ctx.resumeUrl)}
 
     <p style="text-align:center;font-size:12px;color:#4b5563;margin:0;line-height:1.6;">
-      Жич: Хэрэглэгч та энэхүү мэдээллийг авах шаардлагагүй гэж үзвэл энэ мессежийг үл тоомсорлоно уу.
+      Жич: Хэрэглэгч та энэхүү мэдээллийг авах шаардлагагүй гэж үзвэл энэ мессэжийг үл тоомсорлоно уу.
     </p>
   `;
 

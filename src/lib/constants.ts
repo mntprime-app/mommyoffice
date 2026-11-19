@@ -15,7 +15,7 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   advertise_contact_phone: '',
   // Hero
   advertise_hero_headline: 'Монголын шийдвэр гаргагч эмэгтэйчүүдийн №1 платформд брэндээ байршуул',
-  advertise_hero_subtitle: '25–44 насны өрхийн худалдан авалтыг шийддэг эмэгтэйчүүдэд чиглэсэн эерэг орчинд брэндийн мессежийг хүргэнэ үү.',
+  advertise_hero_subtitle: '25–44 насны өрхийн худалдан авалтыг шийддэг эмэгтэйчүүдэд чиглэсэн эерэг орчинд брэндийн мессэжийг хүргэнэ үү.',
   advertise_hero_bg: '',            // background image URL for hero (optional)
   advertise_hero_cta: 'Сурталчилгааны санал татаж авах',
   advertise_mediakit_url: '',       // PDF download link
@@ -34,7 +34,7 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   advertise_stat_3_value: '50K+',
   advertise_stat_3_label: 'Сарын хүрэлцээ',
   // Hero secondary button
-  advertise_hero_cta2: 'Асуулга илгээх',
+  advertise_hero_cta2: 'Мессэж илгээх',
   // Section headings
   advertise_pillars_section_title: 'Агуулгын үндсэн баганууд',
   advertise_pillars_section_desc: 'Брэндийнхаа зорилтот хэрэглэгчидтэй холбогдох 6 платформын тулгуур контент.',
@@ -49,7 +49,7 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   advertise_packages_data: '[]',
   // Why advertise section
   advertise_why_title: 'Яагаад MommyOffice-д сурталчлах вэ?',
-  advertise_why_text: 'Монголын өрхийн худалдан авалтын шийдвэрийг гаргадаг 25–44 насны эмэгтэйчүүд бидний гол үзэгчид. Брэндийнхаа мессежийг зорилтот орчинд хүргэн, итгэлийн маркетингийн давуу талыг ашиглаарай.',
+  advertise_why_text: 'Монголын өрхийн худалдан авалтын шийдвэрийг гаргадаг 25–44 насны эмэгтэйчүүд бидний гол үзэгчид. Брэндийнхаа мессэжийг зорилтот орчинд хүргэн, итгэлийн маркетингийн давуу талыг ашиглаарай.',
   // 6 Content Pillars
   advertise_pillar_1_title: 'Амжилтын эзэд',
   advertise_pillar_1_desc: 'Монголын амжилттай эмэгтэйчүүдийн түүхүүд болон ажлын туршлага.',

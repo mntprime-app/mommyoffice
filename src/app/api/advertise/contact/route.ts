@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
               <p style="margin:0;font-size:15px;font-weight:600;color:#e5e5e5;">${escHtml(phone)}</p>
             </td></tr>` : ''}
             <tr><td style="padding:12px 0;">
-              <p style="margin:0 0 8px;font-size:11px;color:#4b5563;text-transform:uppercase;letter-spacing:1px;">Мессеж</p>
+              <p style="margin:0 0 8px;font-size:11px;color:#4b5563;text-transform:uppercase;letter-spacing:1px;">Мессэж</p>
               <p style="margin:0;font-size:14px;color:#9ca3af;line-height:1.7;white-space:pre-wrap;">${escHtml(message)}</p>
             </td></tr>
           </table>

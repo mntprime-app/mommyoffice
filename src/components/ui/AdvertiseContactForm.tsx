@@ -86,7 +86,7 @@ export default function AdvertiseContactForm() {
       </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
-        <label style={lbl}>Мессеж *</label>
+        <label style={lbl}>Мессэж *</label>
         <textarea
           required value={form.message}
           onChange={(e) => set('message', e.target.value)}
@@ -119,7 +119,7 @@ export default function AdvertiseContactForm() {
           fontFamily: 'inherit', transition: 'background 0.2s',
         }}
       >
-        {status === 'sending' ? 'Илгээж байна...' : 'Асуулга илгээх →'}
+        {status === 'sending' ? 'Илгээж байна...' : 'Мессэж илгээх →'}
       </button>
     </form>
   );
