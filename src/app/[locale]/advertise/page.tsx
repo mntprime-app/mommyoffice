@@ -422,10 +422,10 @@ export default async function AdvertisePage() {
                 <tr style={{ background: '#111' }}>
                   <th style={{ ...thS, width: '90px' }}>Код</th>
                   <th style={thS}>Нэр / Байршил</th>
+                  <th style={{ ...thS, width: '145px' }}>Үнэ</th>
                   <th style={{ ...thS, width: '120px' }}>Desktop</th>
                   <th style={{ ...thS, width: '120px' }}>Mobile</th>
                   <th style={thS}>Формат · Хэмжээ</th>
-                  <th style={{ ...thS, width: '145px', textAlign: 'right' as const }}>Үнэ</th>
                 </tr>
               </thead>
               <tbody>
@@ -451,10 +451,7 @@ export default async function AdvertisePage() {
                         <span style={{ display: 'block', color: '#e5e5e5', fontWeight: 600, fontSize: '14px' }}>{row.name}</span>
                         <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px', display: 'block' }}>{row.placement}</span>
                       </td>
-                      <td style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: '#c0c8d2' }}>{row.desktop}</td>
-                      <td style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: row.mobile === '—' ? '#374151' : '#c0c8d2' }}>{row.mobile}</td>
-                      <td style={{ ...tdS, fontSize: '13px', color: '#9ca3af' }}>{row.formats}</td>
-                      <td style={{ ...tdS, textAlign: 'right' as const }}>
+                      <td style={tdS}>
                         <span style={{
                           display: 'block',
                           color: isPremium ? '#2dd4bf' : '#00B5AD',
@@ -464,6 +461,9 @@ export default async function AdvertisePage() {
                         }}>{row.price}</span>
                         <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px', display: 'block' }}>{row.priceSub}</span>
                       </td>
+                      <td style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: '#c0c8d2' }}>{row.desktop}</td>
+                      <td style={{ ...tdS, fontFamily: 'monospace', fontSize: '13px', color: row.mobile === '—' ? '#374151' : '#c0c8d2' }}>{row.mobile}</td>
+                      <td style={{ ...tdS, fontSize: '13px', color: '#9ca3af' }}>{row.formats}</td>
                     </tr>
                   );
                 })}
