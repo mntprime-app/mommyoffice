@@ -148,31 +148,37 @@ export default async function Footer() {
             <p style={headStyle}>Нийгмийн сүлжээ</p>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {fb && (
-                <a href={fb} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                <a href={fb} target="_blank" rel="noopener noreferrer" style={{ ...linkStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3l-.5 3H13v6.8c4.56-.93 8-4.96 8-9.8"/></svg>
                   Facebook
                 </a>
               )}
               {ig && (
-                <a href={ig} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                <a href={ig} target="_blank" rel="noopener noreferrer" style={{ ...linkStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E1306C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="#E1306C" stroke="none"/></svg>
                   Instagram
                 </a>
               )}
               {yt && (
-                <a href={yt} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                <a href={yt} target="_blank" rel="noopener noreferrer" style={{ ...linkStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF0000" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5a3 3 0 0 0-2.1 2.1C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.75 15.5v-7l6.25 3.5-6.25 3.5z"/></svg>
                   YouTube
                 </a>
               )}
               {tt && (
-                <a href={tt} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                <a href={tt} target="_blank" rel="noopener noreferrer" style={{ ...linkStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#9ca3af" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.73a8.21 8.21 0 0 0 4.81 1.54V6.82a4.85 4.85 0 0 1-1.04-.13z"/></svg>
                   TikTok
                 </a>
               )}
               {phone && (
-                <a href={`tel:${phone.replace(/\s/g, '')}`} style={{ ...linkStyle, marginTop: '0.5rem', color: '#e5e5e5', fontWeight: 600 }}>
+                <a href={`tel:${phone.replace(/\s/g, '')}`} style={{ ...linkStyle, marginTop: '0.5rem', color: '#e5e5e5', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e5e5e5" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>
                   {phone}
                 </a>
               )}
-              <a href={`mailto:${email}`} style={{ ...linkStyle, marginTop: phone ? '0.25rem' : '0.5rem', color: '#00B5AD' }}>
+              <a href={`mailto:${email}`} style={{ ...linkStyle, marginTop: phone ? '0.25rem' : '0.5rem', color: '#00B5AD', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00B5AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
                 {email}
               </a>
             </div>
