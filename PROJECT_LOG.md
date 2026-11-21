@@ -11,6 +11,16 @@
 
 ## Session Log
 
+### Session 61 — 2026-11-21 — МОНГОЛЫН ХАТАН Content Series + Indirect Advertise Strategy
+
+**Commits:** None (strategy + content session)
+
+**Focus:** Two workstreams. (1) Indirect promotion strategy for `/mn/advertise` — organic viral content approach replacing ineffective direct Facebook boosting. (2) New content series `МОНГОЛЫН ХАТАН` — covers Mongolian women's historical power (Мандухай, Түрэгэн, Бөртэ, 13th century legal rights), current strength statistics, and household economic decision-making. Gemini master prompt built and saved as `docs/MommyOffice_Mongolian_Women_Prompt_v1.docx`. Also discussed image-to-video pipeline: Hailuo AI (free, start here) → Kling AI (upgrade) → ElevenLabs voiceover → CapCut edit. Image generation prompts for historical queens not yet written — carry forward.
+
+**Session note:** `docs/sessions/SESSION_NOTES_2026_11_21_S61.md`
+
+---
+
 ### Session 60 — 2026-11-19 — /advertise Visual Redesign + Footer Icons
 
 **Commits:** `da8d5df` · `acde655` · `04e87a8` · `2625d07` · `3b55ba9` (all pushed, deployed)
